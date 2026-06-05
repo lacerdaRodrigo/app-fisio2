@@ -1,0 +1,44 @@
+# Fisio Home Care
+
+Aplicativo de Fisioterapia Domiciliar desenvolvido em Flutter, com arquitetura Serverless baseada no Google Sheets API (BYODB - Bring Your Own Database) e 100% aderente à LGPD.
+
+## Estrutura do Projeto
+
+Toda a lógica e documentação foram estruturadas seguindo nomenclaturas em Português (PT-BR) para facilitar a manutenção futura.
+
+### Documentação (`/documentacao`)
+Toda a documentação técnica, de segurança e de arquitetura do sistema foi movida para a pasta `/documentacao`.
+* **Especificações Técnicas:** `ESPECIFICACOES_TELAS.md`, `LOGIN_SCREEN_SPEC.md`, `PACIENTES_SPEC.md`
+* **Modelo de Dados & Segurança:** `MODELO_DADOS.md`, `SEGURANCA_E_DADOS.md`, `chaves.md`
+* **Arquitetura Visual:** `DIAGRAMA_FLUXOS.md`
+* **Testes & QA:** Arquivos `CASOS_DE_TESTE_*.md`
+
+### Estrutura do Aplicativo (`/lib`)
+* `/telas`: Telas principais do aplicativo (Login, Dashboard, Pacientes, etc.)
+* `/componentes`: Widgets reutilizáveis da interface de usuário
+* `/provedores`: Gerenciamento de estado utilizando Riverpod
+* `/modelos`: Classes de abstração de dados (Pacientes, Agendamentos, Evoluções)
+* `/servicos`: Integrações externas (Google Sheets API, OAuth, Speech-to-Text)
+* `/utilitarios`: Funções auxiliares (máscaras de CPF, cálculos de idade, validação de datas)
+
+## Tecnologias e Dependências Principais
+* **Flutter & Dart:** Framework principal.
+* **Riverpod:** Injeção de dependência e controle de estado.
+* **Google Sign-In & Google APIs:** Autenticação e integração backend via Sheets.
+* **Firebase Hosting:** Publicação da versão Web em `https://app-fisioterapia-rodrigo.web.app`.
+* **Google Fonts:** Tipografia premium (ex: Inter).
+* **Speech to Text:** Para registros clínicos.
+* **Url Launcher:** Rotas (Google Maps / Waze).
+
+## Como Executar
+1. Instale as dependências: `flutter pub get`
+2. Execute o aplicativo: `flutter run`
+
+## Como Publicar na Web
+1. Gere a build Web informando o OAuth Client ID:
+   `flutter build web --dart-define=GOOGLE_OAUTH_CLIENT_ID_WEB=<client-id-web>`
+2. Publique no Firebase Hosting:
+   `firebase deploy --only hosting`
+
+## Segurança e LGPD
+O aplicativo opera num modelo soberano: o fisioterapeuta conecta a própria conta do Google e atua como Controlador dos dados. Não há servidores centrais de terceiros processando os prontuários.
