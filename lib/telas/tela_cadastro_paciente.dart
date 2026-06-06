@@ -1,0 +1,312 @@
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../modelos/paciente.dart';
+import '../provedores/provedores_dados.dart';
+import '../utilitarios/validador_cpf.dart';
+
+class TelaCadastroPaciente extends ConsumerStatefulWidget {
+  const TelaCadastroPaciente({super.key});
+
+  @override
+  ConsumerState<TelaCadastroPaciente> createState() =>
+      _TelaCadastroPacienteState();
+}
+
+class _TelaCadastroPacienteState extends ConsumerState<TelaCadastroPaciente> {
+  final _chaveFormulario = GlobalKey<FormState>();
+  final _nomeController = TextEditingController();
+  final _cpfController = TextEditingController();
+  final _telefoneController = TextEditingController();
+  final _enderecoController = TextEditingController();
+  final _queixaController = TextEditingController();
+  final _hdaController = TextEditingController();
+  final _hpController = TextEditingController();
+  final _ocupacaoController = TextEditingController();
+  DateTime? _dataNascimento;
+  bool _salvando = false;
+
+  @override
+  void dispose() {
+    _nomeController.dispose();
+    _cpfController.dispose();
+    _telefoneController.dispose();
+    _enderecoController.dispose();
+    _queixaController.dispose();
+    _hdaController.dispose();
+    _hpController.dispose();
+    _ocupacaoController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Novo Paciente'),
+        leading: IconButton(
+          icon: const Icon(Icons.close_rounded),
+          onPressed: () => Navigator.pop(context),
+        ),
+      ),
+      body: Form(
+        key: _chaveFormulario,
+        child: ListView(
+          padding: const EdgeInsets.all(20),
+          children: [
+            // Seção: Dados Pessoais
+            _construirTituloSecao(
+              'Dados Pessoais',
+              Icons.person_outline_rounded,
+            ),
+            const SizedBox(height: 12),
+
+            TextFormField(
+              controller: _nomeController,
+              decoration: const InputDecoration(
+                labelText: 'Nome Completo *',
+                prefixIcon: Icon(Icons.badge_outlined),
+              ),
+              textCapitalization: TextCapitalization.words,
+              validator: (v) => (v == null || v.trim().isEmpty)
+                  ? 'Nome é obrigatório.'
+                  : null,
+            ),
+            const SizedBox(height: 12),
+
+            TextFormField(
+              controller: _cpfController,
+              decoration: const InputDecoration(
+                labelText: 'CPF *',
+                prefixIcon: Icon(Icons.fingerprint_rounded),
+                hintText: '000.000.000-00',
+              ),
+              keyboardType: TextInputType.number,
+              inputFormatters: [
+                FilteringTextInputFormatter.digitsOnly,
+                LengthLimitingTextInputFormatter(11),
+              ],
+              validator: (v) {
+                if (v == null || v.isEmpty) return 'CPF é obrigatório.';
+                if (!ValidadorCpf.validar(v)) return 'CPF inválido.';
+                return null;
+              },
+            ),
+            const SizedBox(height: 12),
+
+            TextFormField(
+              controller: _telefoneController,
+              decoration: const InputDecoration(
+                labelText: 'Telefone *',
+                prefixIcon: Icon(Icons.phone_outlined),
+                hintText: '(00) 00000-0000',
+              ),
+              keyboardType: TextInputType.phone,
+              validator: (v) => (v == null || v.trim().isEmpty)
+                  ? 'Telefone é obrigatório.'
+                  : null,
+            ),
+            const SizedBox(height: 12),
+
+            // Data de Nascimento
+            InkWell(
+              borderRadius: BorderRadius.circular(12),
+              onTap: () async {
+                final data = await showDatePicker(
+                  context: context,
+                  initialDate: DateTime(1990),
+                  firstDate: DateTime(1900),
+                  lastDate: DateTime.now(),
+                  locale: const Locale('pt', 'BR'),
+                );
+                if (data != null) setState(() => _dataNascimento = data);
+              },
+              child: InputDecorator(
+                decoration: const InputDecoration(
+                  labelText: 'Data de Nascimento',
+                  prefixIcon: Icon(Icons.cake_outlined),
+                ),
+                child: Text(
+                  _dataNascimento != null
+                      ? '${_dataNascimento!.day.toString().padLeft(2, '0')}/${_dataNascimento!.month.toString().padLeft(2, '0')}/${_dataNascimento!.year}'
+                      : 'Selecionar data',
+                  style: TextStyle(
+                    color: _dataNascimento != null
+                        ? Colors.black87
+                        : Colors.grey,
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(height: 12),
+
+            TextFormField(
+              controller: _enderecoController,
+              decoration: const InputDecoration(
+                labelText: 'Endereço Completo *',
+                prefixIcon: Icon(Icons.location_on_outlined),
+              ),
+              textCapitalization: TextCapitalization.sentences,
+              validator: (v) => (v == null || v.trim().isEmpty)
+                  ? 'Endereço é obrigatório.'
+                  : null,
+            ),
+
+            const SizedBox(height: 28),
+
+            // Seção: Anamnese Clínica
+            _construirTituloSecao(
+              'Anamnese Clínica',
+              Icons.medical_information_outlined,
+            ),
+            const SizedBox(height: 12),
+
+            TextFormField(
+              controller: _queixaController,
+              decoration: const InputDecoration(
+                labelText: 'Queixa Principal (QP)',
+              ),
+              maxLines: 2,
+              textCapitalization: TextCapitalization.sentences,
+            ),
+            const SizedBox(height: 12),
+
+            TextFormField(
+              controller: _hdaController,
+              decoration: const InputDecoration(
+                labelText: 'Histórico da Doença Atual (HDA)',
+                hintText: 'EVA, fatores de piora/melhora...',
+              ),
+              maxLines: 3,
+              textCapitalization: TextCapitalization.sentences,
+            ),
+            const SizedBox(height: 12),
+
+            TextFormField(
+              controller: _hpController,
+              decoration: const InputDecoration(
+                labelText: 'Histórico Pregresso (HP)',
+                hintText: 'Cirurgias, medicamentos, comorbidades...',
+              ),
+              maxLines: 3,
+              textCapitalization: TextCapitalization.sentences,
+            ),
+            const SizedBox(height: 12),
+
+            TextFormField(
+              controller: _ocupacaoController,
+              decoration: const InputDecoration(labelText: 'Ocupação'),
+              textCapitalization: TextCapitalization.words,
+            ),
+            const SizedBox(height: 32),
+
+            // Botão Salvar
+            SizedBox(
+              height: 56,
+              child: ElevatedButton.icon(
+                onPressed: _salvando ? null : _salvarPaciente,
+                icon: _salvando
+                    ? const SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: Colors.white,
+                        ),
+                      )
+                    : const Icon(Icons.save_rounded),
+                label: Text(_salvando ? 'Salvando...' : 'Salvar Paciente'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: theme.colorScheme.primary,
+                  foregroundColor: Colors.white,
+                ),
+              ),
+            ),
+            const SizedBox(height: 24),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _construirTituloSecao(String titulo, IconData icone) {
+    return Row(
+      children: [
+        Icon(icone, size: 20, color: Theme.of(context).colorScheme.primary),
+        const SizedBox(width: 8),
+        Text(
+          titulo,
+          style: TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.bold,
+            color: Theme.of(context).colorScheme.primary,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Future<void> _salvarPaciente() async {
+    if (!_chaveFormulario.currentState!.validate()) return;
+    if (_dataNascimento == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Selecione a data de nascimento.')),
+      );
+      return;
+    }
+
+    setState(() => _salvando = true);
+
+    final pacientes = ref.read(provedorListaPacientes);
+    final cpf = _cpfController.text.trim();
+    final cpfJaCadastrado = pacientes.any((paciente) => paciente.cpf == cpf);
+
+    if (cpfJaCadastrado) {
+      setState(() => _salvando = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Este CPF já está cadastrado.'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+
+    final novoPaciente = Paciente(
+      idPaciente: 'P${(pacientes.length + 1).toString().padLeft(3, '0')}',
+      nome: _nomeController.text.trim(),
+      telefone: _telefoneController.text.trim(),
+      dataNascimento: _dataNascimento!,
+      cpf: cpf,
+      endereco: _enderecoController.text.trim(),
+      queixaPrincipal: _queixaController.text.trim(),
+      histDoencaAtual: _hdaController.text.trim(),
+      histPregresso: _hpController.text.trim(),
+      ocupacao: _ocupacaoController.text.trim(),
+    );
+
+    try {
+      await salvarPacienteReal(ref, novoPaciente);
+      if (!mounted) return;
+      setState(() => _salvando = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Paciente cadastrado com sucesso!'),
+          backgroundColor: Colors.green,
+        ),
+      );
+      Navigator.pop(context);
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => _salvando = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Falha ao salvar paciente: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
+}
