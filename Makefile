@@ -4,6 +4,7 @@ export
 FIREBASE_PROJECT_ID ?= app-fisio-care-2
 GOOGLE_OAUTH_CLIENT_ID_WEB ?= 1034972209864-22ivlkbu9eu206fv6tvot90mup62stic.apps.googleusercontent.com
 GOOGLE_OAUTH_CLIENT_ID_ANDROID ?=
+APP_VERSION := $(shell grep '^version: ' pubspec.yaml | sed 's/version: //')
 
 .DEFAULT_GOAL := help
 
@@ -19,32 +20,47 @@ dev-android: ## Roda local no celular/device Android conectado
 	flutter pub get
 	flutter run \
 		--dart-define=GOOGLE_OAUTH_CLIENT_ID_WEB=$(GOOGLE_OAUTH_CLIENT_ID_WEB) \
-		--dart-define=GOOGLE_OAUTH_CLIENT_ID_ANDROID=$(GOOGLE_OAUTH_CLIENT_ID_ANDROID)
+		--dart-define=GOOGLE_OAUTH_CLIENT_ID_ANDROID=$(GOOGLE_OAUTH_CLIENT_ID_ANDROID) \
+		--dart-define=APP_VERSION=$(APP_VERSION)
 
 dev-web: ## Roda local no Chrome em http://localhost:5000
 	flutter pub get
 	flutter run -d chrome --web-hostname localhost --web-port 5000 \
-		--dart-define=GOOGLE_OAUTH_CLIENT_ID_WEB=$(GOOGLE_OAUTH_CLIENT_ID_WEB)
+		--dart-define=GOOGLE_OAUTH_CLIENT_ID_WEB=$(GOOGLE_OAUTH_CLIENT_ID_WEB) \
+		--dart-define=APP_VERSION=$(APP_VERSION)
 
 prod-web: ## Compila e publica a Web em produção no Firebase Hosting
-	flutter pub get
+	@echo "1/5 Atualizando dependências Flutter..."
+	flutter pub get && \
+	V=$$(grep '^version: ' pubspec.yaml | sed 's/version: //' | cut -d'+' -f1) && \
+	MAJOR=$$(echo $$V | cut -d'.' -f1) && \
+	MINOR=$$(echo $$V | cut -d'.' -f2) && \
+	PATCH=$$(echo $$V | cut -d'.' -f3) && \
+	NEW_PATCH=$$((PATCH + 1)) && \
+	NEW_VER="$$MAJOR.$$MINOR.$$NEW_PATCH" && \
+	NEW_FULL="$$MAJOR.$$MINOR.$$NEW_PATCH+0" && \
+	sed -i "s/^version: .*/version: $$NEW_FULL/" pubspec.yaml && \
+	sed -i "s/\"version\": \".*\"/\"version\": \"$$NEW_VER\"/" web/version.json && \
+	BUILD_TS=$$(date +%s) && \
+	sed -i "s/\"build\": \".*\"/\"build\": \"$$BUILD_TS\"/" web/version.json && \
+	echo "2/5 Versão: v$$NEW_VER" && \
+	echo "3/5 Compilando app Web..." && \
 	flutter build web --release \
-		--base-href=/app/ \
+		--base-href=/ \
 		--dart-define=GOOGLE_OAUTH_CLIENT_ID_WEB=$(GOOGLE_OAUTH_CLIENT_ID_WEB) \
-		--dart-define=GOOGLE_OAUTH_CLIENT_ID_ANDROID=$(GOOGLE_OAUTH_CLIENT_ID_ANDROID)
-	rm -rf build/web_root
-	mkdir -p build/web_root/app
-	cp -r build/web/. build/web_root/app/
-	cp branding/sobre.html build/web_root/index.html
-	cp branding/privacidade.html build/web_root/privacidade.html
-	cp branding/termos.html build/web_root/termos.html
-	cp branding/google505e804a9d870920.html build/web_root/google505e804a9d870920.html
-	rm -rf build/web
-	mv build/web_root build/web
-	firebase deploy --only hosting --project $(FIREBASE_PROJECT_ID)
+		--dart-define=GOOGLE_OAUTH_CLIENT_ID_ANDROID=$(GOOGLE_OAUTH_CLIENT_ID_ANDROID) \
+		--dart-define=APP_VERSION=$$NEW_VER && \
+	echo "4/5 Copiando páginas públicas (privacidade, termos, verificação Google)..." && \
+	cp branding/privacidade.html build/web/privacidade.html && \
+	cp branding/termos.html build/web/termos.html && \
+	cp branding/google505e804a9d870920.html build/web/google505e804a9d870920.html && \
+	echo "5/5 Publicando no Firebase Hosting ($(FIREBASE_PROJECT_ID))..." && \
+	firebase deploy --only hosting --project $(FIREBASE_PROJECT_ID) && \
+	echo "Deploy v$$NEW_VER concluído."
 
 prod-android: ## Gera APK Android release para preparar publicação na loja
 	flutter pub get
 	flutter build apk --release \
 		--dart-define=GOOGLE_OAUTH_CLIENT_ID_WEB=$(GOOGLE_OAUTH_CLIENT_ID_WEB) \
-		--dart-define=GOOGLE_OAUTH_CLIENT_ID_ANDROID=$(GOOGLE_OAUTH_CLIENT_ID_ANDROID)
+		--dart-define=GOOGLE_OAUTH_CLIENT_ID_ANDROID=$(GOOGLE_OAUTH_CLIENT_ID_ANDROID) \
+		--dart-define=APP_VERSION=$(APP_VERSION)

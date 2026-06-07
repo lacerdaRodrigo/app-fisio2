@@ -18,11 +18,26 @@ class _TelaCadastroPacienteState extends ConsumerState<TelaCadastroPaciente> {
   final _nomeController = TextEditingController();
   final _cpfController = TextEditingController();
   final _telefoneController = TextEditingController();
-  final _enderecoController = TextEditingController();
   final _queixaController = TextEditingController();
   final _hdaController = TextEditingController();
   final _hpController = TextEditingController();
   final _ocupacaoController = TextEditingController();
+
+  String _rua = '';
+  String _bairro = '';
+  String _numero = '';
+  String _cidade = '';
+
+  String get _enderecoCompleto {
+    final partes = <String>[
+      if (_rua.isNotEmpty) _rua,
+      if (_numero.isNotEmpty) _numero,
+      if (_bairro.isNotEmpty) _bairro,
+      if (_cidade.isNotEmpty) _cidade,
+    ];
+    return partes.isEmpty ? '' : partes.join(', ');
+  }
+
   DateTime? _dataNascimento;
   bool _salvando = false;
 
@@ -31,7 +46,6 @@ class _TelaCadastroPacienteState extends ConsumerState<TelaCadastroPaciente> {
     _nomeController.dispose();
     _cpfController.dispose();
     _telefoneController.dispose();
-    _enderecoController.dispose();
     _queixaController.dispose();
     _hdaController.dispose();
     _hpController.dispose();
@@ -142,16 +156,26 @@ class _TelaCadastroPacienteState extends ConsumerState<TelaCadastroPaciente> {
             ),
             const SizedBox(height: 12),
 
-            TextFormField(
-              controller: _enderecoController,
-              decoration: const InputDecoration(
-                labelText: 'Endereço Completo *',
-                prefixIcon: Icon(Icons.location_on_outlined),
+            InkWell(
+              borderRadius: BorderRadius.circular(12),
+              onTap: () => _mostrarModalEndereco(),
+              child: InputDecorator(
+                decoration: InputDecoration(
+                  labelText: 'Endereço *',
+                  prefixIcon: const Icon(Icons.location_on_outlined),
+                  suffixIcon: const Icon(Icons.edit_location_alt_rounded),
+                ),
+                child: Text(
+                  _enderecoCompleto.isEmpty
+                      ? 'Toque para preencher endereço'
+                      : _enderecoCompleto,
+                  style: TextStyle(
+                    color: _enderecoCompleto.isNotEmpty
+                        ? Colors.black87
+                        : Colors.grey,
+                  ),
+                ),
               ),
-              textCapitalization: TextCapitalization.sentences,
-              validator: (v) => (v == null || v.trim().isEmpty)
-                  ? 'Endereço é obrigatório.'
-                  : null,
             ),
 
             const SizedBox(height: 28),
@@ -248,11 +272,43 @@ class _TelaCadastroPacienteState extends ConsumerState<TelaCadastroPaciente> {
     );
   }
 
+  Future<void> _mostrarModalEndereco() async {
+    final rua = _rua;
+    final bairro = _bairro;
+    final numero = _numero;
+    final cidade = _cidade;
+
+    final resultado = await showDialog<_Endereco>(
+      context: context,
+      builder: (ctx) => _ModalEndereco(
+        rua: rua,
+        bairro: bairro,
+        numero: numero,
+        cidade: cidade,
+      ),
+    );
+
+    if (resultado != null) {
+      setState(() {
+        _rua = resultado.rua;
+        _bairro = resultado.bairro;
+        _numero = resultado.numero;
+        _cidade = resultado.cidade;
+      });
+    }
+  }
+
   Future<void> _salvarPaciente() async {
     if (!_chaveFormulario.currentState!.validate()) return;
     if (_dataNascimento == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Selecione a data de nascimento.')),
+      );
+      return;
+    }
+    if (_enderecoCompleto.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Preencha o endereço.')),
       );
       return;
     }
@@ -280,7 +336,7 @@ class _TelaCadastroPacienteState extends ConsumerState<TelaCadastroPaciente> {
       telefone: _telefoneController.text.trim(),
       dataNascimento: _dataNascimento!,
       cpf: cpf,
-      endereco: _enderecoController.text.trim(),
+      endereco: _enderecoCompleto,
       queixaPrincipal: _queixaController.text.trim(),
       histDoencaAtual: _hdaController.text.trim(),
       histPregresso: _hpController.text.trim(),
@@ -308,5 +364,138 @@ class _TelaCadastroPacienteState extends ConsumerState<TelaCadastroPaciente> {
         ),
       );
     }
+  }
+}
+
+class _Endereco {
+  final String rua;
+  final String bairro;
+  final String numero;
+  final String cidade;
+
+  _Endereco({
+    required this.rua,
+    required this.bairro,
+    required this.numero,
+    required this.cidade,
+  });
+}
+
+class _ModalEndereco extends StatefulWidget {
+  final String rua;
+  final String bairro;
+  final String numero;
+  final String cidade;
+
+  const _ModalEndereco({
+    required this.rua,
+    required this.bairro,
+    required this.numero,
+    required this.cidade,
+  });
+
+  @override
+  State<_ModalEndereco> createState() => _ModalEnderecoState();
+}
+
+class _ModalEnderecoState extends State<_ModalEndereco> {
+  late final TextEditingController _ruaController;
+  late final TextEditingController _bairroController;
+  late final TextEditingController _numeroController;
+  late final TextEditingController _cidadeController;
+  final _formKey = GlobalKey<FormState>();
+
+  @override
+  void initState() {
+    super.initState();
+    _ruaController = TextEditingController(text: widget.rua);
+    _bairroController = TextEditingController(text: widget.bairro);
+    _numeroController = TextEditingController(text: widget.numero);
+    _cidadeController = TextEditingController(text: widget.cidade);
+  }
+
+  @override
+  void dispose() {
+    _ruaController.dispose();
+    _bairroController.dispose();
+    _numeroController.dispose();
+    _cidadeController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return AlertDialog(
+      title: Row(
+        children: [
+          Icon(Icons.edit_location_alt_rounded, color: theme.colorScheme.primary),
+          const SizedBox(width: 8),
+          const Text('Editar Endereço'),
+        ],
+      ),
+      content: Form(
+        key: _formKey,
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextFormField(
+                controller: _ruaController,
+                decoration: const InputDecoration(labelText: 'Rua *'),
+                textCapitalization: TextCapitalization.words,
+                validator: (v) =>
+                    (v == null || v.trim().isEmpty) ? 'Informe a rua.' : null,
+              ),
+              const SizedBox(height: 12),
+              TextFormField(
+                controller: _numeroController,
+                decoration: const InputDecoration(labelText: 'Número'),
+                keyboardType: TextInputType.text,
+              ),
+              const SizedBox(height: 12),
+              TextFormField(
+                controller: _bairroController,
+                decoration: const InputDecoration(labelText: 'Bairro *'),
+                textCapitalization: TextCapitalization.words,
+                validator: (v) =>
+                    (v == null || v.trim().isEmpty) ? 'Informe o bairro.' : null,
+              ),
+              const SizedBox(height: 12),
+              TextFormField(
+                controller: _cidadeController,
+                decoration: const InputDecoration(labelText: 'Cidade *'),
+                textCapitalization: TextCapitalization.words,
+                validator: (v) =>
+                    (v == null || v.trim().isEmpty) ? 'Informe a cidade.' : null,
+              ),
+            ],
+          ),
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: const Text('Cancelar'),
+        ),
+        FilledButton.icon(
+          onPressed: () {
+            if (!_formKey.currentState!.validate()) return;
+            Navigator.pop(
+              context,
+              _Endereco(
+                rua: _ruaController.text.trim(),
+                bairro: _bairroController.text.trim(),
+                numero: _numeroController.text.trim(),
+                cidade: _cidadeController.text.trim(),
+              ),
+            );
+          },
+          icon: const Icon(Icons.check_rounded, size: 18),
+          label: const Text('Confirmar'),
+        ),
+      ],
+    );
   }
 }

@@ -3,6 +3,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import 'componentes/rodape_versao.dart';
 import 'telas/tela_login.dart';
 
 void main() {
@@ -27,9 +28,9 @@ class FisioHomeCareApp extends StatelessWidget {
       theme: ThemeData(
         useMaterial3: true,
         colorScheme: ColorScheme.fromSeed(
-          seedColor: const Color(0xFF2C3E50), // Premium Dark Blue
-          primary: const Color(0xFF00796B), // Teal
-          secondary: const Color(0xFF00BFA5), // Vibrant Mint
+          seedColor: const Color(0xFF2C3E50),
+          primary: const Color(0xFF00796B),
+          secondary: const Color(0xFF00BFA5),
           surface: const Color(0xFFF8F9FA),
         ),
         textTheme: GoogleFonts.outfitTextTheme(Theme.of(context).textTheme),
@@ -62,6 +63,47 @@ class FisioHomeCareApp extends StatelessWidget {
         ),
       ),
       home: const TelaLogin(),
+      builder: (context, child) {
+        return Stack(
+          children: [
+            child!,
+            Positioned(
+              left: 0,
+              right: 0,
+              bottom: 0,
+              child: _RodapeVersaoGlobal(),
+            ),
+          ],
+        );
+      },
+    );
+  }
+}
+
+class _RodapeVersaoGlobal extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.fromLTRB(16, 2, 16, 4),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [
+            Colors.transparent,
+            Colors.black.withValues(alpha: 0.35),
+          ],
+        ),
+      ),
+      child: Text(
+        appVersao,
+        textAlign: TextAlign.center,
+        style: const TextStyle(
+          color: Colors.white54,
+          fontSize: 11,
+          letterSpacing: 0.5,
+        ),
+      ),
     );
   }
 }

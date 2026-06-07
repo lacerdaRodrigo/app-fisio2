@@ -233,7 +233,7 @@ class _TelaDashboardState extends ConsumerState<TelaDashboard> {
                         _construirCardAgenda(context, agendamentosHoje[index]),
                   ),
           ),
-          const SliverToBoxAdapter(child: SizedBox(height: 80)),
+          const SliverToBoxAdapter(child: SizedBox(height: 24)),
         ],
       ),
     );
