@@ -16,12 +16,6 @@ class ServicoAutenticacaoGoogleFake implements ServicoAutenticacaoGoogle {
     return _sessao();
   }
 
-  @override
-  Future<SessaoGoogle> autorizarDados() async {
-    await Future<void>.delayed(const Duration(milliseconds: 10));
-    return _sessao();
-  }
-
   SessaoGoogle _sessao() {
     return SessaoGoogle(
       nomeUsuario: 'Dr. Teste',

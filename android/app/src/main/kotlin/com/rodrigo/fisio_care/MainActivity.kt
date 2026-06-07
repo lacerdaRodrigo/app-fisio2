@@ -1,4 +1,4 @@
-package com.rodrigo.fisio.fisio_home_care
+package com.rodrigo.fisio_care
 
 import io.flutter.embedding.android.FlutterActivity
 

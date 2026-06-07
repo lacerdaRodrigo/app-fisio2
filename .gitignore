@@ -61,6 +61,7 @@ ui-debug.log
 *.keystore
 service-account*.json
 credentials*.json
+client_secret_*.json
 google-services.local.json
 GoogleService-Info.local.plist
 

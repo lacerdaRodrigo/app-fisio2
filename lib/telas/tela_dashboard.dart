@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../modelos/agendamento.dart';
-import '../provedores/provedor_autenticacao.dart';
 import '../provedores/provedores_dados.dart';
 import '../utilitarios/utilitarios_data.dart';
 import 'tela_pacientes.dart';
@@ -88,7 +87,6 @@ class _TelaDashboardState extends ConsumerState<TelaDashboard> {
     final pacientes = ref.watch(provedorListaPacientes);
     final agendamentos = ref.watch(provedorListaAgendamentos);
     final evolucoes = ref.watch(provedorListaEvolucoes);
-    final estadoAuth = ref.watch(provedorAutenticacao);
     final hoje = DateTime.now();
     final agendamentosHoje =
         agendamentos
@@ -172,14 +170,6 @@ class _TelaDashboardState extends ConsumerState<TelaDashboard> {
               ),
             ),
           ),
-
-          if (estadoAuth.precisaAutorizarDados)
-            SliverPadding(
-              padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
-              sliver: SliverToBoxAdapter(
-                child: _construirAvisoAutorizacaoDados(context),
-              ),
-            ),
 
           // Cards de Resumo
           SliverPadding(
@@ -303,87 +293,6 @@ class _TelaDashboardState extends ConsumerState<TelaDashboard> {
     );
   }
 
-  Widget _construirAvisoAutorizacaoDados(BuildContext context) {
-    final estadoAuth = ref.watch(provedorAutenticacao);
-    final theme = Theme.of(context);
-
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: const Color(0xFFFFF8E1),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFFFFECB3)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Icon(Icons.lock_open_rounded, color: Colors.orange.shade800),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Text(
-                  'Autorize seus dados para carregar a planilha',
-                  style: theme.textTheme.titleSmall?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          Text(
-            'O login Google já foi concluído. Falta permitir Drive/Sheets para ler e gravar pacientes, agenda e evoluções.',
-            style: theme.textTheme.bodySmall,
-          ),
-          const SizedBox(height: 12),
-          SizedBox(
-            width: double.infinity,
-            child: FilledButton.icon(
-              onPressed: estadoAuth.estaCarregando
-                  ? null
-                  : () => _autorizarDados(context),
-              icon: estadoAuth.estaCarregando
-                  ? const SizedBox(
-                      width: 18,
-                      height: 18,
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    )
-                  : const Icon(Icons.table_chart_outlined),
-              label: Text(
-                estadoAuth.estaCarregando
-                    ? 'Autorizando...'
-                    : 'Autorizar Drive e Sheets',
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Future<void> _autorizarDados(BuildContext context) async {
-    final messenger = ScaffoldMessenger.of(context);
-    try {
-      await ref.read(provedorAutenticacao.notifier).autorizarDadosGoogle();
-      await carregarDadosReais(ref);
-      if (!context.mounted) return;
-      messenger.showSnackBar(
-        const SnackBar(
-          content: Text('Dados carregados com sucesso.'),
-          backgroundColor: Colors.green,
-        ),
-      );
-    } catch (e) {
-      if (!context.mounted) return;
-      messenger.showSnackBar(
-        SnackBar(
-          content: Text('Falha ao autorizar/carregar dados: $e'),
-          backgroundColor: Colors.red,
-        ),
-      );
-    }
-  }
 
   Widget _construirAgendaVazia() {
     return Container(

@@ -45,10 +45,7 @@ class TelaLogin extends ConsumerWidget {
         Navigator.of(context).pushReplacement(
           MaterialPageRoute(
             builder: (_) => TelaDashboard(
-              nomeUsuario:
-                  proximo.sessao?.nomeUsuario ??
-                  proximo.contaConectada?.nomeUsuario ??
-                  'Profissional',
+              nomeUsuario: proximo.sessao?.nomeUsuario ?? 'Profissional',
             ),
           ),
         );
@@ -299,23 +296,6 @@ class TelaLogin extends ConsumerWidget {
       return ElevatedButton(
         onPressed: null,
         child: const Text('Aceite os termos para entrar'),
-      );
-    }
-
-    if (estadoAuth.precisaAutorizarDados) {
-      return ElevatedButton.icon(
-        onPressed: () =>
-            ref.read(provedorAutenticacao.notifier).autorizarDadosGoogle(),
-        icon: const Icon(Icons.table_chart_outlined),
-        label: Text(
-          estadoAuth.contaConectada == null
-              ? 'Autorizar Drive e Sheets'
-              : 'Autorizar dados de ${estadoAuth.contaConectada!.email}',
-        ),
-        style: ElevatedButton.styleFrom(
-          backgroundColor: Theme.of(context).colorScheme.primary,
-          foregroundColor: Colors.white,
-        ),
       );
     }
 
