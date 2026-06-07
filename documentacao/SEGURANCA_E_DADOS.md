@@ -29,9 +29,7 @@ O acesso à planilha do Google Sheets é regido por padrões de segurança do se
 * **Google Sign-In:** A autenticação é delegada inteiramente ao Google. O aplicativo nunca tem acesso à senha do usuário.
 * **Escopo Restrito (`drive.file`):** Ao solicitar acesso ao Google Drive, o aplicativo exige o escopo limitado `https://www.googleapis.com/auth/drive.file`.
   * *O que isso significa:* O app só pode ler e escrever em arquivos que ele mesmo criou (a planilha `__saas_fisio_db__`). O aplicativo **não** tem permissão para visualizar outros arquivos pessoais, fotos ou pastas do Drive do usuário.
-* **Escopo Google Sheets:** Para ler e gravar as abas da planilha, o aplicativo também solicita `https://www.googleapis.com/auth/spreadsheets`.
-* **Tokens de Acesso:** Na versão atual, os tokens são obtidos pelo fluxo Google Sign-In/Google Identity Services e usados para chamadas HTTPS à API. O app não implementa armazenamento persistente próprio de token de atualização.
-* **Fluxo Web em Dois Passos:** No navegador, após selecionar a conta Google, o usuário precisa acionar explicitamente a autorização de Drive/Sheets. Isso evita bloqueio de popup pelo browser e mantém o consentimento granular visível.
+* **Tokens de Acesso:** Na versão atual, os tokens são obtidos pelo fluxo Google Sign-In e usados para chamadas HTTPS à API. O app não implementa armazenamento persistente próprio de token de atualização.
 
 ---
 

@@ -14,6 +14,7 @@ class EstadoAutenticacao {
   final bool termosAceitos;
   final String? mensagemErro;
   final SessaoGoogle? sessao;
+  final ContaGoogleConectada? contaConectada;
 
   EstadoAutenticacao({
     this.estaAutenticado = false,
@@ -21,6 +22,7 @@ class EstadoAutenticacao {
     this.termosAceitos = false,
     this.mensagemErro,
     this.sessao,
+    this.contaConectada,
   });
 
   EstadoAutenticacao copiarCom({
@@ -29,6 +31,7 @@ class EstadoAutenticacao {
     bool? termosAceitos,
     String? mensagemErro,
     SessaoGoogle? sessao,
+    ContaGoogleConectada? contaConectada,
   }) {
     return EstadoAutenticacao(
       estaAutenticado: estaAutenticado ?? this.estaAutenticado,
@@ -36,6 +39,7 @@ class EstadoAutenticacao {
       termosAceitos: termosAceitos ?? this.termosAceitos,
       mensagemErro: mensagemErro,
       sessao: sessao ?? this.sessao,
+      contaConectada: contaConectada ?? this.contaConectada,
     );
   }
 }
@@ -45,6 +49,27 @@ class AutenticacaoNotificador extends Notifier<EstadoAutenticacao> {
   @override
   EstadoAutenticacao build() {
     final servico = ref.read(provedorServicoAutenticacaoGoogle);
+    final assinaturaContas = servico.contasConectadas.listen((conta) {
+      state = state.copiarCom(
+        estaCarregando: false,
+        mensagemErro: null,
+        contaConectada: conta,
+      );
+    });
+    ref.onDispose(assinaturaContas.cancel);
+
+    final assinaturaSessoes = servico.sessoesConectadas.listen(
+      _autenticarComSessao,
+      onError: (Object _) {
+        state = state.copiarCom(
+          estaCarregando: false,
+          mensagemErro:
+              'Falha ao autenticar. Verifique sua conexão e tente novamente.',
+        );
+      },
+    );
+    ref.onDispose(assinaturaSessoes.cancel);
+
     unawaited(
       servico.inicializar().catchError((Object _) {
         state = state.copiarCom(
@@ -54,6 +79,15 @@ class AutenticacaoNotificador extends Notifier<EstadoAutenticacao> {
     );
 
     return EstadoAutenticacao();
+  }
+
+  void _autenticarComSessao(SessaoGoogle sessao) {
+    state = state.copiarCom(
+      estaAutenticado: true,
+      estaCarregando: false,
+      mensagemErro: null,
+      sessao: sessao,
+    );
   }
 
   void aceitarTermos(bool aceitou) {

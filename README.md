@@ -25,7 +25,7 @@ Toda a documentação técnica, de segurança e de arquitetura do sistema foi mo
 * **Flutter & Dart:** Framework principal.
 * **Riverpod:** Injeção de dependência e controle de estado.
 * **Google Sign-In & Google APIs:** Autenticação e integração backend via Sheets.
-* **Firebase Hosting:** Publicação da versão Web em `https://app-fisioterapia-rodrigo.web.app`.
+* **Firebase Hosting:** landing pública em `https://app-fisio-care-2.web.app` e aplicativo em `https://app-fisio-care-2.web.app/app/`.
 * **Google Fonts:** Tipografia premium (ex: Inter).
 * **Speech to Text:** Para registros clínicos.
 * **Url Launcher:** Rotas (Google Maps / Waze).
@@ -35,10 +35,8 @@ Toda a documentação técnica, de segurança e de arquitetura do sistema foi mo
 2. Execute o aplicativo: `flutter run`
 
 ## Como Publicar na Web
-1. Gere a build Web informando o OAuth Client ID:
-   `flutter build web --dart-define=GOOGLE_OAUTH_CLIENT_ID_WEB=<client-id-web>`
-2. Publique no Firebase Hosting:
-   `firebase deploy --only hosting`
+1. Gere e publique a versão Web:
+   `make prod-web`
 
 ## Segurança e LGPD
 O aplicativo opera num modelo soberano: o fisioterapeuta conecta a própria conta do Google e atua como Controlador dos dados. Não há servidores centrais de terceiros processando os prontuários.

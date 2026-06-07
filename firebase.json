@@ -13,14 +13,18 @@
           {
             "key": "Cross-Origin-Opener-Policy",
             "value": "same-origin-allow-popups"
+          },
+          {
+            "key": "Cache-Control",
+            "value": "no-cache, no-store, must-revalidate"
           }
         ]
       }
     ],
     "rewrites": [
       {
-        "source": "**/!(*.html)",
-        "destination": "/index.html"
+        "source": "/app/**",
+        "destination": "/app/index.html"
       }
     ]
   }

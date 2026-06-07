@@ -35,61 +35,85 @@
 </head>
 <body>
   <div class="card">
-    <h1>Política de Privacidade</h1>
+    <h1>Política de Privacidade - Fisio Home Care</h1>
     <p class="last-update">Última atualização: junho de 2026</p>
 
     <p>
-      Esta Política de Privacidade descreve como o Fisio Care ("nós", "nosso" ou "aplicativo")
-      coleta, usa, armazena e protege as informações dos usuários.
+      Esta Política de Privacidade explica como o Fisio Home Care trata dados pessoais
+      e dados clínicos cadastrados pelo profissional de fisioterapia. O aplicativo foi
+      desenvolvido para operar no modelo "traga sua própria conta": os dados são
+      gravados em arquivos do Google Drive e Google Sheets pertencentes ao próprio
+      usuário autenticado.
     </p>
 
     <h2>1. Dados coletados</h2>
     <p>
-      O Fisio Care coleta apenas os dados estritamente necessários para o funcionamento do
-      aplicativo:
+      O aplicativo coleta e processa apenas os dados necessários para a gestão dos
+      atendimentos:
     </p>
     <ul>
-      <li><strong>Informações de conta:</strong> nome e e-mail do profissional (via login Google)</li>
-      <li><strong>Dados de pacientes:</strong> nome, telefone, data de nascimento, CPF, endereço e demais informações cadastradas pelo profissional</li>
-      <li><strong>Dados de agenda:</strong> datas, horários e descrições de atendimentos</li>
-      <li><strong>Evoluções clínicas:</strong> registros de atendimento inseridos pelo profissional</li>
+      <li><strong>Dados da conta Google:</strong> nome e e-mail do profissional, usados para autenticação e identificação da sessão.</li>
+      <li><strong>Dados de pacientes:</strong> informações inseridas pelo profissional, como nome, contato, data de nascimento, CPF, endereço e observações de atendimento.</li>
+      <li><strong>Dados de agenda:</strong> datas, horários, status e descrições de sessões.</li>
+      <li><strong>Evoluções clínicas:</strong> registros técnicos e anotações feitas pelo profissional durante ou após os atendimentos.</li>
+      <li><strong>Configurações operacionais:</strong> preferências do app, valor padrão de sessão e identificadores da planilha usada como banco de dados.</li>
     </ul>
 
-    <h2>2. Armazenamento</h2>
+    <h2>2. Uso da Conta Google</h2>
     <p>
-      Todos os dados são armazenados exclusivamente no Google Drive do próprio profissional
-      titular da conta. O aplicativo não mantém servidores próprios para armazenamento de
-      dados dos pacientes. Os dados são salvos em planilhas Google Sheets dentro do Drive
-      do usuário.
+      O Fisio Home Care solicita autorização para usar o Google Drive com a finalidade
+      de criar, localizar, ler e atualizar a planilha de dados do próprio profissional.
+      O escopo <strong>drive.file</strong> limita o acesso aos arquivos criados ou
+      selecionados pelo aplicativo. A planilha Google usada pelo app fica dentro desse
+      conjunto de arquivos autorizados pelo usuário.
     </p>
 
-    <h2>3. Compartilhamento de dados</h2>
+    <h2>3. Armazenamento</h2>
     <p>
-      O Fisio Care <strong>não compartilha</strong> dados pessoais com terceiros. As informações
-      dos pacientes são acessíveis apenas ao profissional autenticado e armazenadas em sua
-      própria conta do Google.
+      O aplicativo não possui servidor próprio para armazenar prontuários ou dados de
+      pacientes. As informações ficam na conta Google do profissional, em arquivos do
+      Google Drive e Google Sheets. A disponibilidade, segurança e permissões desses
+      arquivos também dependem das configurações da própria Conta Google do usuário.
     </p>
 
-    <h2>4. Segurança</h2>
+    <h2>4. Compartilhamento</h2>
     <p>
-      Utilizamos criptografia em trânsito (HTTPS/TLS) para todas as comunicações entre o
-      aplicativo e os servidores do Google. O acesso aos dados é protegido pela autenticação
-      OAuth 2.0 do Google, garantindo que apenas o titular da conta tenha acesso.
+      O Fisio Home Care não vende, aluga ou compartilha dados pessoais com terceiros.
+      Os dados clínicos cadastrados são controlados pelo profissional que utiliza o app.
+      O compartilhamento de arquivos do Drive ou Sheets, caso ocorra, é uma ação externa
+      feita pelo próprio usuário na sua Conta Google.
     </p>
 
-    <h2>5. LGPD</h2>
+    <h2>5. Segurança</h2>
+    <p>
+      A comunicação entre o aplicativo, o navegador e os serviços do Google ocorre por
+      HTTPS/TLS. A autorização é feita por OAuth 2.0, permitindo que o usuário conceda
+      ou revogue permissões pela própria Conta Google. Recomendamos que o profissional
+      mantenha sua conta protegida com senha forte e autenticação em duas etapas.
+    </p>
+
+    <h2>6. Base legal e LGPD</h2>
     <p>
       Em conformidade com a Lei Geral de Proteção de Dados (LGPD - Lei nº 13.709/2018),
-      o titular dos dados tem direito a:
+      o profissional usuário é responsável por informar seus pacientes e obter as
+      autorizações necessárias para registrar dados de saúde. Os titulares dos dados
+      podem solicitar ao profissional:
     </p>
     <ul>
       <li>Acessar, corrigir ou excluir seus dados pessoais</li>
-      <li>Revogar o consentimento a qualquer momento</li>
-      <li>Solicitar a portabilidade dos dados</li>
-      <li>Ser informado sobre compartilhamento com terceiros (não realizado)</li>
+      <li>Revogar consentimentos aplicáveis</li>
+      <li>Solicitar portabilidade ou informações sobre o tratamento</li>
+      <li>Receber informações sobre eventual compartilhamento feito pelo controlador dos dados</li>
     </ul>
 
-    <h2>6. Contato</h2>
+    <h2>7. Revogação de acesso</h2>
+    <p>
+      O usuário pode sair da conta no próprio aplicativo e também revogar o acesso do
+      Fisio Home Care na página de permissões da Conta Google. Ao revogar o acesso, o
+      aplicativo deixa de obter novos tokens para acessar os arquivos autorizados no Drive.
+    </p>
+
+    <h2>8. Contato</h2>
     <p>
       Para dúvidas sobre esta política ou para exercer seus direitos, entre em contato:
       <br>

@@ -92,6 +92,16 @@ final provedorPlanilhaId = NotifierProvider<PlanilhaIdNotifier, String?>(
   PlanilhaIdNotifier.new,
 );
 
+void limparDados(WidgetRef ref) {
+  ref.read(provedorListaPacientes.notifier).definir([]);
+  ref.read(provedorBusca.notifier).definir('');
+  ref.read(provedorListaAgendamentos.notifier).definir([]);
+  ref.read(provedorListaEvolucoes.notifier).definir([]);
+  ref.read(provedorValorSessaoPadrao.notifier).definir('150,00');
+  ref.read(provedorLogsAuditoria.notifier).definir([]);
+  ref.read(provedorPlanilhaId.notifier).definir(null);
+}
+
 Future<void> carregarDadosReais(WidgetRef ref) async {
   final dados = await _repositorio(ref).carregarTudo();
   ref.read(provedorListaPacientes.notifier).definir(dados.pacientes);

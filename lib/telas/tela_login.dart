@@ -1,10 +1,17 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../provedores/provedor_autenticacao.dart';
 import '../provedores/provedores_dados.dart';
-import '../utilitarios/botao_google_web.dart';
 import 'tela_dashboard.dart';
+
+final _urlTermos = Uri.parse('https://app-fisio-care-2.web.app/termos.html');
+final _urlPrivacidade = Uri.parse(
+  'https://app-fisio-care-2.web.app/privacidade.html',
+);
 
 class TelaLogin extends ConsumerWidget {
   const TelaLogin({super.key});
@@ -26,17 +33,17 @@ class TelaLogin extends ConsumerWidget {
         }
 
         if (proximo.sessao != null) {
-          try {
-            await carregarDadosReais(ref);
-          } catch (e) {
-            if (!context.mounted) return;
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text('Falha ao carregar dados reais: $e'),
-                backgroundColor: Colors.red,
-              ),
-            );
-          }
+          unawaited(
+            carregarDadosReais(ref).catchError((Object e) {
+              if (!context.mounted) return;
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text('Falha ao carregar dados reais: $e'),
+                  backgroundColor: Colors.red,
+                ),
+              );
+            }),
+          );
         }
 
         if (!context.mounted) {
@@ -149,30 +156,36 @@ class TelaLogin extends ConsumerWidget {
                             ),
                             const SizedBox(width: 12),
                             Expanded(
-                              child: GestureDetector(
-                                onTap: () {
-                                  _mostrarTermos(context);
-                                },
-                                child: Text.rich(
-                                  TextSpan(
-                                    text:
-                                        'Declaro que li e estou de acordo com os ',
+                              child: Wrap(
+                                crossAxisAlignment: WrapCrossAlignment.center,
+                                children: [
+                                  Text(
+                                    'Declaro que li e estou de acordo com os ',
                                     style: theme.textTheme.bodyMedium?.copyWith(
                                       color: Colors.black87,
                                     ),
-                                    children: [
-                                      TextSpan(
-                                        text:
-                                            'Termos de Uso e Política de Privacidade (LGPD).',
-                                        style: TextStyle(
-                                          color: theme.colorScheme.primary,
-                                          fontWeight: FontWeight.bold,
-                                          decoration: TextDecoration.underline,
-                                        ),
-                                      ),
-                                    ],
                                   ),
-                                ),
+                                  _LinkLegal(
+                                    texto: 'Termos de Uso',
+                                    url: _urlTermos,
+                                  ),
+                                  Text(
+                                    ' e a ',
+                                    style: theme.textTheme.bodyMedium?.copyWith(
+                                      color: Colors.black87,
+                                    ),
+                                  ),
+                                  _LinkLegal(
+                                    texto: 'Política de Privacidade (LGPD)',
+                                    url: _urlPrivacidade,
+                                  ),
+                                  Text(
+                                    '.',
+                                    style: theme.textTheme.bodyMedium?.copyWith(
+                                      color: Colors.black87,
+                                    ),
+                                  ),
+                                ],
                               ),
                             ),
                           ],
@@ -288,6 +301,8 @@ class TelaLogin extends ConsumerWidget {
     WidgetRef ref,
     EstadoAutenticacao estadoAuth,
   ) {
+    final theme = Theme.of(context);
+
     if (estadoAuth.estaCarregando) {
       return const Center(child: CircularProgressIndicator());
     }
@@ -299,29 +314,62 @@ class TelaLogin extends ConsumerWidget {
       );
     }
 
-    return Center(child: construirBotaoGoogleWeb());
-  }
-
-  void _mostrarTermos(BuildContext context) {
-    showDialog<void>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Termos de Uso e Privacidade'),
-        content: const SingleChildScrollView(
-          child: Text(
-            'Ao marcar o aceite e entrar com Google, o profissional declara ter lido, compreendido '
-            'e aceitado os termos de uso e a política de privacidade. O aplicativo acessará os dados '
-            'autorizados apenas para gestão de agenda, pacientes, evoluções clínicas e auditoria, '
-            'respeitando confidencialidade, rastreabilidade e princípios da LGPD.',
+    return ElevatedButton(
+      onPressed: () =>
+          ref.read(provedorAutenticacao.notifier).entrarComGoogle(),
+      style: ElevatedButton.styleFrom(
+        backgroundColor: theme.colorScheme.primary,
+        foregroundColor: Colors.white,
+        elevation: 4,
+      ),
+      child: const Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          CircleAvatar(
+            radius: 12,
+            backgroundColor: Colors.white,
+            child: Text('G', style: TextStyle(fontWeight: FontWeight.bold)),
           ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Fechar'),
+          SizedBox(width: 12),
+          Text(
+            'Entrar com Google',
+            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
           ),
         ],
       ),
+    );
+  }
+}
+
+class _LinkLegal extends StatelessWidget {
+  final String texto;
+  final Uri url;
+
+  const _LinkLegal({required this.texto, required this.url});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return InkWell(
+      onTap: () => _abrirUrlLegal(context, url),
+      child: Text(
+        texto,
+        style: theme.textTheme.bodyMedium?.copyWith(
+          color: theme.colorScheme.primary,
+          fontWeight: FontWeight.bold,
+          decoration: TextDecoration.underline,
+        ),
+      ),
+    );
+  }
+
+  Future<void> _abrirUrlLegal(BuildContext context, Uri url) async {
+    final abriu = await launchUrl(url, mode: LaunchMode.externalApplication);
+    if (abriu || !context.mounted) return;
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Não foi possível abrir o documento.')),
     );
   }
 }

@@ -8,7 +8,13 @@ class ServicoAutenticacaoGoogleFake implements ServicoAutenticacaoGoogle {
   Stream<ContaGoogleConectada> get contasConectadas => const Stream.empty();
 
   @override
+  Stream<SessaoGoogle> get sessoesConectadas => const Stream.empty();
+
+  @override
   Future<void> inicializar() async {}
+
+  @override
+  Future<SessaoGoogle?> tentarRestaurarSessao() async => null;
 
   @override
   Future<SessaoGoogle> entrar() async {

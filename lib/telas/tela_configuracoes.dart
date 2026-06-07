@@ -4,6 +4,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../provedores/provedores_dados.dart';
+import '../provedores/provedor_autenticacao.dart';
+import 'tela_login.dart';
 
 class TelaConfiguracoes extends ConsumerStatefulWidget {
   const TelaConfiguracoes({super.key});
@@ -98,6 +100,21 @@ class _TelaConfiguracoesState extends ConsumerState<TelaConfiguracoes> {
                     onTap: () => _mostrarTermos(context),
                   ),
                 ],
+              ),
+            ),
+            const SizedBox(height: 16),
+            _CartaoSecao(
+              titulo: 'Conta',
+              icone: Icons.person_outlined,
+              child: ListTile(
+                contentPadding: EdgeInsets.zero,
+                leading: const Icon(Icons.logout_rounded, color: Colors.red),
+                title: const Text(
+                  'Sair da conta',
+                  style: TextStyle(color: Colors.red),
+                ),
+                subtitle: const Text('Desconecta o Google e volta ao login.'),
+                onTap: () => _confirmarLogout(context),
               ),
             ),
             const SizedBox(height: 16),
@@ -199,6 +216,40 @@ class _TelaConfiguracoesState extends ConsumerState<TelaConfiguracoes> {
       ),
     );
   }
+
+  Future<void> _confirmarLogout(BuildContext context) async {
+    final confirmou = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Sair da conta'),
+        content: const Text(
+          'Tem certeza? Os dados carregados serão limpos e você precisará '
+          'fazer login novamente.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Cancelar'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('Sair', style: TextStyle(color: Colors.red)),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmou != true || !mounted) return;
+
+    await ref.read(provedorAutenticacao.notifier).sair();
+    limparDados(ref);
+
+    if (!mounted) return;
+    Navigator.of(context).pushAndRemoveUntil(
+      MaterialPageRoute(builder: (_) => const TelaLogin()),
+      (_) => false,
+    );
+  }
 }
 
 class _CartaoSecao extends StatelessWidget {
@@ -244,7 +295,10 @@ class _CartaoSecao extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 16),
-          child,
+          Material(
+            color: Colors.white,
+            child: child,
+          ),
         ],
       ),
     );
