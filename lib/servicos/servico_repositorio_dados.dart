@@ -4,6 +4,7 @@ import '../modelos/agendamento.dart';
 import '../modelos/evolucao.dart';
 import '../modelos/paciente.dart';
 import '../utilitarios/utilitarios_data.dart';
+import 'preferencias.dart';
 import 'servico_google_drive.dart';
 import 'servico_google_sheets.dart';
 
@@ -37,33 +38,41 @@ class RepositorioDadosGoogle {
   Future<String> obterPlanilhaId() async {
     if (_planilhaId != null) return _planilhaId!;
 
+    _planilhaId = await Preferencias.lerPlanilhaId();
+    if (_planilhaId != null) {
+      return _planilhaId!;
+    }
+
     final existente = await _drive.buscarPlanilhaBanco();
     if (existente != null) {
       _planilhaId = existente;
       await _sheets.garantirEstrutura(existente);
+      await Preferencias.salvarPlanilhaId(existente);
       return existente;
     }
 
     _planilhaId = await _sheets.criarPlanilhaBanco();
+    await Preferencias.salvarPlanilhaId(_planilhaId!);
     return _planilhaId!;
   }
 
   Future<DadosCarregados> carregarTudo() async {
     final id = await obterPlanilhaId();
-    final pacientes = (await _sheets.lerAba(
-      id,
-      'Pacientes',
-    )).map(_pacienteDeLinha).toList();
-    final agendamentos = (await _sheets.lerAba(
-      id,
-      'Agenda',
-    )).map(_agendamentoDeLinha).toList();
-    final evolucoes = (await _sheets.lerAba(
-      id,
-      'Evolucoes',
-    )).map(_evolucaoDeLinha).toList();
-    final configuracoes = await _sheets.lerAba(id, 'Configuracoes');
-    final logs = (await _sheets.lerAba(id, 'Auditoria')).reversed.map((linha) {
+    
+    // Carrega todas as abas em paralelo
+    final results = await Future.wait([
+      _sheets.lerAba(id, 'Pacientes'),
+      _sheets.lerAba(id, 'Agenda'),
+      _sheets.lerAba(id, 'Evolucoes'),
+      _sheets.lerAba(id, 'Configuracoes'),
+      _sheets.lerAba(id, 'Auditoria'),
+    ]);
+
+    final pacientes = results[0].map(_pacienteDeLinha).toList();
+    final agendamentos = results[1].map(_agendamentoDeLinha).toList();
+    final evolucoes = results[2].map(_evolucaoDeLinha).toList();
+    final configuracoes = results[3];
+    final logs = results[4].reversed.map((linha) {
       final dados = _preencher(linha, 4);
       return '${dados[1]} - ${dados[2]} - ${dados[3]}';
     }).toList();

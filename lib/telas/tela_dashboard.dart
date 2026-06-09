@@ -5,7 +5,6 @@ import '../provedores/provedores_dados.dart';
 import '../utilitarios/utilitarios_data.dart';
 import 'tela_pacientes.dart';
 import 'tela_nova_sessao.dart';
-import 'tela_configuracoes.dart';
 import 'tela_registro_evolucao.dart';
 
 class TelaDashboard extends ConsumerStatefulWidget {
@@ -20,17 +19,43 @@ class _TelaDashboardState extends ConsumerState<TelaDashboard> {
   int _indiceSelecionado = 0;
 
   @override
+  void initState() {
+    super.initState();
+    Future.microtask(() {
+      if (!mounted) return;
+
+      final carregamento = ref.read(provedorCarregamentoDados);
+      if (carregamento.carregouComSucesso ||
+          carregamento.status == StatusCarregamentoDados.carregando) {
+        return;
+      }
+
+      carregarDadosReais(ref);
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final pacientes = ref.watch(provedorListaPacientes);
+    final carregamento = ref.watch(provedorCarregamentoDados);
+
     final telas = [
-      _construirConteudoDashboard(context),
+      if (carregamento.carregouComSucesso)
+        _construirConteudoDashboard(context)
+      else if (carregamento.possuiErro)
+        _construirDashboardErro(context, carregamento.mensagemErro)
+      else
+        _construirDashboardCarregando(context),
       const TelaPacientes(),
-      const TelaConfiguracoes(),
     ];
 
     return Scaffold(
-      body: telas[_indiceSelecionado],
+      body: telas[_indiceSelecionado == 0 ? 0 : 1],
       bottomNavigationBar: _construirBarraNavegacao(),
-      floatingActionButton: _indiceSelecionado == 0
+      floatingActionButton:
+          _indiceSelecionado == 0 &&
+              carregamento.carregouComSucesso &&
+              pacientes.isNotEmpty
           ? FloatingActionButton.extended(
               onPressed: () => Navigator.push(
                 context,
@@ -70,10 +95,6 @@ class _TelaDashboardState extends ConsumerState<TelaDashboard> {
           NavigationDestination(
             icon: Icon(Icons.people_alt_rounded),
             label: 'Pacientes',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.settings_rounded),
-            label: 'Ajustes',
           ),
         ],
       ),
@@ -293,7 +314,6 @@ class _TelaDashboardState extends ConsumerState<TelaDashboard> {
     );
   }
 
-
   Widget _construirAgendaVazia() {
     return Container(
       padding: const EdgeInsets.all(32),
@@ -394,5 +414,76 @@ class _TelaDashboardState extends ConsumerState<TelaDashboard> {
 
   bool _mesmoDia(DateTime a, DateTime b) {
     return a.year == b.year && a.month == b.month && a.day == b.day;
+  }
+
+  Widget _construirDashboardCarregando(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return SafeArea(
+      child: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            CircularProgressIndicator(
+              valueColor: AlwaysStoppedAnimation<Color>(
+                theme.colorScheme.primary,
+              ),
+            ),
+            const SizedBox(height: 24),
+            Text(
+              'Carregando dados...',
+              style: theme.textTheme.titleMedium?.copyWith(
+                color: Colors.grey.shade600,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _construirDashboardErro(BuildContext context, String? mensagemErro) {
+    final theme = Theme.of(context);
+
+    return SafeArea(
+      child: Center(
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                Icons.cloud_off_rounded,
+                size: 56,
+                color: Colors.red.shade300,
+              ),
+              const SizedBox(height: 16),
+              Text(
+                'Não foi possível carregar os dados.',
+                textAlign: TextAlign.center,
+                style: theme.textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                mensagemErro ??
+                    'Verifique sua conexão e as permissões da planilha.',
+                textAlign: TextAlign.center,
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: Colors.grey.shade600,
+                ),
+              ),
+              const SizedBox(height: 24),
+              FilledButton.icon(
+                onPressed: () => carregarDadosReais(ref),
+                icon: const Icon(Icons.refresh_rounded),
+                label: const Text('Tentar novamente'),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 }

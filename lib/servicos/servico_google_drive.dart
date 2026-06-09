@@ -10,10 +10,11 @@ class ServicoGoogleDrive {
 
   Future<String?> buscarPlanilhaBanco() async {
     final resultado = await _api.files.list(
-      q: "name='$nomeBanco' and mimeType='application/vnd.google-apps.spreadsheet' and trashed=false",
+      q: "name contains '$nomeBanco' and mimeType='application/vnd.google-apps.spreadsheet' and trashed=false",
       spaces: 'drive',
-      pageSize: 1,
-      $fields: 'files(id,name)',
+      pageSize: 10,
+      orderBy: 'modifiedTime desc',
+      $fields: 'files(id,name,modifiedTime)',
     );
 
     final arquivos = resultado.files ?? [];

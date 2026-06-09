@@ -6,6 +6,54 @@ import '../modelos/paciente.dart';
 import '../servicos/servico_repositorio_dados.dart';
 import 'provedor_autenticacao.dart';
 
+enum StatusCarregamentoDados { inicial, carregando, carregado, erro }
+
+class EstadoCarregamentoDados {
+  final StatusCarregamentoDados status;
+  final String? mensagemErro;
+
+  const EstadoCarregamentoDados({
+    this.status = StatusCarregamentoDados.inicial,
+    this.mensagemErro,
+  });
+
+  bool get estaCarregando =>
+      status == StatusCarregamentoDados.inicial ||
+      status == StatusCarregamentoDados.carregando;
+
+  bool get carregouComSucesso => status == StatusCarregamentoDados.carregado;
+
+  bool get possuiErro => status == StatusCarregamentoDados.erro;
+}
+
+class CarregamentoDadosNotifier extends Notifier<EstadoCarregamentoDados> {
+  @override
+  EstadoCarregamentoDados build() => const EstadoCarregamentoDados();
+
+  void carregando() {
+    state = const EstadoCarregamentoDados(
+      status: StatusCarregamentoDados.carregando,
+    );
+  }
+
+  void sucesso() {
+    state = const EstadoCarregamentoDados(
+      status: StatusCarregamentoDados.carregado,
+    );
+  }
+
+  void erro(Object erro) {
+    state = EstadoCarregamentoDados(
+      status: StatusCarregamentoDados.erro,
+      mensagemErro: 'Não foi possível carregar os dados da planilha. $erro',
+    );
+  }
+
+  void resetar() {
+    state = const EstadoCarregamentoDados();
+  }
+}
+
 class ListaPacientesNotifier extends Notifier<List<Paciente>> {
   @override
   List<Paciente> build() => [];
@@ -65,6 +113,10 @@ final provedorRepositorioDados = Provider<RepositorioDadosGoogle?>((ref) {
   return RepositorioDadosGoogle(sessao.criarCliente());
 });
 
+final provedorCarregamentoDados =
+    NotifierProvider<CarregamentoDadosNotifier, EstadoCarregamentoDados>(
+      CarregamentoDadosNotifier.new,
+    );
 final provedorListaPacientes =
     NotifierProvider<ListaPacientesNotifier, List<Paciente>>(
       ListaPacientesNotifier.new,
@@ -93,6 +145,7 @@ final provedorPlanilhaId = NotifierProvider<PlanilhaIdNotifier, String?>(
 );
 
 void limparDados(WidgetRef ref) {
+  ref.read(provedorCarregamentoDados.notifier).resetar();
   ref.read(provedorListaPacientes.notifier).definir([]);
   ref.read(provedorBusca.notifier).definir('');
   ref.read(provedorListaAgendamentos.notifier).definir([]);
@@ -103,13 +156,23 @@ void limparDados(WidgetRef ref) {
 }
 
 Future<void> carregarDadosReais(WidgetRef ref) async {
-  final dados = await _repositorio(ref).carregarTudo();
-  ref.read(provedorListaPacientes.notifier).definir(dados.pacientes);
-  ref.read(provedorListaAgendamentos.notifier).definir(dados.agendamentos);
-  ref.read(provedorListaEvolucoes.notifier).definir(dados.evolucoes);
-  ref.read(provedorValorSessaoPadrao.notifier).definir(dados.valorSessaoPadrao);
-  ref.read(provedorLogsAuditoria.notifier).definir(dados.logsAuditoria);
-  ref.read(provedorPlanilhaId.notifier).definir(dados.planilhaId);
+  final carregamento = ref.read(provedorCarregamentoDados.notifier);
+  carregamento.carregando();
+
+  try {
+    final dados = await _repositorio(ref).carregarTudo();
+    ref.read(provedorListaPacientes.notifier).definir(dados.pacientes);
+    ref.read(provedorListaAgendamentos.notifier).definir(dados.agendamentos);
+    ref.read(provedorListaEvolucoes.notifier).definir(dados.evolucoes);
+    ref
+        .read(provedorValorSessaoPadrao.notifier)
+        .definir(dados.valorSessaoPadrao);
+    ref.read(provedorLogsAuditoria.notifier).definir(dados.logsAuditoria);
+    ref.read(provedorPlanilhaId.notifier).definir(dados.planilhaId);
+    carregamento.sucesso();
+  } catch (erro) {
+    carregamento.erro(erro);
+  }
 }
 
 Future<void> salvarPacienteReal(WidgetRef ref, Paciente paciente) async {

@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../servicos/preferencias.dart';
 import '../servicos/servico_autenticacao_google.dart';
 
 final provedorServicoAutenticacaoGoogle = Provider<ServicoAutenticacaoGoogle>(
@@ -123,6 +124,7 @@ class AutenticacaoNotificador extends Notifier<EstadoAutenticacao> {
 
   Future<void> sair() async {
     await ref.read(provedorServicoAutenticacaoGoogle).sair();
+    await Preferencias.limparPlanilhaId();
     state = EstadoAutenticacao();
   }
 }

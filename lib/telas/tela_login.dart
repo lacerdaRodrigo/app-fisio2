@@ -1,11 +1,8 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../provedores/provedor_autenticacao.dart';
-import '../provedores/provedores_dados.dart';
 import 'tela_dashboard.dart';
 
 final _urlTermos = Uri.parse('https://app-fisio-care-2.web.app/termos.html');
@@ -33,29 +30,15 @@ class TelaLogin extends ConsumerWidget {
         }
 
         if (proximo.sessao != null) {
-          unawaited(
-            carregarDadosReais(ref).catchError((Object e) {
-              if (!context.mounted) return;
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text('Falha ao carregar dados reais: $e'),
-                  backgroundColor: Colors.red,
-                ),
-              );
-            }),
+          // Navega imediatamente para o dashboard
+          Navigator.of(context).pushReplacement(
+            MaterialPageRoute(
+              builder: (_) => TelaDashboard(
+                nomeUsuario: proximo.sessao?.nomeUsuario ?? 'Profissional',
+              ),
+            ),
           );
         }
-
-        if (!context.mounted) {
-          return;
-        }
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(
-            builder: (_) => TelaDashboard(
-              nomeUsuario: proximo.sessao?.nomeUsuario ?? 'Profissional',
-            ),
-          ),
-        );
       });
     });
 

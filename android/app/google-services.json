@@ -1,38 +1,36 @@
 {
   "project_info": {
-    "project_number": "309204272254",
-    "project_id": "app-fisio-care",
-    "storage_bucket": "app-fisio-care.firebasestorage.app"
+    "project_number": "1034972209864",
+    "project_id": "app-fisio-care-2",
+    "storage_bucket": "app-fisio-care-2.firebasestorage.app"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:309204272254:android:dc0ae87a3b88b32b64442f",
+        "mobilesdk_app_id": "1:1034972209864:android:8fad7aefb3a71191c6fbfd",
         "android_client_info": {
           "package_name": "com.rodrigo.fisio_care"
         }
       },
       "oauth_client": [
         {
-          "client_id": "775144193127-9tmu72914qb3l1gd3pvs0bpcc1n190jr.apps.googleusercontent.com",
-          "client_type": 1,
-          "android_info": {
-            "package_name": "com.rodrigo.fisio_care"
-          }
-        },
-        {
-          "client_id": "775144193127-2e66o29nd592fe4g52vk4u7gi7e5jdrr.apps.googleusercontent.com",
+          "client_id": "1034972209864-22ivlkbu9eu206fv6tvot90mup62stic.apps.googleusercontent.com",
           "client_type": 3
         }
       ],
       "api_key": [
         {
-          "current_key": "AIzaSyB3a2aj2rP0E7cr2C2D2WvKpF9fjgmmyB0"
+          "current_key": "AIzaSyAeB9FO9yxYFyG02rIrjpxOx_-hLB5O__E"
         }
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "1034972209864-22ivlkbu9eu206fv6tvot90mup62stic.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
         }
       }
     }
