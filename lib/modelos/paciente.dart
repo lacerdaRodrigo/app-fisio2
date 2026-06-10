@@ -11,6 +11,13 @@ class Paciente {
   final String? histDoencaAtual;
   final String? histPregresso;
   final String? ocupacao;
+  final String? genero;
+  final String? dor;
+  final String? comorbidades;
+  final String? medicamentos;
+  final String? alergias;
+  final String? cirurgias;
+  final String? habitosVida;
   final String situacao; // 'Ativo' ou 'Arquivado'
   final DateTime dataCadastro;
 
@@ -25,6 +32,13 @@ class Paciente {
     this.histDoencaAtual,
     this.histPregresso,
     this.ocupacao,
+    this.genero,
+    this.dor,
+    this.comorbidades,
+    this.medicamentos,
+    this.alergias,
+    this.cirurgias,
+    this.habitosVida,
     this.situacao = 'Ativo',
     DateTime? dataCadastro,
   }) : dataCadastro = dataCadastro ?? DateTime.now();
@@ -42,7 +56,7 @@ class Paciente {
 
   bool get estaAtivo => situacao == 'Ativo';
 
-  /// Converte para mapa de valores para envio à planilha.
+/// Converte para mapa de valores para envio à planilha.
   Map<String, dynamic> paraMapaPlanilha() {
     return {
       'ID_Paciente': idPaciente,
@@ -58,10 +72,16 @@ class Paciente {
       'Ocupacao': ocupacao ?? '',
       'Situacao': situacao,
       'Data_Cadastro': dataCadastro.toIso8601String(),
+      'Genero': genero ?? '',
+      'Dor': dor ?? '',
+      'Comorbidades': comorbidades ?? '',
+      'Medicamentos': medicamentos ?? '',
+      'Alergias': alergias ?? '',
+      'Cirurgias': cirurgias ?? '',
+      'Habitos_Vida': habitosVida ?? '',
     };
   }
 
-  /// Cria um Paciente a partir de uma linha da planilha (lista de strings).
   factory Paciente.deLinhaPlanilha(List<String> linha) {
     final partesData = linha[3].split('/');
     return Paciente(
@@ -83,23 +103,54 @@ class Paciente {
       dataCadastro: linha.length > 11
           ? DateTime.tryParse(linha[11]) ?? DateTime.now()
           : DateTime.now(),
+      genero: linha.length > 12 ? linha[12] : null,
+      dor: linha.length > 13 ? linha[13] : null,
+      comorbidades: linha.length > 14 ? linha[14] : null,
+      medicamentos: linha.length > 15 ? linha[15] : null,
+      alergias: linha.length > 16 ? linha[16] : null,
+      cirurgias: linha.length > 17 ? linha[17] : null,
+      habitosVida: linha.length > 18 ? linha[18] : null,
     );
   }
 
-  Paciente copiarCom({String? situacao}) {
+  Paciente copiarCom({
+    String? nome,
+    String? telefone,
+    DateTime? dataNascimento,
+    String? cpf,
+    String? endereco,
+    String? queixaPrincipal,
+    String? histDoencaAtual,
+    String? histPregresso,
+    String? ocupacao,
+    String? genero,
+    String? dor,
+    String? comorbidades,
+    String? medicamentos,
+    String? alergias,
+    String? cirurgias,
+    String? habitosVida,
+    String? situacao,
+  }) {
     return Paciente(
       idPaciente: idPaciente,
-      nome: nome,
-      telefone: telefone,
-      dataNascimento: dataNascimento,
-      cpf: cpf,
-      endereco: endereco,
-      queixaPrincipal: queixaPrincipal,
-      histDoencaAtual: histDoencaAtual,
-      histPregresso: histPregresso,
-      ocupacao: ocupacao,
+      nome: nome ?? this.nome,
+      telefone: telefone ?? this.telefone,
+      dataNascimento: dataNascimento ?? this.dataNascimento,
+      cpf: cpf ?? this.cpf,
+      endereco: endereco ?? this.endereco,
+      queixaPrincipal: queixaPrincipal ?? this.queixaPrincipal,
+      histDoencaAtual: histDoencaAtual ?? this.histDoencaAtual,
+      histPregresso: histPregresso ?? this.histPregresso,
+      ocupacao: ocupacao ?? this.ocupacao,
+      genero: genero ?? this.genero,
+      dor: dor ?? this.dor,
+      comorbidades: comorbidades ?? this.comorbidades,
+      medicamentos: medicamentos ?? this.medicamentos,
+      alergias: alergias ?? this.alergias,
+      cirurgias: cirurgias ?? this.cirurgias,
+      habitosVida: habitosVida ?? this.habitosVida,
       situacao: situacao ?? this.situacao,
-      dataCadastro: dataCadastro,
     );
   }
 }

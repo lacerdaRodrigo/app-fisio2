@@ -1,9 +1,25 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:mask_text_input_formatter/mask_text_input_formatter.dart';
 import '../modelos/paciente.dart';
 import '../provedores/provedores_dados.dart';
 import '../utilitarios/validador_cpf.dart';
+
+class FormatterEscalaDor extends TextInputFormatter {
+  @override
+  TextEditingValue formatEditUpdate(
+    TextEditingValue oldValue,
+    TextEditingValue newValue,
+  ) {
+    if (newValue.text.isEmpty) return newValue;
+    final valor = int.tryParse(newValue.text);
+    if (valor == null || valor < 0 || valor > 10) {
+      return oldValue;
+    }
+    return newValue;
+  }
+}
 
 class TelaCadastroPaciente extends ConsumerStatefulWidget {
   const TelaCadastroPaciente({super.key});
@@ -19,9 +35,22 @@ class _TelaCadastroPacienteState extends ConsumerState<TelaCadastroPaciente> {
   final _cpfController = TextEditingController();
   final _telefoneController = TextEditingController();
   final _queixaController = TextEditingController();
-  final _hdaController = TextEditingController();
-  final _hpController = TextEditingController();
-  final _ocupacaoController = TextEditingController();
+  String _genero = 'Masculino';
+  final _dorController = TextEditingController();
+  final _historicoController = TextEditingController();
+  final _comorbidadesController = TextEditingController();
+  final _medicamentosController = TextEditingController();
+  final _alergiasController = TextEditingController();
+  final _cirurgiasController = TextEditingController();
+  final _habitosVidaController = TextEditingController();
+  final _cpfFormatter = MaskTextInputFormatter(
+    mask: '###.###.###-##',
+    filter: {'#': RegExp(r'[0-9]')},
+  );
+  final _telefoneFormatter = MaskTextInputFormatter(
+    mask: '(##) #####-####',
+    filter: {'#': RegExp(r'[0-9]')},
+  );
 
   String _rua = '';
   String _bairro = '';
@@ -47,9 +76,13 @@ class _TelaCadastroPacienteState extends ConsumerState<TelaCadastroPaciente> {
     _cpfController.dispose();
     _telefoneController.dispose();
     _queixaController.dispose();
-    _hdaController.dispose();
-    _hpController.dispose();
-    _ocupacaoController.dispose();
+    _dorController.dispose();
+    _historicoController.dispose();
+    _comorbidadesController.dispose();
+    _medicamentosController.dispose();
+    _alergiasController.dispose();
+    _cirurgiasController.dispose();
+    _habitosVidaController.dispose();
     super.dispose();
   }
 
@@ -100,11 +133,13 @@ class _TelaCadastroPacienteState extends ConsumerState<TelaCadastroPaciente> {
               keyboardType: TextInputType.number,
               inputFormatters: [
                 FilteringTextInputFormatter.digitsOnly,
-                LengthLimitingTextInputFormatter(11),
+                _cpfFormatter,
               ],
               validator: (v) {
                 if (v == null || v.isEmpty) return 'CPF é obrigatório.';
-                if (!ValidadorCpf.validar(v)) return 'CPF inválido.';
+                // Remove formatting for validation
+                final cpf = v.replaceAll(RegExp(r'[^\d]'), '');
+                if (!ValidadorCpf.validar(cpf)) return 'CPF inválido.';
                 return null;
               },
             ),
@@ -117,7 +152,11 @@ class _TelaCadastroPacienteState extends ConsumerState<TelaCadastroPaciente> {
                 prefixIcon: Icon(Icons.phone_outlined),
                 hintText: '(00) 00000-0000',
               ),
-              keyboardType: TextInputType.phone,
+              keyboardType: TextInputType.number,
+              inputFormatters: [
+                FilteringTextInputFormatter.digitsOnly,
+                _telefoneFormatter,
+              ],
               validator: (v) => (v == null || v.trim().isEmpty)
                   ? 'Telefone é obrigatório.'
                   : null,
@@ -127,15 +166,16 @@ class _TelaCadastroPacienteState extends ConsumerState<TelaCadastroPaciente> {
             // Data de Nascimento
             InkWell(
               borderRadius: BorderRadius.circular(12),
-              onTap: () async {
-                final data = await showDatePicker(
+              onTap: () {
+                showDatePicker(
                   context: context,
-                  initialDate: DateTime(1990),
+                  initialDate: _dataNascimento ?? DateTime(1990),
                   firstDate: DateTime(1900),
                   lastDate: DateTime.now(),
                   locale: const Locale('pt', 'BR'),
-                );
-                if (data != null) setState(() => _dataNascimento = data);
+                ).then((data) {
+                  if (data != null) setState(() => _dataNascimento = data);
+                });
               },
               child: InputDecorator(
                 decoration: const InputDecoration(
@@ -187,18 +227,22 @@ class _TelaCadastroPacienteState extends ConsumerState<TelaCadastroPaciente> {
             ),
             const SizedBox(height: 12),
 
+            // Subseção: Sintomas e Queixas
+            _construirSubtituloSecao('Sintomas e Queixas'),
+            const SizedBox(height: 8),
+
             TextFormField(
               controller: _queixaController,
               decoration: const InputDecoration(
                 labelText: 'Queixa Principal (QP)',
               ),
-              maxLines: 2,
+              maxLines: 3,
               textCapitalization: TextCapitalization.sentences,
             ),
             const SizedBox(height: 12),
 
             TextFormField(
-              controller: _hdaController,
+              controller: _historicoController,
               decoration: const InputDecoration(
                 labelText: 'Histórico da Doença Atual (HDA)',
                 hintText: 'EVA, fatores de piora/melhora...',
@@ -208,21 +252,120 @@ class _TelaCadastroPacienteState extends ConsumerState<TelaCadastroPaciente> {
             ),
             const SizedBox(height: 12),
 
-            TextFormField(
-              controller: _hpController,
+            DropdownButtonFormField<String>(
+              value: _genero,
               decoration: const InputDecoration(
-                labelText: 'Histórico Pregresso (HP)',
-                hintText: 'Cirurgias, medicamentos, comorbidades...',
+                labelText: 'Gênero',
+                prefixIcon: Icon(Icons.transgender),
               ),
-              maxLines: 3,
+              items: [
+                'Masculino',
+                'Feminino',
+                'Outro',
+              ].map((String value) {
+                return DropdownMenuItem<String>(
+                  value: value,
+                  child: Text(value),
+                );
+              }).toList(),
+              onChanged: (String? value) {
+                setState(() {
+                  _genero = value!;
+                });
+              },
+              validator: (value) {
+                if (value == null) {
+                  return 'Selecione o gênero';
+                }
+                return null;
+              },
+            ),
+            const SizedBox(height: 12),
+
+            TextFormField(
+              controller: _dorController,
+              decoration: const InputDecoration(
+                labelText: 'Escala de dor (0-10)',
+                hintText: '0 a 10',
+              ),
+              keyboardType: TextInputType.number,
+              inputFormatters: [
+                FilteringTextInputFormatter.digitsOnly,
+                FormatterEscalaDor(),
+              ],
+              validator: (value) {
+                if (value == null || value.isEmpty) {
+                  return 'Informe a intensidade da dor';
+                }
+                final dor = int.tryParse(value);
+                if (dor == null || dor < 0 || dor > 10) {
+                  return 'A dor deve ser entre 0 e 10';
+                }
+                return null;
+              },
+            ),
+            const SizedBox(height: 20),
+
+            // Subseção: Histórico Clínico
+            _construirSubtituloSecao('Histórico Clínico'),
+            const SizedBox(height: 8),
+
+            TextFormField(
+              controller: _comorbidadesController,
+              decoration: const InputDecoration(
+                labelText: 'Comorbidades/Doenças Prévias',
+                hintText: 'Ex: Hipertensão, Diabetes, Cardiopatias...',
+              ),
+              maxLines: 2,
               textCapitalization: TextCapitalization.sentences,
             ),
             const SizedBox(height: 12),
 
             TextFormField(
-              controller: _ocupacaoController,
-              decoration: const InputDecoration(labelText: 'Ocupação'),
-              textCapitalization: TextCapitalization.words,
+              controller: _medicamentosController,
+              decoration: const InputDecoration(
+                labelText: 'Medicamentos em Uso',
+                hintText: 'Liste os medicamentos atuais...',
+              ),
+              maxLines: 2,
+              textCapitalization: TextCapitalization.sentences,
+            ),
+            const SizedBox(height: 12),
+
+            TextFormField(
+              controller: _alergiasController,
+              decoration: const InputDecoration(
+                labelText: 'Alergias',
+                hintText: 'Ex: Dipirona, Látex, Iodo...',
+              ),
+              maxLines: 2,
+              textCapitalization: TextCapitalization.sentences,
+            ),
+            const SizedBox(height: 12),
+
+            TextFormField(
+              controller: _cirurgiasController,
+              decoration: const InputDecoration(
+                labelText: 'Cirurgias/Traumas Prévios',
+                hintText: 'Ex: Fraturas, implantes metálicos, cirurgias...',
+              ),
+              maxLines: 2,
+              textCapitalization: TextCapitalization.sentences,
+            ),
+            const SizedBox(height: 20),
+
+            // Subseção: Estilo de Vida
+            _construirSubtituloSecao('Estilo de Vida'),
+            const SizedBox(height: 8),
+
+            TextFormField(
+              controller: _habitosVidaController,
+              decoration: const InputDecoration(
+                labelText: 'Hábitos de Vida / Atividade Física',
+                hintText: 'Sedentarismo, frequência de exercícios, profissão...',
+              ),
+              maxLines: 2,
+              textCapitalization: TextCapitalization.sentences,
             ),
             const SizedBox(height: 32),
 
@@ -269,6 +412,17 @@ class _TelaCadastroPacienteState extends ConsumerState<TelaCadastroPaciente> {
           ),
         ),
       ],
+    );
+  }
+
+  Widget _construirSubtituloSecao(String titulo) {
+    return Text(
+      titulo,
+      style: TextStyle(
+        fontSize: 14,
+        fontWeight: FontWeight.w600,
+        color: Theme.of(context).colorScheme.secondary,
+      ),
     );
   }
 
@@ -337,10 +491,15 @@ class _TelaCadastroPacienteState extends ConsumerState<TelaCadastroPaciente> {
       dataNascimento: _dataNascimento!,
       cpf: cpf,
       endereco: _enderecoCompleto,
-      queixaPrincipal: _queixaController.text.trim(),
-      histDoencaAtual: _hdaController.text.trim(),
-      histPregresso: _hpController.text.trim(),
-      ocupacao: _ocupacaoController.text.trim(),
+      queixaPrincipal: _queixaController.text.trim().isEmpty ? null : _queixaController.text.trim(),
+      histDoencaAtual: _historicoController.text.trim().isEmpty ? null : _historicoController.text.trim(),
+      comorbidades: _comorbidadesController.text.trim().isEmpty ? null : _comorbidadesController.text.trim(),
+      medicamentos: _medicamentosController.text.trim().isEmpty ? null : _medicamentosController.text.trim(),
+      alergias: _alergiasController.text.trim().isEmpty ? null : _alergiasController.text.trim(),
+      cirurgias: _cirurgiasController.text.trim().isEmpty ? null : _cirurgiasController.text.trim(),
+      habitosVida: _habitosVidaController.text.trim().isEmpty ? null : _habitosVidaController.text.trim(),
+      genero: _genero,
+      dor: _dorController.text.trim().isEmpty ? null : _dorController.text.trim(),
     );
 
     try {
@@ -443,10 +602,10 @@ class _ModalEnderecoState extends State<_ModalEndereco> {
             children: [
               TextFormField(
                 controller: _ruaController,
-                decoration: const InputDecoration(labelText: 'Rua *'),
+                decoration: const InputDecoration(labelText: 'Rua/Avenida *'),
                 textCapitalization: TextCapitalization.words,
                 validator: (v) =>
-                    (v == null || v.trim().isEmpty) ? 'Informe a rua.' : null,
+                    (v == null || v.trim().isEmpty) ? 'Informe a rua/avenida.' : null,
               ),
               const SizedBox(height: 12),
               TextFormField(

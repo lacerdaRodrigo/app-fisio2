@@ -86,6 +86,70 @@ void mostrarModalDetalhesPaciente(BuildContext context, Paciente paciente) {
                       valor: paciente.queixaPrincipal!,
                     ),
                   ],
+                  if ((paciente.histDoencaAtual ?? '').isNotEmpty) ...[
+                    const SizedBox(height: 12),
+                    _LinhaInfo(
+                      icone: Icons.history_rounded,
+                      titulo: 'Histórico da Doença Atual',
+                      valor: paciente.histDoencaAtual!,
+                    ),
+                  ],
+                  if ((paciente.genero ?? '').isNotEmpty) ...[
+                    const SizedBox(height: 12),
+                    _LinhaInfo(
+                      icone: Icons.transgender,
+                      titulo: 'Gênero',
+                      valor: paciente.genero!,
+                    ),
+                  ],
+                  if ((paciente.dor ?? '').isNotEmpty) ...[
+                    const SizedBox(height: 12),
+                    _LinhaInfo(
+                      icone: Icons.favorite_outline_rounded,
+                      titulo: 'Escala de Dor',
+                      valor: '${paciente.dor}/10',
+                    ),
+                  ],
+                  if ((paciente.comorbidades ?? '').isNotEmpty) ...[
+                    const SizedBox(height: 12),
+                    _LinhaInfo(
+                      icone: Icons.medical_services_outlined,
+                      titulo: 'Comorbidades',
+                      valor: paciente.comorbidades!,
+                    ),
+                  ],
+                  if ((paciente.medicamentos ?? '').isNotEmpty) ...[
+                    const SizedBox(height: 12),
+                    _LinhaInfo(
+                      icone: Icons.medication_outlined,
+                      titulo: 'Medicamentos em Uso',
+                      valor: paciente.medicamentos!,
+                    ),
+                  ],
+                  if ((paciente.alergias ?? '').isNotEmpty) ...[
+                    const SizedBox(height: 12),
+                    _LinhaInfo(
+                      icone: Icons.warning_amber_rounded,
+                      titulo: 'Alergias',
+                      valor: paciente.alergias!,
+                    ),
+                  ],
+                  if ((paciente.cirurgias ?? '').isNotEmpty) ...[
+                    const SizedBox(height: 12),
+                    _LinhaInfo(
+                      icone: Icons.healing_outlined,
+                      titulo: 'Cirurgias/Traumas',
+                      valor: paciente.cirurgias!,
+                    ),
+                  ],
+                  if ((paciente.habitosVida ?? '').isNotEmpty) ...[
+                    const SizedBox(height: 12),
+                    _LinhaInfo(
+                      icone: Icons.directions_run_rounded,
+                      titulo: 'Hábitos de Vida / Atividade Física',
+                      valor: paciente.habitosVida!,
+                    ),
+                  ],
                   const SizedBox(height: 24),
                   _BotaoAcao(
                     icone: Icons.edit_note_rounded,

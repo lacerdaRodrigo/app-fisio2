@@ -15,12 +15,19 @@ Armazena os dados cadastrais e a ficha de anamnese inicial dos pacientes.
 | `Data_Nascimento` | Data para fins de cálculo de idade e prontuário. | `04/06/1986` |
 | `CPF` | Documento de identificação (único no sistema). | `111.111.111-11` |
 | `Endereco` | Endereço residencial completo para visitas. | `Rua das Flores, 123, São Paulo - SP` |
-| `Queixa_Principal` | Motivo que levou o paciente a buscar tratamento. | `Dor lombar crônica há 6 meses` |
-| `Hist_Doenca_Atual` | Histórico atual da dor (EVA de dor, fatores de piora). | `Dor irradia para perna direita (EVA 7)` |
-| `Hist_Pregresso` | Doenças prévias, cirurgias, remédios em uso. | `Hipertenso, faz uso de Losartana` |
-| `Ocupacao` | Profissão ou rotina do paciente. | `Escriturário (fica muito tempo sentado)` |
+| `Queixa_Principal` | Motivo que levou o paciente a buscar tratamento (QP). | `Dor lombar crônica há 6 meses` |
+| `Hist_Doenca_Atual` | Histórico atual da dor (EVA, fatores de piora/melhora). | `Dor irradia para perna direita (EVA 7)` |
+| `Hist_Pregresso` | *Legado* - Doenças prévias, cirurgias, remédios. | `Hipertenso, uso de Losartana` |
+| `Ocupacao` | *Legado* - Profissão ou rotina do paciente. | `Escriturário (tempo sentado)` |
 | `Situacao` | Status de visibilidade no aplicativo. | `Ativo` ou `Arquivado` |
 | `Data_Cadastro` | Data e hora em que o registro foi criado. | `04/06/2026 10:15:30` |
+| `Genero` | Gênero do paciente. | `Masculino`, `Feminino`, `Outro` |
+| `Dor` | Escala de dor numérica (0-10). | `7` |
+| `Comorbidades` | Doenças prévias e comorbidades associadas. | `Hipertensão, Diabetes tipo 2` |
+| `Medicamentos` | Medicamentos em uso atual. | `Losartana 50mg, Metformina 850mg` |
+| `Alergias` | Alergias conhecidas (medicamentos, látex, etc.). | `Dipirona, Látex` |
+| `Cirurgias` | Cirurgias e traumas prévios (fraturas, implantes). | `Artroscopia joelho dir. 2020` |
+| `Habitos_Vida` | Hábitos de vida, atividade física, sedentarismo. | `Sedentário, caminhada 2x/semana` |
 
 ---
 

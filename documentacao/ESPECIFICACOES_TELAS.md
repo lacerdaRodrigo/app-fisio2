@@ -71,16 +71,28 @@ Esta tela permite ao profissional agendar um novo atendimento domiciliar, garant
 
 # Especificação da Tela: Cadastro de Paciente (Anamnese)
 
-Esta tela permite realizar o cadastro completo do paciente no aplicativo e preencher sua ficha de anamnese clínica inicial.
+Esta tela permite realizar o cadastro completo do paciente no aplicativo e preencher sua ficha de anamnese clínica inicial, alinhada aos padrões dos conselhos de fisioterapia.
 
 ## 1. Requisitos Funcionais
 * **Formulário de Cadastro:**
     * **Campos Pessoais:** Nome Completo, CPF (com máscara de validação), Telefone, Data de Nascimento e Endereço Residencial.
-    * **Campos Clínicos (Anamnese):** Queixa Principal (QP), Histórico da Doença Atual (HDA), Histórico Pregresso (HP - cirurgias, medicamentos, comorbidades) e Ocupação.
+    * **Campos Clínicos (Anamnese) - Organizados em Subseções:**
+        * **Sintomas e Queixas:**
+            * Queixa Principal (QP)
+            * Histórico da Doença Atual (HDA) - EVA, fatores de piora/melhora
+            * Gênero (Masculino, Feminino, Outro)
+            * **Escala de Dor (0-10)** - Campo numérico com validação em tempo real (bloqueia letras e valores fora de 0-10)
+        * **Histórico Clínico:**
+            * Comorbidades/Doenças Prévias (Ex: Hipertensão, Diabetes)
+            * Medicamentos em Uso
+            * Alergias (crucial para eletroterapia, agulhamento, pomadas)
+            * Cirurgias/Traumas Prévios (fraturas, implantes metálicos)
+        * **Estilo de Vida:**
+            * Hábitos de Vida / Atividade Física (sedentarismo, frequência exercícios, profissão)
 * **Validação de CPF Único:**
     * O sistema deve validar se o CPF é estruturalmente válido.
     * O sistema deve consultar a lista de pacientes cadastrados e bloquear a criação se o CPF inserido já estiver registrado, exibindo a mensagem `"Este CPF já está cadastrado."`
-* **Campos Obrigatórios:** Nome Completo, CPF, Telefone e Endereço são obrigatórios para habilitar o botão de cadastro.
+* **Campos Obrigatórios:** Nome Completo, CPF, Telefone, Endereço e Escala de Dor são obrigatórios para habilitar o botão de cadastro.
 * **Situação Inicial:** Todo paciente cadastrado é criado com a situação `"Ativo"` por padrão na planilha.
 
 ## 2. Implementação Técnica

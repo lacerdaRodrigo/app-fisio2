@@ -12,6 +12,15 @@ Esta tela permite a gestão, busca, cadastro e visualização detalhada dos paci
 * **Interação com Paciente (Pop-up/Modal de Detalhes):** Ao selecionar um paciente da lista, um modal exibe:
     * Nome Completo e Idade (calculada com base na `Data_Nascimento`).
     * Contato (Telefone) e Endereço Residencial.
+    * **Anamnese Clínica Completa:**
+        * Queixa Principal (QP) e Histórico da Doença Atual (HDA)
+        * Gênero
+        * Escala de Dor (0-10)
+        * Comorbidades
+        * Medicamentos em Uso
+        * Alergias
+        * Cirurgias/Traumas Prévios
+        * Hábitos de Vida / Atividade Física
     * **Integração de Rotas (Google Maps / Waze):** Um ícone de rotas ("Como Chegar") posicionado ao lado do endereço. Ao clicar, abre o modal de seleção rápida entre Google Maps e Waze para traçar a rota até a casa do paciente.
     * Botões de ação adicionais:
         1. **Nova Evolução:** Redireciona para o fluxo de registro clínico (`TelaRegistroEvolucao`).

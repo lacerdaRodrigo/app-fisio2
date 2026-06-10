@@ -18,6 +18,13 @@ class ServicoGoogleSheets {
       'Ocupacao',
       'Situacao',
       'Data_Cadastro',
+      'Genero',
+      'Dor',
+      'Comorbidades',
+      'Medicamentos',
+      'Alergias',
+      'Cirurgias',
+      'Habitos_Vida',
     ],
     'Agenda': [
       'ID_Agendamento',

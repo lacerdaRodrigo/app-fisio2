@@ -126,11 +126,11 @@ class RepositorioDadosGoogle {
     );
     if (indice == -1) return;
 
-    final linha = _preencher(linhas[indice], 12);
+    final linha = _preencher(linhas[indice], 19);
     linha[10] = 'Arquivado';
     await _sheets.atualizarLinha(
       id,
-      'Pacientes!A${indice + 2}:L${indice + 2}',
+      'Pacientes!A${indice + 2}:S${indice + 2}',
       linha,
     );
     await registrarAuditoria(
@@ -202,7 +202,7 @@ class RepositorioDadosGoogle {
   }
 
   Paciente _pacienteDeLinha(List<String> linhaOriginal) {
-    final linha = _preencher(linhaOriginal, 12);
+    final linha = _preencher(linhaOriginal, 19);
     return Paciente(
       idPaciente: linha[0],
       nome: linha[1],
@@ -216,6 +216,13 @@ class RepositorioDadosGoogle {
       ocupacao: linha[9],
       situacao: linha[10].isEmpty ? 'Ativo' : linha[10],
       dataCadastro: DateTime.tryParse(linha[11]) ?? DateTime.now(),
+      genero: linha[12].isEmpty ? null : linha[12],
+      dor: linha[13].isEmpty ? null : linha[13],
+      comorbidades: linha[14].isEmpty ? null : linha[14],
+      medicamentos: linha[15].isEmpty ? null : linha[15],
+      alergias: linha[16].isEmpty ? null : linha[16],
+      cirurgias: linha[17].isEmpty ? null : linha[17],
+      habitosVida: linha[18].isEmpty ? null : linha[18],
     );
   }
 
