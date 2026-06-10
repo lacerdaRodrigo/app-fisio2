@@ -150,6 +150,10 @@ void mostrarModalDetalhesPaciente(BuildContext context, Paciente paciente) {
                       valor: paciente.habitosVida!,
                     ),
                   ],
+                  if (paciente.estaAtivo) ...[
+                    const SizedBox(height: 12),
+                    _UltimaCondicao(paciente: paciente),
+                  ],
                   const SizedBox(height: 24),
                   _BotaoAcao(
                     icone: Icons.edit_note_rounded,
@@ -329,6 +333,82 @@ class _LinhaInfo extends StatelessWidget {
         ),
         ?acao,
       ],
+    );
+  }
+}
+
+class _UltimaCondicao extends ConsumerWidget {
+  final Paciente paciente;
+
+  const _UltimaCondicao({required this.paciente});
+
+  Color _condicaoColor(String condicao) {
+    switch (condicao) {
+      case 'Melhora':
+        return Colors.green;
+      case 'Estável':
+        return Colors.orange;
+      case 'Piora':
+        return Colors.red;
+      case 'Faltou':
+        return Colors.grey;
+      default:
+        return Colors.blue;
+    }
+  }
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final evolucoes = ref.watch(provedorListaEvolucoes);
+    final ultima = evolucoes
+        .where((e) => e.idPaciente == paciente.idPaciente)
+        .toList()
+      ..sort((a, b) => b.dataAtendimento.compareTo(a.dataAtendimento));
+
+    if (ultima.isEmpty) return const SizedBox.shrink();
+
+    final evol = ultima.first;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+      decoration: BoxDecoration(
+        color: _condicaoColor(evol.condicaoPaciente).withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: _condicaoColor(evol.condicaoPaciente).withValues(alpha: 0.3),
+        ),
+      ),
+      child: Row(
+        children: [
+          Icon(
+            Icons.trending_up_rounded,
+            color: _condicaoColor(evol.condicaoPaciente),
+            size: 22,
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Última evolução',
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: Colors.grey.shade600,
+                  ),
+                ),
+                Text(
+                  'Condição: ${evol.condicaoPaciente}  •  Dor: ${evol.dorSessao}/10',
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 14,
+                    color: _condicaoColor(evol.condicaoPaciente),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

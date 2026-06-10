@@ -242,15 +242,7 @@ class RepositorioDadosGoogle {
   }
 
   Evolucao _evolucaoDeLinha(List<String> linhaOriginal) {
-    final linha = _preencher(linhaOriginal, 6);
-    return Evolucao(
-      idEvolucao: linha[0],
-      idPaciente: linha[1],
-      idAgendamento: linha[2],
-      dataAtendimento: _parseDataBr(linha[3]),
-      evolucaoTexto: linha[4],
-      dataRegistro: DateTime.tryParse(linha[5]) ?? DateTime.now(),
-    );
+    return Evolucao.deLinhaPlanilha(linhaOriginal);
   }
 
   List<Object?> _valoresPaciente(Paciente paciente) {

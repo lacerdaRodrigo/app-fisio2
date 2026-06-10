@@ -4,22 +4,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mask_text_input_formatter/mask_text_input_formatter.dart';
 import '../modelos/paciente.dart';
 import '../provedores/provedores_dados.dart';
+import '../utilitarios/formatters.dart';
 import '../utilitarios/validador_cpf.dart';
-
-class FormatterEscalaDor extends TextInputFormatter {
-  @override
-  TextEditingValue formatEditUpdate(
-    TextEditingValue oldValue,
-    TextEditingValue newValue,
-  ) {
-    if (newValue.text.isEmpty) return newValue;
-    final valor = int.tryParse(newValue.text);
-    if (valor == null || valor < 0 || valor > 10) {
-      return oldValue;
-    }
-    return newValue;
-  }
-}
 
 class TelaCadastroPaciente extends ConsumerStatefulWidget {
   const TelaCadastroPaciente({super.key});

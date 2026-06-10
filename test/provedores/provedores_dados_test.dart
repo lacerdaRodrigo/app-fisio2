@@ -54,13 +54,16 @@ void main() {
     });
 
     test('deve limpar a lista de evoluções', () {
+      final agora = DateTime.now();
       container.read(provedorListaEvolucoes.notifier).definir([
         Evolucao(
           idEvolucao: 'E001',
           idPaciente: 'P001',
           idAgendamento: 'A001',
-          dataAtendimento: DateTime.now(),
+          dataAtendimento: agora,
           evolucaoTexto: 'Paciente evoluiu bem.',
+          horarioInicioReal: agora,
+          horarioFimReal: agora.add(const Duration(hours: 1)),
         ),
       ]);
       expect(container.read(provedorListaEvolucoes), isNotEmpty);

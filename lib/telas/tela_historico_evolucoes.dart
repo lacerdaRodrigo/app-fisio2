@@ -108,9 +108,57 @@ class _ItemTimeline extends StatelessWidget {
 
   const _ItemTimeline({required this.evolucao, required this.ultimo});
 
+  Color _condicaoColor(String condicao) {
+    switch (condicao) {
+      case 'Melhora':
+        return Colors.green;
+      case 'Estável':
+        return Colors.orange;
+      case 'Piora':
+        return Colors.red;
+      case 'Faltou':
+        return Colors.grey;
+      default:
+        return Colors.blue;
+    }
+  }
+
+  String _formatHora(DateTime data) =>
+      '${data.hour.toString().padLeft(2, '0')}:${data.minute.toString().padLeft(2, '0')}';
+
+  IconData _presencaIcon(String status) {
+    switch (status) {
+      case 'Presente':
+        return Icons.person_pin_rounded;
+      case 'Ausente com aviso':
+        return Icons.person_off_outlined;
+      case 'Ausente sem aviso':
+        return Icons.person_off_rounded;
+      default:
+        return Icons.help_outline_rounded;
+    }
+  }
+
+  Color _presencaColor(String status) {
+    switch (status) {
+      case 'Presente':
+        return Colors.green;
+      case 'Ausente com aviso':
+        return Colors.orange;
+      case 'Ausente sem aviso':
+        return Colors.red;
+      default:
+        return Colors.grey;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final temSinaisVitais =
+        (evolucao.pressaoArterial != null && evolucao.pressaoArterial!.isNotEmpty) ||
+        evolucao.frequenciaCardiaca != null;
+
     return IntrinsicHeight(
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -121,7 +169,7 @@ class _ItemTimeline extends StatelessWidget {
                 width: 14,
                 height: 14,
                 decoration: BoxDecoration(
-                  color: theme.colorScheme.primary,
+                  color: _condicaoColor(evolucao.condicaoPaciente),
                   shape: BoxShape.circle,
                 ),
               ),
@@ -153,24 +201,119 @@ class _ItemTimeline extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    UtilitariosData.formatarDataBr(evolucao.dataAtendimento),
-                    style: theme.textTheme.titleSmall?.copyWith(
-                      color: theme.colorScheme.primary,
-                      fontWeight: FontWeight.bold,
+                  Row(
+                    children: [
+                      Text(
+                        UtilitariosData.formatarDataBr(
+                          evolucao.dataAtendimento,
+                        ),
+                        style: theme.textTheme.titleSmall?.copyWith(
+                          color: theme.colorScheme.primary,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const Spacer(),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 2,
+                        ),
+                        decoration: BoxDecoration(
+                          color: _condicaoColor(
+                            evolucao.condicaoPaciente,
+                          ).withValues(alpha: 0.15),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Text(
+                          evolucao.condicaoPaciente,
+                          style: TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w600,
+                            color: _condicaoColor(evolucao.condicaoPaciente),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 10),
+                  _LinhaInfo(
+                    icone: _presencaIcon(evolucao.statusPresenca),
+                    corIcone: _presencaColor(evolucao.statusPresenca),
+                    texto: 'Status: ${evolucao.statusPresenca}',
+                  ),
+                  const SizedBox(height: 4),
+                  _LinhaInfo(
+                    icone: Icons.access_time_rounded,
+                    texto:
+                        '${_formatHora(evolucao.horarioInicioReal)} — ${_formatHora(evolucao.horarioFimReal)} (Real)',
+                  ),
+                  const SizedBox(height: 4),
+                  _LinhaInfo(
+                    icone: Icons.favorite_outline_rounded,
+                    texto: 'Dor: ${evolucao.dorSessao}/10',
+                  ),
+                  const SizedBox(height: 4),
+                  _LinhaInfo(
+                    icone: Icons.location_on_outlined,
+                    texto: evolucao.localAtendimento,
+                  ),
+                  if (temSinaisVitais) ...[
+                    const SizedBox(height: 4),
+                    _LinhaInfo(
+                      icone: Icons.monitor_heart_outlined,
+                      texto: [
+                        if (evolucao.pressaoArterial != null &&
+                            evolucao.pressaoArterial!.isNotEmpty)
+                          'PA: ${evolucao.pressaoArterial}',
+                        if (evolucao.frequenciaCardiaca != null)
+                          'FC: ${evolucao.frequenciaCardiaca} bpm',
+                      ].join(' | '),
                     ),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    evolucao.evolucaoTexto,
-                    style: theme.textTheme.bodyMedium,
-                  ),
+                  ],
+                  if (evolucao.evolucaoTexto.isNotEmpty) ...[
+                    const SizedBox(height: 8),
+                    const Divider(height: 1),
+                    const SizedBox(height: 8),
+                    Text(
+                      evolucao.evolucaoTexto,
+                      style: theme.textTheme.bodyMedium,
+                    ),
+                  ],
                 ],
               ),
             ),
           ),
         ],
       ),
+    );
+  }
+}
+
+class _LinhaInfo extends StatelessWidget {
+  final IconData icone;
+  final String texto;
+  final Color? corIcone;
+
+  const _LinhaInfo({
+    required this.icone,
+    required this.texto,
+    this.corIcone,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Icon(icone, size: 16, color: corIcone ?? Colors.grey.shade600),
+        const SizedBox(width: 6),
+        Expanded(
+          child: Text(
+            texto,
+            style: TextStyle(fontSize: 13, color: Colors.grey.shade700),
+            overflow: TextOverflow.ellipsis,
+          ),
+        ),
+      ],
     );
   }
 }

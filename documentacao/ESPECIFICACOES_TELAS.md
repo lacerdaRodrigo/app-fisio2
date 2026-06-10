@@ -109,23 +109,41 @@ Esta tela permite realizar o cadastro completo do paciente no aplicativo e preen
 
 # Especificação da Tela: Registro de Evolução
 
-Esta tela permite que o fisioterapeuta escreva a evolução diária do paciente após realizar um atendimento domiciliar.
+Esta tela permite que o fisioterapeuta registre a evolução clínica do paciente após realizar um atendimento domiciliar, com dados estruturados obrigatórios para garantir um prontuário completo e auditável.
 
 ## 1. Requisitos Funcionais
-* **Identificação do Atendimento:** Exibe no cabeçalho o nome do paciente, a data e a hora da sessão.
-* **Campo de Evolução Técnica:** Campo de texto multilinhas para detalhamento dos exercícios, resposta do paciente e orientações dadas.
-* **Transcrição de Voz (Speech-to-Text) Gratuita:**
-    * Exibe um botão de microfone ao lado do campo de texto da evolução.
-    * Ao clicar no botão, o app aciona o microfone do celular usando o reconhecimento de voz nativo do sistema operacional.
-    * O botão exibe um indicador visual ativo (ícone piscando ou ondas sonoras).
-    * À medida que o profissional fala, o texto transcrito é concatenado automaticamente no campo de texto da evolução.
-    * Clicar novamente no botão de microfone finaliza a captura de áudio.
-* **Ação de Finalizar Sessão:** Botão "Salvar Evolução" que atualiza o agendamento correspondente na aba `Agenda` (mudando a situação da sessão para `"Realizado"`) e insere o prontuário clínico diário correspondente na aba `Evolucoes`.
+* **Identificação do Atendimento:** Exibe no cabeçalho o nome do paciente, idade, data e horário da sessão agendada.
+* **Seção: Informações Básicas (Obrigatórias):**
+    * **Status de Presença:** Dropdown com `"Presente"`, `"Ausente com aviso"`, `"Ausente sem aviso"`.
+    * **Horários Reais:** Dois seletores de horário (Início e Fim) com validação de coerência.
+    * **Local de Atendimento:** Dropdown com `"Domicílio"`, `"Clínica"`, `"Teleatendimento"`.
+    * **Escala de Dor (0-10):** Campo numérico com validação de intervalo em tempo real.
+* **Seção: Sinais Vitais (Opcional):**
+    * **Pressão Arterial:** Campo de texto livre (ex: `"120/80"`).
+    * **Frequência Cardíaca:** Campo numérico (bpm).
+* **Seção: Evolução Clínica:**
+    * **Campo de Evolução Técnica:** Campo de texto multilinhas para detalhamento dos exercícios, resposta do paciente e orientações dadas.
+    * **Transcrição de Voz (Speech-to-Text) Gratuita:**
+        * Exibe um botão de microfone ao lado do campo de texto da evolução.
+        * Ao clicar no botão, o app aciona o microfone do celular usando o reconhecimento de voz nativo do sistema operacional.
+        * O botão exibe um indicador visual ativo (ícone piscando ou ondas sonoras).
+        * À medida que o profissional fala, o texto transcrito é concatenado automaticamente no campo de texto da evolução.
+        * Clicar novamente no botão de microfone finaliza a captura de áudio.
+* **Condição Clínica:** 
+    * Se `Status_Presenca == "Presente"`: dropdown com `"Melhora"`, `"Estável"`, `"Piora"`.
+    * Se `Status_Presenca != "Presente"`: automático para `"Faltou"` (exibido como badge laranja).
+* **Ação de Finalizar Sessão:** Botão "Salvar Evolução" que:
+    * Valida todos os campos obrigatórios.
+    * Cria registro na aba `Evolucoes` (14 colunas).
+    * Atualiza o agendamento na aba `Agenda` para `Situacao = "Realizado"`.
 
 ## 2. Implementação Técnica
+* **Modelo de Dados:** `Evolucao` agora possui 12 campos (6 originais + 6 novos obrigatórios + 2 opcionais). Serialização via `paraMapaPlanilha()` e `deLinhaPlanilha()`.
 * **Biblioteca Speech-to-Text:** Utilizar o pacote oficial `speech_to_text` do Flutter.
 * **Fluxo de Permissão:** O app deve solicitar permissão de uso do microfone na primeira tentativa de uso. Em caso de recusa, exibe a mensagem `"Permissão de microfone necessária para transcrição por voz."`
-* **Persistência de Dados:** Realiza uma requisição PATCH na aba `Agenda` para alterar `Situacao` do agendamento para `"Realizado"` e envia uma requisição POST na aba `Evolucoes` salvando a data de atendimento e a coluna `Evolucao_Texto`.
+* **Persistência de Dados:** Realiza uma requisição POST na aba `Evolucoes` (14 colunas) e PATCH na aba `Agenda` para alterar `Situacao` do agendamento para `"Realizado"`.
+* **Retrocompatibilidade:** A aba `Evolucoes` agora possui 14 colunas. Novas colunas foram adicionadas ao final. Registros antigos (6 colunas) são carregados com valores padrão.
+* **Badge no Modal:** O modal de detalhes do paciente (`ModalDetalhesPaciente`) exibe a condição da última evolução com cor indicativa (🟢 Melhora / 🟡 Estável / 🔴 Piora / ⚫ Faltou).
 
 ---
 

@@ -1,5 +1,3 @@
-/// Modelo de dados representando uma evolução clínica diária.
-/// Espelha a aba `Evolucoes` da planilha `__saas_fisio_db__`.
 class Evolucao {
   final String idEvolucao;
   final String idPaciente;
@@ -7,6 +5,14 @@ class Evolucao {
   final DateTime dataAtendimento;
   final String evolucaoTexto;
   final DateTime dataRegistro;
+  final String localAtendimento;
+  final String statusPresenca;
+  final int dorSessao;
+  final DateTime horarioInicioReal;
+  final DateTime horarioFimReal;
+  final String condicaoPaciente;
+  final String? pressaoArterial;
+  final int? frequenciaCardiaca;
 
   Evolucao({
     required this.idEvolucao,
@@ -14,10 +20,17 @@ class Evolucao {
     required this.idAgendamento,
     required this.dataAtendimento,
     required this.evolucaoTexto,
+    this.localAtendimento = 'Domicílio',
+    this.statusPresenca = 'Presente',
+    this.dorSessao = 0,
+    required this.horarioInicioReal,
+    required this.horarioFimReal,
+    this.condicaoPaciente = 'Melhora',
+    this.pressaoArterial,
+    this.frequenciaCardiaca,
     DateTime? dataRegistro,
   }) : dataRegistro = dataRegistro ?? DateTime.now();
 
-  /// Converte para mapa de valores para envio à planilha.
   Map<String, dynamic> paraMapaPlanilha() {
     return {
       'ID_Evolucao': idEvolucao,
@@ -27,6 +40,66 @@ class Evolucao {
           '${dataAtendimento.day.toString().padLeft(2, '0')}/${dataAtendimento.month.toString().padLeft(2, '0')}/${dataAtendimento.year}',
       'Evolucao_Texto': evolucaoTexto,
       'Data_Registro': dataRegistro.toIso8601String(),
+      'Local_Atendimento': localAtendimento,
+      'Status_Presenca': statusPresenca,
+      'Dor_Sessao': dorSessao.toString(),
+      'Horario_Inicio_Real':
+          '${horarioInicioReal.hour.toString().padLeft(2, '0')}:${horarioInicioReal.minute.toString().padLeft(2, '0')}',
+      'Horario_Fim_Real':
+          '${horarioFimReal.hour.toString().padLeft(2, '0')}:${horarioFimReal.minute.toString().padLeft(2, '0')}',
+      'Condicao_Paciente': condicaoPaciente,
+      'Pressao_Arterial': pressaoArterial ?? '',
+      'Frequencia_Cardiaca': frequenciaCardiaca?.toString() ?? '',
     };
+  }
+
+  factory Evolucao.deLinhaPlanilha(List<String> linha) {
+    final horarioInicio = _parseHora(linha.length > 9 ? linha[9] : '');
+    final horarioFim = _parseHora(linha.length > 10 ? linha[10] : '');
+    return Evolucao(
+      idEvolucao: linha[0],
+      idPaciente: linha[1],
+      idAgendamento: linha[2],
+      dataAtendimento: _parseData(linha[3]),
+      evolucaoTexto: linha[4],
+      dataRegistro: DateTime.tryParse(linha[5]) ?? DateTime.now(),
+      localAtendimento: linha.length > 6 && linha[6].isNotEmpty
+          ? linha[6]
+          : 'Domicílio',
+      statusPresenca: linha.length > 7 && linha[7].isNotEmpty
+          ? linha[7]
+          : 'Presente',
+      dorSessao: linha.length > 8 && linha[8].isNotEmpty
+          ? int.tryParse(linha[8]) ?? 0
+          : 0,
+      horarioInicioReal: horarioInicio,
+      horarioFimReal: horarioFim,
+      condicaoPaciente: linha.length > 11 && linha[11].isNotEmpty
+          ? linha[11]
+          : 'Melhora',
+      pressaoArterial: linha.length > 12 ? linha[12] : null,
+      frequenciaCardiaca: linha.length > 13 && linha[13].isNotEmpty
+          ? int.tryParse(linha[13])
+          : null,
+    );
+  }
+
+  static DateTime _parseData(String data) {
+    final partes = data.split('/');
+    if (partes.length != 3) return DateTime.now();
+    return DateTime(
+      int.tryParse(partes[2]) ?? DateTime.now().year,
+      int.tryParse(partes[1]) ?? DateTime.now().month,
+      int.tryParse(partes[0]) ?? DateTime.now().day,
+    );
+  }
+
+  static DateTime _parseHora(String hora) {
+    if (hora.isEmpty) return DateTime.now();
+    final partes = hora.split(':');
+    if (partes.length != 2) return DateTime.now();
+    final h = int.tryParse(partes[0]) ?? 0;
+    final m = int.tryParse(partes[1]) ?? 0;
+    return DateTime(2000, 1, 1, h, m);
   }
 }

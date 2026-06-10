@@ -49,16 +49,26 @@ Armazena a grade de atendimentos e compromissos agendados. É uma aba puramente 
 ---
 
 ## 3. Aba: `Evolucoes`
-Contém o prontuário clínico diário do paciente. Cada linha representa o parecer técnico e a evolução do paciente após uma sessão concluída.
+Contém o prontuário clínico diário do paciente. Cada linha representa o parecer técnico e a evolução do paciente após uma sessão concluída, com dados estruturados obrigatórios e opcionais.
 
-| Coluna | Descrição | Exemplo |
-| :--- | :--- | :--- |
-| `ID_Evolucao` | Chave única da evolução. | `E001` |
-| `ID_Paciente` | Relaciona a evolução ao paciente (`Pacientes`). | `P001` |
-| `ID_Agendamento` | Vincula a evolução à sessão correspondente (`Agenda`). | `A001` |
-| `Data_Atendimento` | Data em que a sessão foi de fato realizada. | `05/06/2026` |
-| `Evolucao_Texto` | Anotações clínicas e exercícios realizados. | `Paciente relatou melhora na dor (EVA 4). Realizado alongamento de cadeia posterior e fortalecimento de core.` |
-| `Data_Registro` | Data/hora exata em que a evolução foi gravada. | `05/06/2026 15:10:22` |
+| #  | Coluna                  | Obrigatório | Descrição                                      | Exemplo                                      |
+|----|-------------------------|-------------|------------------------------------------------|----------------------------------------------|
+| 1  | `ID_Evolucao`           | ✅          | Chave única da evolução.                       | `E001`                                       |
+| 2  | `ID_Paciente`           | ✅          | Relaciona a evolução ao paciente (`Pacientes`).| `P001`                                       |
+| 3  | `ID_Agendamento`        | ✅          | Vincula à sessão correspondente (`Agenda`).    | `A001`                                       |
+| 4  | `Data_Atendimento`      | ✅          | Data da sessão (`dd/MM/yyyy`).                 | `09/06/2026`                                 |
+| 5  | `Evolucao_Texto`        | ✅          | Anotações clínicas e exercícios realizados.    | `Realizado TENS em região lombar por 20min.` |
+| 6  | `Data_Registro`         | ✅          | Timestamp do registro no sistema.              | `09/06/2026 15:10:22`                        |
+| 7  | `Local_Atendimento`     | ✅          | Local da sessão (Domicílio/Clínica/Tele).      | `Domicílio`                                  |
+| 8  | `Status_Presenca`       | ✅          | Presença/ausência do paciente.                 | `Presente` ou `Ausente sem aviso`            |
+| 9  | `Dor_Sessao`            | ✅          | Escala de dor avaliada na sessão (0-10).       | `5`                                          |
+| 10 | `Horario_Inicio_Real`   | ✅          | Horário real de início (`HH:mm`).              | `14:05`                                      |
+| 11 | `Horario_Fim_Real`      | ✅          | Horário real de término (`HH:mm`).             | `15:00`                                      |
+| 12 | `Condicao_Paciente`     | ✅          | Condição clínica pós-sessão.                   | `Melhora` / `Estável` / `Piora` / `Faltou`  |
+| 13 | `Pressao_Arterial`      | ❌          | Pressão arterial (mmHg) - opcional.            | `120/80`                                     |
+| 14 | `Frequencia_Cardiaca`   | ❌          | Frequência cardíaca (bpm) - opcional.          | `72`                                         |
+
+> **⚠️ Retrocompatibilidade**: Colunas 7-14 foram adicionadas ao final. Registros antigos (6 colunas) continuam funcionando com valores padrão. Colunas novas vazias são preenchidas com valores default no modelo.
 
 ---
 
