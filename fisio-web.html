@@ -1,0 +1,950 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
+<title>Fisio Home Care</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+--primary:#00796B;--primary-dark:#2C3E50;--secondary:#00BFA5;
+--surface:#F8F9FA;--surface-card:#FFFFFF;--text-primary:#1A1A2E;
+--text-secondary:#6B7280;--text-light:#9CA3AF;--danger:#EF4444;
+--success:#10B981;--warning:#F59E0B;--info:#3B82F6;
+--radius:12px;--radius-lg:16px;--shadow:0 2px 8px rgba(0,0,0,0.06);
+--shadow-lg:0 4px 16px rgba(0,0,0,0.1);--font:'Outfit',sans-serif;
+--gradient:linear-gradient(135deg,#2C3E50,#00796B);
+--gradient-light:linear-gradient(135deg,#00796B,#00BFA5CC);
+}
+html,body{height:100%;width:100%;font-family:var(--font);background:var(--surface);color:var(--text-primary);-webkit-font-smoothing:antialiased}
+body{display:flex;justify-content:center;align-items:center}
+.app-container{width:100%;max-width:430px;height:100vh;max-height:932px;background:var(--surface);position:relative;overflow:hidden;box-shadow:0 0 40px rgba(0,0,0,0.08)}
+.screen{display:none;flex-direction:column;height:100%;width:100%;position:absolute;top:0;left:0;overflow-y:auto;background:var(--surface)}
+.screen.active{display:flex}
+.screen::-webkit-scrollbar{width:4px}
+.screen::-webkit-scrollbar-thumb{background:var(--primary);border-radius:4px}
+
+/* ===== HEADER ===== */
+.header{padding:24px 20px 16px;background:var(--gradient-light);border-radius:0 0 32px 32px;color:#fff}
+.header h1{font-size:20px;font-weight:700;margin-bottom:4px}
+.header p{font-size:13px;opacity:0.85}
+.header-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.header-avatar{width:40px;height:40px;border-radius:50%;background:rgba(255,255,255,0.25);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:16px;color:#fff}
+
+/* ===== GRID CARDS ===== */
+.grid-cards{display:grid;grid-template-columns:1fr 1fr;gap:12px;padding:16px 20px}
+.stat-card{background:var(--surface-card);border-radius:var(--radius-lg);padding:16px;box-shadow:var(--shadow);cursor:pointer;transition:transform 0.15s}
+.stat-card:hover{transform:translateY(-2px)}
+.stat-card .icon{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;margin-bottom:10px;font-size:20px}
+.stat-card .icon.teal{background:#E0F2F1;color:var(--primary)}
+.stat-card .icon.amber{background:#FFF8E1;color:#FF8F00}
+.stat-card .icon.indigo{background:#E8EAF6;color:#5C6BC0}
+.stat-card .icon.pink{background:#FCE4EC;color:#E91E63}
+.stat-card .value{font-size:22px;font-weight:700;margin-bottom:2px}
+.stat-card .label{font-size:12px;color:var(--text-secondary);line-height:1.3}
+
+/* ===== BOTTOM NAV ===== */
+.bottom-nav{height:64px;background:var(--surface-card);border-top:1px solid #E5E7EB;display:flex;align-items:center;justify-content:space-around;padding:0 8px;position:absolute;bottom:0;left:0;right:0;z-index:100;box-shadow:0 -2px 10px rgba(0,0,0,0.04)}
+.bottom-nav button{background:none;border:none;display:flex;flex-direction:column;align-items:center;gap:2px;padding:8px 16px;cursor:pointer;color:var(--text-light);font-size:10px;transition:color 0.15s;font-family:var(--font)}
+.bottom-nav button .nav-icon{font-size:24px;line-height:1}
+.bottom-nav button.active{color:var(--primary)}
+.bottom-nav button.active .nav-icon{font-weight:700}
+
+/* ===== FAB ===== */
+.fab{position:fixed;bottom:80px;right:20px;max-width:410px;width:calc(100% - 40px)}
+.fab button{width:56px;height:56px;border-radius:50%;background:var(--primary);color:#fff;border:none;font-size:28px;cursor:pointer;box-shadow:0 4px 12px rgba(0,121,107,0.4);display:flex;align-items:center;justify-content:center;margin-left:auto;transition:transform 0.15s}
+.fab button:hover{transform:scale(1.05)}
+
+/* ===== CARDS LISTA ===== */
+.list-area{padding:16px 20px;flex:1;overflow-y:auto}
+.patient-card{background:var(--surface-card);border-radius:var(--radius-lg);padding:16px;margin-bottom:12px;box-shadow:var(--shadow);cursor:pointer;display:flex;align-items:center;gap:14px;transition:transform 0.15s}
+.patient-card:hover{transform:translateY(-2px)}
+.patient-card .avatar{width:48px;height:48px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:15px;color:#fff;flex-shrink:0}
+.patient-card .info{flex:1;min-width:0}
+.patient-card .info .name{font-size:15px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.patient-card .info .detail{font-size:12px;color:var(--text-secondary);margin-top:3px}
+.patient-card .badge{font-size:10px;padding:2px 8px;border-radius:4px;font-weight:600;background:#E5E7EB;color:var(--text-secondary)}
+.patient-card .chevron{color:var(--text-light);font-size:20px}
+.patient-card.archived{opacity:0.6}
+
+/* ===== TEXT FIELD ===== */
+.field-group{margin-bottom:16px}
+.field-group label{font-size:12px;font-weight:500;color:var(--text-secondary);display:block;margin-bottom:4px}
+.input-field{width:100%;padding:12px 14px;border:none;border-radius:var(--radius);background:#F1F3F5;font-size:15px;font-family:var(--font);color:var(--text-primary);outline:none;transition:box-shadow 0.15s}
+.input-field:focus{box-shadow:0 0 0 2px var(--primary)}
+.input-field::placeholder{color:var(--text-light)}
+textarea.input-field{resize:vertical;min-height:80px}
+select.input-field{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236B7280' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;padding-right:36px}
+
+/* ===== BUTTONS ===== */
+.btn{display:flex;align-items:center;justify-content:center;gap:8px;padding:14px 24px;border:none;border-radius:var(--radius);font-size:15px;font-weight:600;font-family:var(--font);cursor:pointer;transition:all 0.15s;width:100%}
+.btn-primary{background:var(--primary);color:#fff;box-shadow:0 2px 8px rgba(0,121,107,0.3)}
+.btn-primary:hover{background:#00695C}
+.btn-secondary{background:#F1F3F5;color:var(--text-primary)}
+.btn-secondary:hover{background:#E5E7EB}
+.btn-danger{background:#FEE2E2;color:var(--danger)}
+.btn-danger:hover{background:#FECACA}
+.btn-success{background:#D1FAE5;color:#065F46}
+.btn-success:hover{background:#A7F3D0}
+.btn-ghost{background:none;color:var(--primary);padding:8px}
+.btn-sm{padding:10px 16px;font-size:13px}
+.btn-icon{width:36px;height:36px;border-radius:50%;padding:0;display:flex;align-items:center;justify-content:center;font-size:18px}
+
+/* ===== BOTTOM SHEET ===== */
+.modal-overlay{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.4);z-index:200;justify-content:center;align-items:flex-end}
+.modal-overlay.active{display:flex}
+.modal-sheet{background:var(--surface-card);border-radius:24px 24px 0 0;width:100%;max-width:430px;max-height:80vh;overflow-y:auto;animation:slideUp 0.2s ease-out;padding:8px 20px 24px}
+.modal-sheet .drag-handle{width:36px;height:4px;border-radius:2px;background:#D1D5DB;margin:8px auto 12px}
+@keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+
+/* ===== TIMELINE ===== */
+.timeline{position:relative;padding-left:28px}
+.timeline::before{content:'';position:absolute;left:10px;top:8px;bottom:8px;width:2px;background:#E5E7EB}
+.timeline-item{position:relative;padding-bottom:20px}
+.timeline-item:last-child{padding-bottom:0}
+.timeline-dot{position:absolute;left:-22px;top:4px;width:14px;height:14px;border-radius:50%;border:3px solid;background:var(--surface-card)}
+.timeline-dot.green{border-color:var(--success)}
+.timeline-dot.amber{border-color:var(--warning)}
+.timeline-dot.red{border-color:var(--danger)}
+.timeline-dot.grey{border-color:var(--text-light)}
+.timeline-card{background:var(--surface-card);border-radius:var(--radius);padding:14px;box-shadow:var(--shadow);border-left:3px solid transparent}
+.timeline-card.border-green{border-left-color:var(--success)}
+.timeline-card.border-amber{border-left-color:var(--warning)}
+.timeline-card.border-red{border-left-color:var(--danger)}
+.timeline-card.border-grey{border-left-color:var(--text-light)}
+.timeline-card .tl-date{font-size:11px;color:var(--text-light);margin-bottom:4px}
+.timeline-card .tl-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px}
+.timeline-card .tl-title{font-weight:600;font-size:14px}
+.timeline-card .tl-badge{font-size:10px;padding:2px 8px;border-radius:99px;font-weight:600}
+.timeline-card .tl-badge.green{background:#D1FAE5;color:#065F46}
+.timeline-card .tl-badge.amber{background:#FEF3C7;color:#92400E}
+.timeline-card .tl-badge.red{background:#FEE2E2;color:#991B1B}
+.timeline-card .tl-badge.grey{background:#F3F4F6;color:#4B5563}
+.timeline-card .tl-meta{font-size:12px;color:var(--text-secondary);margin-bottom:4px}
+.timeline-card .tl-text{font-size:13px;color:var(--text-primary);line-height:1.5}
+
+/* ===== SECTION TITLE ===== */
+.section-title{font-size:14px;font-weight:700;color:var(--primary-dark);margin:20px 0 12px;padding-top:8px;border-top:1px solid #E5E7EB}
+.section-title:first-child{border-top:none;margin-top:0}
+.section-subtitle{font-size:12px;font-weight:600;color:var(--text-secondary);margin:16px 0 8px;text-transform:uppercase;letter-spacing:0.5px}
+
+/* ===== MISC ===== */
+.avatar-circle{width:56px;height:56px;border-radius:50%;background:#E0F2F1;display:flex;align-items:center;justify-content:center;font-size:26px;color:var(--primary)}
+.search-box{padding:0 20px 12px}
+.condicao-badge{display:inline-flex;align-items:center;gap:6px;padding:10px 14px;border-radius:var(--radius);font-size:13px;width:100%}
+.condicao-badge.green{background:#D1FAE5;color:#065F46;border:1px solid #A7F3D0}
+.condicao-badge.amber{background:#FEF3C7;color:#92400E;border:1px solid #FDE68A}
+.condicao-badge.red{background:#FEE2E2;color:#991B1B;border:1px solid #FECACA}
+.condicao-badge.grey{background:#F3F4F6;color:#4B5563;border:1px solid #E5E7EB}
+.condicao-badge.blue{background:#DBEAFE;color:#1E40AF;border:1px solid #BFDBFE}
+.row-space{display:flex;justify-content:space-between;align-items:center}
+.row-gap8{display:flex;gap:8px}
+.row-gap12{display:flex;gap:12px}
+.mt-8{margin-top:8px}
+.mt-16{margin-top:16px}
+.mb-12{margin-bottom:12px}
+.mb-16{margin-bottom:16px}
+.p-20{padding:20px}
+.text-center{text-align:center}
+.text-muted{color:var(--text-secondary);font-size:13px}
+.text-danger{color:var(--danger)}
+.flex-1{flex:1}
+.empty-state{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 20px;text-align:center;color:var(--text-light)}
+.empty-state .empty-icon{font-size:56px;margin-bottom:12px}
+
+/* ===== LOGIN ===== */
+.login-bg{background:var(--gradient);min-height:100%;display:flex;flex-direction:column;justify-content:center;align-items:center;padding:40px 24px;color:#fff}
+.login-bg .logo-icon{width:80px;height:80px;border-radius:50%;background:rgba(255,255,255,0.15);display:flex;align-items:center;justify-content:center;font-size:40px;margin-bottom:16px}
+.login-bg h1{font-size:26px;font-weight:800;margin-bottom:4px}
+.login-bg p{opacity:0.8;font-size:14px;margin-bottom:32px}
+.login-bg .terms-area{background:rgba(255,255,255,0.1);border-radius:var(--radius);padding:16px;margin-bottom:20px;width:100%}
+.login-bg .terms-area label{display:flex;align-items:flex-start;gap:10px;font-size:13px;line-height:1.5;cursor:pointer}
+.login-bg .terms-area input[type=checkbox]{margin-top:2px;width:18px;height:18px;accent-color:#fff;flex-shrink:0}
+.login-bg .terms-area a{color:#fff;font-weight:600;text-decoration:underline}
+.login-btn{width:100%;padding:16px;border:none;border-radius:var(--radius);font-size:16px;font-weight:700;font-family:var(--font);background:#fff;color:var(--primary-dark);cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;transition:transform 0.15s}
+.login-btn:hover{transform:translateY(-2px)}
+.login-btn:disabled{opacity:0.5;cursor:not-allowed;transform:none}
+.login-btn .g-icon{width:20px;height:20px;background:var(--primary-dark);color:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700}
+
+/* ===== CONFIG ===== */
+.config-item{display:flex;align-items:center;justify-content:space-between;padding:14px 0;border-bottom:1px solid #F3F4F6;cursor:pointer}
+.config-item:last-child{border-bottom:none}
+.config-item .ci-left{display:flex;align-items:center;gap:12px}
+.config-item .ci-icon{font-size:20px;color:var(--primary);width:24px}
+.config-item .ci-text{font-size:14px}
+.config-item .ci-sub{font-size:12px;color:var(--text-secondary)}
+.config-item .ci-chevron{color:var(--text-light)}
+.log-item{font-size:11px;color:var(--text-secondary);padding:4px 0;border-bottom:1px solid #F9FAFB;font-family:monospace}
+
+/* ===== SCROLL CONTAINER ===== */
+.scroll-content{flex:1;overflow-y:auto;padding-bottom:80px}
+.scroll-content.no-nav{padding-bottom:24px}
+.form-area{padding:16px 20px}
+
+/* ===== RESPONSIVE ===== */
+@media(max-width:430px){.app-container{max-width:100%;max-height:100vh;box-shadow:none}}
+@media(min-width:431px){body{background:#E5E7EB}}
+</style>
+</head>
+<body>
+
+<div class="app-container" id="app">
+
+<!-- ===== SCREEN: LOGIN ===== -->
+<div class="screen active" id="screen-login">
+  <div class="login-bg">
+    <div class="logo-icon">&#9881;</div>
+    <h1>Fisio Home Care</h1>
+    <p>Gestão de fisioterapia domiciliar</p>
+    <div class="terms-area">
+      <label>
+        <input type="checkbox" id="termCheck" onchange="onTermChange()">
+        <span>Li e aceito os <a href="#" onclick="event.preventDefault();alert('Termos de Uso - Fisio Home Care v1.0')">Termos de Uso</a> e a <a href="#" onclick="event.preventDefault();alert('Política de Privacidade - LGPD')">Política de Privacidade</a></span>
+      </label>
+    </div>
+    <button class="login-btn" id="loginBtn" disabled onclick="onLogin()">
+      <span class="g-icon">G</span>
+      Entrar com Google
+    </button>
+    <p style="margin-top:16px;font-size:12px;opacity:0.6">v1.0.4</p>
+  </div>
+</div>
+
+<!-- ===== SCREEN: DASHBOARD ===== -->
+<div class="screen" id="screen-dashboard">
+  <div class="header">
+    <div class="header-row">
+      <div><h1 id="greeting">Bom dia</h1><p id="userName">Usuário</p></div>
+      <div class="header-avatar" id="userAvatar">U</div>
+    </div>
+  </div>
+  <div class="scroll-content">
+    <div class="grid-cards" id="statCards"></div>
+    <div style="padding:0 20px">
+      <div class="section-title">Agenda de Hoje</div>
+      <div id="agendaList"></div>
+    </div>
+  </div>
+  <div class="fab"><button onclick="navigateTo('nova-sessao')">+</button></div>
+  <nav class="bottom-nav">
+    <button class="active" onclick="navigateTo('dashboard')"><span class="nav-icon">&#9679;</span> Início</button>
+    <button onclick="navigateTo('pacientes')"><span class="nav-icon">&#9776;</span> Pacientes</button>
+  </nav>
+</div>
+
+<!-- ===== SCREEN: PACIENTES ===== -->
+<div class="screen" id="screen-pacientes">
+  <div style="padding:20px 20px 0">
+    <div class="header-row">
+      <h1 style="font-size:22px;font-weight:700">Meus Pacientes</h1>
+      <div style="display:flex;align-items:center;gap:8px">
+        <span style="font-size:13px;color:var(--primary);font-weight:600;background:#E0F2F1;padding:4px 12px;border-radius:20px" id="ativosCount">0 ativos</span>
+        <button style="padding:6px 12px;border:1px solid #D1D5DB;border-radius:20px;font-size:12px;font-weight:500;background:var(--surface-card);cursor:pointer;font-family:var(--font)" onclick="toggleArquivados()" id="filterBtn">Arquivados</button>
+      </div>
+    </div>
+  </div>
+  <div class="search-box"><input class="input-field" placeholder="Buscar por nome ou CPF..." id="searchInput" oninput="onSearch()" style="background:#F1F3F5;border-radius:12px"></div>
+  <div class="list-area" id="pacientesList"></div>
+  <div class="fab"><button onclick="navigateTo('cadastro-paciente')">+</button></div>
+  <nav class="bottom-nav">
+    <button onclick="navigateTo('dashboard')"><span class="nav-icon">&#9679;</span> Início</button>
+    <button class="active" onclick="navigateTo('pacientes')"><span class="nav-icon">&#9776;</span> Pacientes</button>
+  </nav>
+</div>
+
+<!-- ===== SCREEN: CADASTRO PACIENTE ===== -->
+<div class="screen" id="screen-cadastro-paciente">
+  <div class="header" style="padding:16px 20px;border-radius:0">
+    <div class="header-row">
+      <button onclick="navigateBack()" style="background:none;border:none;color:#fff;font-size:24px;cursor:pointer;padding:4px">&times;</button>
+      <h1 style="font-size:18px;font-weight:700">Novo Paciente</h1>
+      <div style="width:32px"></div>
+    </div>
+  </div>
+  <div class="scroll-content no-nav">
+    <div class="form-area">
+      <div class="section-title">Dados Pessoais</div>
+      <div class="field-group"><label>Nome completo *</label><input class="input-field" id="cadNome" placeholder="Nome do paciente"></div>
+      <div class="row-gap12">
+        <div class="field-group" style="flex:1"><label>CPF *</label><input class="input-field" id="cadCpf" placeholder="000.000.000-00" maxlength="14" oninput="mascaraCpf(this)"></div>
+        <div class="field-group" style="flex:1"><label>Telefone *</label><input class="input-field" id="cadTel" placeholder="(11) 99999-9999" maxlength="15" oninput="mascaraTel(this)"></div>
+      </div>
+      <div class="field-group"><label>Data de Nascimento *</label><input class="input-field" id="cadDataNasc" type="date"></div>
+      <div class="field-group">
+        <label>Endereço *</label>
+        <div style="display:flex;gap:8px;align-items:center">
+          <input class="input-field" id="cadEndereco" placeholder="Clique para preencher" readonly style="flex:1;cursor:pointer" onclick="openEnderecoModal()">
+          <button class="btn btn-sm btn-secondary" style="width:auto" onclick="openEnderecoModal()">Editar</button>
+        </div>
+      </div>
+
+      <div class="section-title">Anamnese Clínica</div>
+      <div class="section-subtitle">Sintomas e Queixas</div>
+      <div class="field-group"><label>Queixa Principal</label><textarea class="input-field" id="cadQueixa" rows="2" placeholder="Descreva a queixa principal"></textarea></div>
+      <div class="field-group"><label>História da Doença Atual</label><textarea class="input-field" id="cadHda" rows="3" placeholder="Descreva o histórico"></textarea></div>
+      <div class="row-gap12">
+        <div class="field-group" style="flex:1"><label>Gênero</label><select class="input-field" id="cadGenero"><option value="">Selecione</option><option>Masculino</option><option>Feminino</option><option>Outro</option></select></div>
+        <div class="field-group" style="flex:1"><label>Escala de Dor</label><input class="input-field" id="cadDor" type="number" min="0" max="10" placeholder="0-10"></div>
+      </div>
+
+      <div class="section-subtitle">Histórico Clínico</div>
+      <div class="field-group"><label>Comorbidades</label><textarea class="input-field" id="cadComorb" rows="2" placeholder="Ex.: Hipertensão, Diabetes..."></textarea></div>
+      <div class="field-group"><label>Medicamentos em Uso</label><textarea class="input-field" id="cadMedic" rows="2" placeholder="Ex.: Losartana 50mg..."></textarea></div>
+      <div class="field-group"><label>Alergias</label><textarea class="input-field" id="cadAlerg" rows="2" placeholder="Ex.: Dipirona, Penicilina..."></textarea></div>
+      <div class="field-group"><label>Cirurgias / Traumas</label><textarea class="input-field" id="cadCirur" rows="2" placeholder="Descreva cirurgias ou traumas relevantes"></textarea></div>
+
+      <div class="section-subtitle">Estilo de Vida</div>
+      <div class="field-group"><label>Hábitos de Vida / Atividade Física</label><textarea class="input-field" id="cadHabitos" rows="2" placeholder="Ex.: Sedentário, caminha 3x/semana..."></textarea></div>
+
+      <button class="btn btn-primary mt-16" onclick="salvarPaciente()">Salvar Paciente</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== SCREEN: NOVA SESSAO ===== -->
+<div class="screen" id="screen-nova-sessao">
+  <div class="header" style="padding:16px 20px;border-radius:0">
+    <div class="header-row">
+      <button onclick="navigateBack()" style="background:none;border:none;color:#fff;font-size:24px;cursor:pointer;padding:4px">&times;</button>
+      <h1 style="font-size:18px;font-weight:700">Nova Sessão</h1>
+      <div style="width:32px"></div>
+    </div>
+  </div>
+  <div class="scroll-content no-nav">
+    <div class="form-area">
+      <div class="field-group"><label>Paciente *</label><select class="input-field" id="sessPaciente"></select></div>
+      <div class="field-group"><label>Data *</label><input class="input-field" id="sessData" type="date"></div>
+      <div class="row-gap12">
+        <div class="field-group" style="flex:1"><label>Hora Início *</label><input class="input-field" id="sessHoraInicio" type="time"></div>
+        <div class="field-group" style="flex:1"><label>Hora Fim *</label><input class="input-field" id="sessHoraFim" type="time"></div>
+      </div>
+      <div class="field-group"><label>Valor da Sessão (R$)</label><input class="input-field" id="sessValor" type="text" placeholder="150,00"></div>
+      <div class="field-group"><label>Observações</label><textarea class="input-field" id="sessObs" rows="3" placeholder="Observações adicionais..."></textarea></div>
+      <button class="btn btn-primary mt-16" onclick="salvarSessao()">Agendar Sessão</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== SCREEN: REGISTRO EVOLUCAO ===== -->
+<div class="screen" id="screen-registro-evolucao">
+  <div class="header" style="padding:16px 20px;border-radius:0">
+    <div class="header-row">
+      <button onclick="navigateBack()" style="background:none;border:none;color:#fff;font-size:24px;cursor:pointer;padding:4px">&times;</button>
+      <h1 style="font-size:18px;font-weight:700">Registrar Evolução</h1>
+      <div style="width:32px"></div>
+    </div>
+  </div>
+  <div class="scroll-content no-nav">
+    <div id="evolHeader" style="padding:12px 20px 0"></div>
+    <div id="evolBannerBloq" style="display:none;margin:12px 20px 0;padding:12px;background:#FEF3C7;border-radius:var(--radius);color:#92400E;font-size:13px;border:1px solid #FDE68A">&#9888; Evolução bloqueada — mais de 24h desde o registro.</div>
+    <div class="form-area">
+      <div class="section-title">Informações Básicas</div>
+      <div class="field-group"><label>Status Presença</label><select class="input-field" id="evolPresenca"><option>Presente</option><option>Ausente com aviso</option><option>Ausente sem aviso</option></select></div>
+      <div class="row-gap12">
+        <div class="field-group" style="flex:1"><label>Horário Início</label><input class="input-field" id="evolHoraInicio" type="time"></div>
+        <div class="field-group" style="flex:1"><label>Horário Fim</label><input class="input-field" id="evolHoraFim" type="time"></div>
+      </div>
+      <div class="field-group"><label>Local</label><select class="input-field" id="evolLocal"><option>Domicílio</option><option>Clínica</option><option>Teleatendimento</option></select></div>
+      <div class="field-group"><label>Escala de Dor</label><input class="input-field" id="evolDor" type="number" min="0" max="10" placeholder="0-10"></div>
+      <div class="section-title">Sinais Vitais (Opcional)</div>
+      <div class="row-gap12">
+        <div class="field-group" style="flex:1"><label>Pressão Arterial</label><input class="input-field" id="evolPa" placeholder="Ex.: 120x80"></div>
+        <div class="field-group" style="flex:1"><label>FC (bpm)</label><input class="input-field" id="evolFc" type="number" placeholder="Ex.: 72"></div>
+      </div>
+      <div class="section-title">Evolução Clínica</div>
+      <div class="field-group">
+        <div class="row-space" style="margin-bottom:4px"><label>Texto da Evolução</label><button class="btn btn-icon btn-secondary" id="micBtn" onclick="toggleMic()" title="Dictafone">&#127897;</button></div>
+        <textarea class="input-field" id="evolTexto" rows="6" placeholder="Descreva a evolução do paciente..."></textarea>
+      </div>
+      <div class="field-group"><label>Condição Clínica</label><select class="input-field" id="evolCondicao"><option>Melhora</option><option>Estável</option><option>Piora</option></select></div>
+      <button class="btn btn-primary mt-16" id="evolBtnSalvar" onclick="salvarEvolucao()">Salvar Evolução</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== SCREEN: HISTORICO EVOLUCOES ===== -->
+<div class="screen" id="screen-historico-evolucoes">
+  <div class="header" style="padding:16px 20px;border-radius:0">
+    <div class="header-row">
+      <button onclick="navigateBack()" style="background:none;border:none;color:#fff;font-size:24px;cursor:pointer;padding:4px">&times;</button>
+      <h1 style="font-size:18px;font-weight:700" id="histTitulo">Histórico de Evoluções</h1>
+      <div style="width:32px"></div>
+    </div>
+  </div>
+  <div class="scroll-content no-nav">
+    <div id="historicoList" class="list-area"></div>
+  </div>
+</div>
+
+<!-- ===== SCREEN: CONFIGURACOES ===== -->
+<div class="screen" id="screen-configuracoes">
+  <div class="header" style="padding:16px 20px;border-radius:0">
+    <div class="header-row">
+      <button onclick="navigateBack()" style="background:none;border:none;color:#fff;font-size:24px;cursor:pointer;padding:4px">&times;</button>
+      <h1 style="font-size:18px;font-weight:700">Configurações</h1>
+      <div style="width:32px"></div>
+    </div>
+  </div>
+  <div class="scroll-content no-nav">
+    <div class="form-area">
+      <div class="section-title">Sessão</div>
+      <div class="field-group"><label>Valor padrão da sessão (R$)</label>
+        <div class="row-gap8">
+          <input class="input-field" id="configValor" value="150,00" style="flex:1">
+          <button class="btn btn-sm btn-primary" style="width:auto" onclick="salvarValorPadrao()">Salvar</button>
+        </div>
+      </div>
+      <div class="section-title">Dados e Privacidade</div>
+      <div class="config-item" onclick="alert('Abrindo planilha de dados...')">
+        <div class="ci-left"><span class="ci-icon">&#128203;</span><div><div class="ci-text">Visualizar Planilha de Dados</div><div class="ci-sub">Google Sheets</div></div></div><span class="ci-chevron">&#8250;</span>
+      </div>
+      <div class="config-item" onclick="alert('Termos de Uso - Fisio Home Care v1.0')">
+        <div class="ci-left"><span class="ci-icon">&#128196;</span><div><div class="ci-text">Termos de Uso</div></div></div><span class="ci-chevron">&#8250;</span>
+      </div>
+      <div class="section-title">Conta</div>
+      <div class="config-item" onclick="onLogout()">
+        <div class="ci-left"><span class="ci-icon" style="color:var(--danger)">&#128682;</span><div><div class="ci-text" style="color:var(--danger)">Sair da conta</div></div></div><span class="ci-chevron">&#8250;</span>
+      </div>
+      <div class="section-title">Logs de Auditoria</div>
+      <div id="logsList"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== MODAL: ENDERECO ===== -->
+<div class="modal-overlay" id="modalEndereco">
+  <div class="modal-sheet">
+    <div class="drag-handle"></div>
+    <h3 style="font-size:18px;font-weight:700;margin-bottom:16px">Endereço</h3>
+    <div class="field-group"><label>Rua</label><input class="input-field" id="endRua" placeholder="Rua"></div>
+    <div class="row-gap12">
+      <div class="field-group" style="flex:1"><label>Bairro</label><input class="input-field" id="endBairro" placeholder="Bairro"></div>
+      <div class="field-group" style="flex:1"><label>Número</label><input class="input-field" id="endNum" placeholder="Nº"></div>
+    </div>
+    <div class="field-group"><label>Cidade</label><input class="input-field" id="endCidade" placeholder="Cidade"></div>
+    <div class="row-gap8 mt-8">
+      <button class="btn btn-secondary" style="flex:1" onclick="closeEnderecoModal()">Cancelar</button>
+      <button class="btn btn-primary" style="flex:1" onclick="confirmEndereco()">Confirmar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== MODAL: DETALHES PACIENTE ===== -->
+<div class="modal-overlay" id="modalDetalhes">
+  <div class="modal-sheet">
+    <div class="drag-handle"></div>
+    <div id="modalDetalhesContent"></div>
+  </div>
+</div>
+
+<!-- ===== MODAL: ROTA ===== -->
+<div class="modal-overlay" id="modalRota">
+  <div class="modal-sheet">
+    <div class="drag-handle"></div>
+    <h3 style="font-size:18px;font-weight:700;margin-bottom:16px">Como chegar</h3>
+    <div class="config-item" onclick="window.open('https://www.google.com/maps/search/?api=1&query='+encodeURIComponent(rotaEndereco),'_blank')">
+      <div class="ci-left"><span class="ci-icon">&#128506;</span><div><div class="ci-text">Abrir no Google Maps</div></div></div><span class="ci-chevron">&#8250;</span>
+    </div>
+    <div class="config-item" onclick="window.open('https://waze.com/ul?q='+encodeURIComponent(rotaEndereco),'_blank')">
+      <div class="ci-left"><span class="ci-icon">&#128665;</span><div><div class="ci-text">Abrir no Waze</div></div></div><span class="ci-chevron">&#8250;</span>
+    </div>
+  </div>
+</div>
+
+</div><!-- /app-container -->
+
+<script>
+// ===== MOCKED DATA =====
+const MOCK = {
+  valorPadrao: '150,00',
+  pacientes: [
+    {id:'P001',nome:'Maria Silva Santos',tel:'(11) 99876-5432',nasc:'1985-03-15',cpf:'123.456.789-00',endereco:'Rua Marte, 11 - Bairro, São Paulo - SP',queixa:'Dor lombar crônica',hda:'Paciente relata dor lombar há 3 meses, piora ao ficar em pé por muito tempo. Já realizou fisioterapia anteriormente com melhora parcial.',genero:'Feminino',dor:'7',comorb:'Hipertensão Arterial Sistêmica',medic:'Losartana 50mg 1x/dia',alerg:'Dipirona',cirur:'Nenhuma',habitos:'Sedentário. Trabalha sentada 8h/dia.',situacao:'Ativo',cadastro:'2026-01-10'},
+    {id:'P002',nome:'João Pedro Almeida',tel:'(11) 98765-4321',nasc:'1978-08-22',cpf:'987.654.321-00',endereco:'Av. Paulista, 1000 - apto 42, São Paulo - SP',queixa:'Dormência em MMII',hda:'Paciente relata dormência nos membros inferiores há 2 semanas. Associado a dor ciática à direita.',genero:'Masculino',dor:'5',comorb:'Diabetes tipo 2, Dislipidemia',medic:'Metformina 850mg, Sinvastatina 20mg',alerg:'Nenhuma',cirur:'Hérnia de disco L4-L5 em 2022',habitos:'Caminha 3x/semana. Peso adequado.',situacao:'Ativo',cadastro:'2026-02-05'},
+    {id:'P003',nome:'Ana Clara Oliveira',tel:'(11) 91234-5678',nasc:'2000-11-05',cpf:'456.789.123-00',endereco:'Rua das Flores, 200 - Casa 3, São Paulo - SP',queixa:'Torção no tornozelo direito',hda:'Torção durante corrida há 5 dias. Edema e equimose no maléolo lateral.',genero:'Feminino',dor:'8',comorb:'Nenhuma',medic:'Nenhum',alerg:'Penicilina',cirur:'Nenhuma',habitos:'Corredora amadora. Treina 5x/semana.',situacao:'Ativo',cadastro:'2026-03-01'},
+    {id:'P004',nome:'Carlos Eduardo Brito',tel:'(11) 95555-1234',nasc:'1995-07-14',cpf:'321.654.987-00',endereco:'Rua Augusta, 500 - 10º andar, São Paulo - SP',queixa:'Ombro congelado à direita',hda:'Paciente relata dor e limitação de movimento no ombro direito há 4 meses. Dificuldade para elevar o braço acima de 90°.',genero:'Masculino',dor:'6',comorb:'Asma leve',medic:'Bombinha Salbutamol SOS',alerg:'Nenhuma',cirur:'Nenhuma',habitos:'Sedentário. Trabalha home office.',situacao:'Ativo',cadastro:'2026-03-15'},
+    {id:'P005',nome:'Lucia Helena Martins',tel:'(11) 94444-9876',nasc:'1972-01-30',cpf:'159.753.486-00',endereco:'Rua dos Ipês, 350 - Alphaville, Barueri - SP',queixa:'Artrose de joelhos',hda:'Paciente com diagnóstico de osteoartrite bilateral de joelhos. Dor ao subir escadas e ao levantar da cadeira.',genero:'Feminino',dor:'7',comorb:'Osteoporose, Obesidade',medic:'Calcigenio D, Ibuprofeno 600mg SOS',alerg:'AAS',cirur:'Nenhuma',habitos:'Sedentário devido à dor.',situacao:'Arquivado',cadastro:'2025-11-20'}
+  ],
+  agendamentos: [
+    {id:'A001',idPac:'P001',paciente:'Maria Silva Santos',data:'2026-06-10',horaInicio:'08:00',horaFim:'09:00',valor:150,obs:'Sessão 12 - fortalecimento',situacao:'Agendado'},
+    {id:'A002',idPac:'P002',paciente:'João Pedro Almeida',data:'2026-06-10',horaInicio:'09:30',horaFim:'10:30',valor:150,obs:'Avaliação de retorno',situacao:'Agendado'},
+    {id:'A003',idPac:'P003',paciente:'Ana Clara Oliveira',data:'2026-06-10',horaInicio:'14:00',horaFim:'15:00',valor:180,obs:'Mobilização articular',situacao:'Agendado'},
+    {id:'A004',idPac:'P001',paciente:'Maria Silva Santos',data:'2026-06-08',horaInicio:'08:00',horaFim:'09:00',valor:150,obs:'Sessão 11',situacao:'Realizado'},
+    {id:'A005',idPac:'P004',paciente:'Carlos Eduardo Brito',data:'2026-06-05',horaInicio:'10:00',horaFim:'11:00',valor:150,obs:'Primeira sessão',situacao:'Realizado'}
+  ],
+  evolucoes: [
+    {id:'E001',idPac:'P001',idAgend:'A004',data:'2026-06-08',horaInicio:'08:00',horaFim:'09:00',local:'Domicílio',presenca:'Presente',dor:7,pa:'130x85',fc:78,texto:'Paciente apresentou melhora na amplitude de movimento lombar. Realizados exercícios de alongamento e fortalecimento do core. Relata menos dor ao final da sessão.',condicao:'Melhora',dataReg:'2026-06-08T09:10:00'},
+    {id:'E002',idPac:'P002',idAgend:'A005',data:'2026-06-05',horaInicio:'10:00',horaFim:'11:00',local:'Domicílio',presenca:'Presente',dor:5,pa:'140x90',fc:82,texto:'Paciente relata dormência intermitente. Realizada avaliação neurológica básica e alongamentos para coluna lombar. Orientado a manter repouso relativo.',condicao:'Estável',dataReg:'2026-06-05T11:15:00'},
+    {id:'E003',idPac:'P001',data:'2026-06-03',horaInicio:'08:00',horaFim:'09:00',local:'Domicílio',presenca:'Presente',dor:8,pa:'125x80',fc:76,texto:'Paciente com quadro de dor aguda. Realizada liberação miofascial e crioterapia. Melhora discreta.',condicao:'Estável',dataReg:'2026-06-03T09:05:00'}
+  ],
+  logsAuditoria:[]
+};
+
+// ===== NAVIGATION =====
+let currentScreen = 'login';
+let currentPacienteId = null;
+let currentEvolId = null;
+let showArquivados = false;
+let rotaEndereco = '';
+
+function showScreen(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  const el = document.getElementById('screen-'+id);
+  if(el){el.classList.add('active');currentScreen=id;window.scrollTo(0,0)}
+}
+
+function navigateTo(screen, params){
+  if(screen==='dashboard'){renderDashboard();showScreen('dashboard')}
+  else if(screen==='pacientes'){renderPacientes();showScreen('pacientes')}
+  else if(screen==='cadastro-paciente'){clearCadastro();showScreen('cadastro-paciente')}
+  else if(screen==='nova-sessao'){populateSessaoDropdown();document.getElementById('sessData').valueAsDate=new Date();showScreen('nova-sessao')}
+  else if(screen==='registro-evolucao'){setupEvolucao(params);showScreen('registro-evolucao')}
+  else if(screen==='historico-evolucoes'){renderHistorico(params);showScreen('historico-evolucoes')}
+  else if(screen==='configuracoes'){renderConfig();showScreen('configuracoes')}
+}
+
+function navigateBack(){
+  if(currentScreen==='cadastro-paciente'||currentScreen==='nova-sessao'||currentScreen==='registro-evolucao'||currentScreen==='historico-evolucoes'||currentScreen==='configuracoes')
+    navigateTo('pacientes');
+  else navigateTo('dashboard');
+}
+
+// ===== LOGIN =====
+function onTermChange(){document.getElementById('loginBtn').disabled=!document.getElementById('termCheck').checked}
+function onLogin(){
+  document.getElementById('greeting').textContent=obterSaudacao();
+  document.getElementById('userName').textContent='Dr. Rodrigo';
+  document.getElementById('userAvatar').textContent='R';
+  renderDashboard();
+  showScreen('dashboard');
+}
+
+// ===== DASHBOARD =====
+function renderDashboard(){
+  const ativos = MOCK.pacientes.filter(p=>p.situacao==='Ativo').length;
+  const hoje = new Date().toISOString().split('T')[0];
+  const agendaHoje = MOCK.agendamentos.filter(a=>a.data===hoje && a.situacao==='Agendado');
+  const totalEvol = MOCK.evolucoes.length;
+
+  document.getElementById('statCards').innerHTML = `
+    <div class="stat-card" onclick="navigateTo('pacientes')"><div class="icon teal">&#128137;</div><div class="value">${MOCK.pacientes.length}</div><div class="label">Pacientes<br>Cadastrados</div></div>
+    <div class="stat-card" onclick="navigateTo('pacientes')"><div class="icon amber">&#128170;</div><div class="value">${ativos}</div><div class="label">Pacientes<br>Ativos</div></div>
+    <div class="stat-card" onclick="navigateTo('dashboard')"><div class="icon indigo">&#128197;</div><div class="value">${agendaHoje.length}</div><div class="label">Agenda<br>do Dia</div></div>
+    <div class="stat-card" onclick="navigateTo('dashboard')"><div class="icon pink">&#128200;</div><div class="value">${totalEvol}</div><div class="label">Total<br>Evoluções</div></div>
+  `;
+
+  if(agendaHoje.length===0){
+    document.getElementById('agendaList').innerHTML = '<div class="empty-state"><div class="empty-icon">&#128203;</div><p>Nenhuma sessão agendada para hoje.</p></div>';
+  } else {
+    document.getElementById('agendaList').innerHTML = agendaHoje.map(a => {
+      const p = MOCK.pacientes.find(x=>x.id===a.idPac);
+      const iniciais = p ? p.nome.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase() : '??';
+      return `<div class="patient-card" onclick="navigateTo('registro-evolucao',{pacienteId:'${a.idPac}',agendamentoId:'${a.id}'})" style="margin-bottom:8px">
+        <div class="avatar" style="background:${pacienteCor(a.idPac)};width:40px;height:40px;font-size:13px">${iniciais}</div>
+        <div class="info"><div class="name">${a.paciente}</div><div class="detail">${a.horaInicio} - ${a.horaFim}  •  R$ ${a.valor.toFixed(2)}</div></div>
+        <span class="chevron">&#8250;</span>
+      </div>`;
+    }).join('');
+  }
+}
+
+// ===== PACIENTES =====
+function renderPacientes(){
+  const termo = (document.getElementById('searchInput').value||'').toLowerCase();
+  let filtered = MOCK.pacientes.filter(p => {
+    if(!showArquivados && p.situacao!=='Ativo') return false;
+    if(showArquivados && p.situacao!=='Arquivado') return false;
+    if(termo && !p.nome.toLowerCase().includes(termo) && !p.cpf.includes(termo)) return false;
+    return true;
+  });
+
+  const ativos = MOCK.pacientes.filter(p=>p.situacao==='Ativo').length;
+  document.getElementById('ativosCount').textContent = ativos+' ativos';
+  document.getElementById('filterBtn').style.borderColor = showArquivados ? 'var(--primary)' : '#D1D5DB';
+  document.getElementById('filterBtn').style.background = showArquivados ? '#E0F2F1' : 'var(--surface-card)';
+
+  if(filtered.length===0){
+    document.getElementById('pacientesList').innerHTML = '<div class="empty-state"><div class="empty-icon">&#128269;</div><p>Nenhum paciente encontrado.</p><p class="text-muted mt-8">Toque em "+" para cadastrar.</p></div>';
+    return;
+  }
+
+  document.getElementById('pacientesList').innerHTML = filtered.map(p => {
+    const idade = calcularIdade(p.nasc);
+    const iniciais = p.nome.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
+    const cor = pacienteCor(p.id);
+    const isArchived = p.situacao!=='Ativo';
+    return `<div class="patient-card${isArchived?' archived':''}" onclick="openDetalhes('${p.id}')">
+      <div class="avatar" style="background:${cor}">${iniciais}</div>
+      <div class="info">
+        <div class="name">${p.nome}</div>
+        <div class="detail">${idade} anos  •  ${p.cpf}</div>
+      </div>
+      ${isArchived?'<span class="badge">Arquivado</span>':''}
+      <span class="chevron">&#8250;</span>
+    </div>`;
+  }).join('');
+}
+
+function toggleArquivados(){showArquivados=!showArquivados;renderPacientes()}
+function onSearch(){renderPacientes()}
+
+const CORES = ['#00796B','#5C6BC0','#FF8F00','#E91E63'];
+function pacienteCor(id){return CORES[id.charCodeAt(id.length-1)%4]}
+
+function calcularIdade(nascStr){
+  const nasc = new Date(nascStr+'T00:00:00');
+  const hoje = new Date();
+  let idade = hoje.getFullYear()-nasc.getFullYear();
+  const m = hoje.getMonth()-nasc.getMonth();
+  if(m<0||(m===0&&hoje.getDate()<nasc.getDate())) idade--;
+  return idade;
+}
+
+function obterSaudacao(){
+  const h = new Date().getHours();
+  if(h<12) return 'Bom dia'; if(h<18) return 'Boa tarde'; return 'Boa noite';
+}
+
+// ===== MODAL DETALHES =====
+function openDetalhes(pacienteId){
+  const p = MOCK.pacientes.find(x=>x.id===pacienteId);
+  if(!p) return;
+  const idade = calcularIdade(p.nasc);
+  const iniciais = p.nome.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
+  const cor = pacienteCor(p.id);
+
+  let infoHtml = '';
+  const rows = [
+    {icon:'&#128222;',label:'Telefone',val:p.tel},
+    {icon:'&#128205;',label:'Endereço',val:p.endereco,acao:`<button class="btn btn-sm btn-secondary" style="width:auto;padding:6px 12px;font-size:12px" onclick="openRota('${p.endereco}')">Como chegar</button>`},
+  ];
+  if(p.queixa) rows.push({icon:'&#9878;',label:'Queixa principal',val:p.queixa});
+  if(p.hda) rows.push({icon:'&#128195;',label:'Histórico da Doença Atual',val:p.hda});
+  if(p.genero) rows.push({icon:'&#9893;',label:'Gênero',val:p.genero});
+  if(p.dor) rows.push({icon:'&#10084;&#65039;',label:'Escala de Dor',val:p.dor+'/10'});
+  if(p.comorb) rows.push({icon:'&#9881;',label:'Comorbidades',val:p.comorb});
+  if(p.medic) rows.push({icon:'&#128137;',label:'Medicamentos em Uso',val:p.medic});
+  if(p.alerg) rows.push({icon:'&#9888;',label:'Alergias',val:p.alerg});
+  if(p.cirur) rows.push({icon:'&#127973;',label:'Cirurgias/Traumas',val:p.cirur});
+  if(p.habitos) rows.push({icon:'&#127939;',label:'Hábitos de Vida',val:p.habitos});
+
+  infoHtml = rows.map(r => `
+    <div style="padding:8px 0;display:flex;gap:12px;align-items:flex-start;border-bottom:1px solid #F3F4F6">
+      <span style="font-size:20px;color:var(--primary);width:24px">${r.icon}</span>
+      <div style="flex:1">
+        <div style="font-size:12px;color:var(--text-secondary)">${r.label}</div>
+        <div style="font-size:14px">${r.val}</div>
+      </div>
+      ${r.acao||''}
+    </div>
+  `).join('');
+
+  // Ultima condicao
+  const evolPac = MOCK.evolucoes.filter(e=>e.idPac===p.id).sort((a,b)=>b.data.localeCompare(a.data));
+  let ultimaCondHtml = '';
+  if(evolPac.length>0){
+    const e = evolPac[0];
+    const condClass = condicaoClass(e.condicao);
+    ultimaCondHtml = `<div class="condicao-badge ${condClass} mt-8"><span>&#128200;</span> Última evolução — Condição: ${e.condicao}  •  Dor: ${e.dor}/10</div>`;
+  }
+
+  document.getElementById('modalDetalhesContent').innerHTML = `
+    <div style="display:flex;align-items:center;gap:14px;margin-bottom:16px">
+      <div style="width:56px;height:56px;border-radius:50%;background:${cor}20;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:20px;color:${cor}">${iniciais}</div>
+      <div><div style="font-size:18px;font-weight:700">${p.nome}</div><div style="font-size:13px;color:var(--text-secondary)">${idade} anos  •  ${p.cpf}</div></div>
+    </div>
+    <div style="max-height:350px;overflow-y:auto">${infoHtml}</div>
+    ${ultimaCondHtml}
+    <div style="margin-top:16px">
+      <button class="btn btn-primary mb-12" onclick="closeModal('modalDetalhes');navigateTo('registro-evolucao',{pacienteId:'${p.id}'})"><span>&#9998;</span> Nova Evolução</button>
+      <button class="btn btn-secondary mb-12" onclick="closeModal('modalDetalhes');navigateTo('historico-evolucoes',{pacienteId:'${p.id}'})"><span>&#128214;</span> Ver Histórico</button>
+      ${p.situacao==='Ativo'
+        ? `<button class="btn btn-danger" onclick="arquivarPaciente('${p.id}')"><span>&#128451;</span> Arquivar Paciente</button>`
+        : `<button class="btn btn-success" onclick="restaurarPaciente('${p.id}')"><span>&#128230;</span> Restaurar Paciente</button>`
+      }
+    </div>
+  `;
+  openModal('modalDetalhes');
+}
+
+function condicaoClass(c){
+  if(c==='Melhora') return 'green'; if(c==='Estável') return 'amber';
+  if(c==='Piora') return 'red'; if(c==='Faltou') return 'grey'; return 'blue';
+}
+
+function openRota(end){rotaEndereco=end;openModal('modalRota')}
+
+function arquivarPaciente(id){
+  if(confirm('Arquivar paciente? Ele deixará de aparecer na lista principal.')){
+    const p = MOCK.pacientes.find(x=>x.id===id);
+    if(p){p.situacao='Arquivado';closeModal('modalDetalhes');renderPacientes()}
+  }
+}
+function restaurarPaciente(id){
+  if(confirm('Restaurar paciente? Ele voltará a aparecer na lista principal.')){
+    const p = MOCK.pacientes.find(x=>x.id===id);
+    if(p){p.situacao='Ativo';closeModal('modalDetalhes');renderPacientes()}
+  }
+}
+
+// ===== CADASTRO PACIENTE =====
+function clearCadastro(){
+  ['cadNome','cadCpf','cadTel','cadEndereco','cadQueixa','cadHda','cadDor','cadComorb','cadMedic','cadAlerg','cadCirur','cadHabitos'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('cadGenero').value='';
+  document.getElementById('cadDataNasc').value='';
+}
+
+function salvarPaciente(){
+  const nome = document.getElementById('cadNome').value.trim();
+  const cpf = document.getElementById('cadCpf').value.trim();
+  const tel = document.getElementById('cadTel').value.trim();
+  const nasc = document.getElementById('cadDataNasc').value;
+  const end = document.getElementById('cadEndereco').value.trim();
+
+  if(!nome||!cpf||!tel||!nasc||!end){alert('Preencha todos os campos obrigatórios (*)');return}
+  if(MOCK.pacientes.some(p=>p.cpf===cpf)){alert('CPF já cadastrado.');return}
+
+  const newId = 'P' + String(MOCK.pacientes.length+1).padStart(3,'0');
+  MOCK.pacientes.push({
+    id:newId,nome:nome,tel:tel,nasc:nasc,cpf:cpf,endereco:end,
+    queixa:document.getElementById('cadQueixa').value.trim(),
+    hda:document.getElementById('cadHda').value.trim(),
+    genero:document.getElementById('cadGenero').value,
+    dor:document.getElementById('cadDor').value,
+    comorb:document.getElementById('cadComorb').value.trim(),
+    medic:document.getElementById('cadMedic').value.trim(),
+    alerg:document.getElementById('cadAlerg').value.trim(),
+    cirur:document.getElementById('cadCirur').value.trim(),
+    habitos:document.getElementById('cadHabitos').value.trim(),
+    situacao:'Ativo',cadastro:new Date().toISOString().split('T')[0]
+  });
+  MOCK.logsAuditoria.push({data:new Date().toISOString(),op:'CADASTRO_PACIENTE',det:'Paciente '+newId+' cadastrado.'});
+  alert('Paciente cadastrado com sucesso!');
+  navigateBack();
+}
+
+function openEnderecoModal(){openModal('modalEndereco')}
+function closeEnderecoModal(){closeModal('modalEndereco')}
+function confirmEndereco(){
+  const rua = document.getElementById('endRua').value.trim();
+  const bairro = document.getElementById('endBairro').value.trim();
+  const num = document.getElementById('endNum').value.trim();
+  const cidade = document.getElementById('endCidade').value.trim();
+  if(!rua||!cidade){alert('Preencha pelo menos Rua e Cidade.');return}
+  let parts = [rua];
+  if(bairro) parts.push(bairro);
+  if(num) parts.push(num);
+  parts.push(cidade);
+  document.getElementById('cadEndereco').value = parts.join(' - ');
+  closeEnderecoModal();
+}
+
+// ===== NOVA SESSAO =====
+function populateSessaoDropdown(){
+  const sel = document.getElementById('sessPaciente');
+  sel.innerHTML = '<option value="">Selecione um paciente</option>' +
+    MOCK.pacientes.filter(p=>p.situacao==='Ativo').map(p=>`<option value="${p.id}">${p.nome}</option>`).join('');
+  document.getElementById('sessValor').value = MOCK.valorPadrao;
+}
+
+function salvarSessao(){
+  const pacId = document.getElementById('sessPaciente').value;
+  const data = document.getElementById('sessData').value;
+  const hi = document.getElementById('sessHoraInicio').value;
+  const hf = document.getElementById('sessHoraFim').value;
+  const valor = parseFloat(document.getElementById('sessValor').value.replace(',','.')) || 0;
+  if(!pacId||!data||!hi||!hf){alert('Preencha todos os campos obrigatórios.');return}
+  const p = MOCK.pacientes.find(x=>x.id===pacId);
+  if(!p) return;
+  const newId = 'A' + String(MOCK.agendamentos.length+1).padStart(3,'0');
+  MOCK.agendamentos.push({id:newId,idPac:pacId,paciente:p.nome,data:data,horaInicio:hi,horaFim:hf,valor:valor,obs:document.getElementById('sessObs').value,situacao:'Agendado'});
+  MOCK.logsAuditoria.push({data:new Date().toISOString(),op:'AGENDAMENTO_SESSAO',det:'Sessão '+newId+' agendada.'});
+  alert('Sessão agendada com sucesso!');
+  navigateBack();
+}
+
+// ===== REGISTRO EVOLUCAO =====
+let editandoEvolucao = null;
+function setupEvolucao(params){
+  editandoEvolucao = null;
+  document.getElementById('evolBtnSalvar').textContent = 'Salvar Evolução';
+  document.getElementById('evolBannerBloq').style.display = 'none';
+  ['evolPresenca','evolLocal','evolCondicao'].forEach(id=>document.getElementById(id).value='Presente');
+  ['evolHoraInicio','evolHoraFim'].forEach(id=>document.getElementById(id).value='');
+  ['evolDor','evolPa','evolFc'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('evolTexto').value = '';
+
+  const p = MOCK.pacientes.find(x=>x.id===params?.pacienteId);
+  if(p){
+    const idade = calcularIdade(p.nasc);
+    document.getElementById('evolHeader').innerHTML = `<div style="font-weight:600;font-size:15px">${p.nome}</div><div style="font-size:12px;color:var(--text-secondary)">${idade} anos • CPF ${p.cpf}</div>`;
+  } else {
+    document.getElementById('evolHeader').innerHTML = '';
+  }
+
+  if(params?.evolucaoId){
+    const evol = MOCK.evolucoes.find(e=>e.id===params.evolucaoId);
+    if(evol){
+      editandoEvolucao = evol;
+      document.getElementById('evolBtnSalvar').textContent = 'Atualizar Evolução';
+      document.getElementById('evolPresenca').value = evol.presenca;
+      document.getElementById('evolHoraInicio').value = evol.horaInicio;
+      document.getElementById('evolHoraFim').value = evol.horaFim;
+      document.getElementById('evolLocal').value = evol.local;
+      document.getElementById('evolDor').value = evol.dor;
+      document.getElementById('evolPa').value = evol.pa||'';
+      document.getElementById('evolFc').value = evol.fc||'';
+      document.getElementById('evolTexto').value = evol.texto;
+      document.getElementById('evolCondicao').value = evol.condicao;
+
+      const dataReg = new Date(evol.dataReg);
+      const diffH = (Date.now() - dataReg.getTime()) / 3600000;
+      if(diffH > 24){
+        document.getElementById('evolBannerBloq').style.display = 'block';
+        document.querySelectorAll('#screen-registro-evolucao .input-field, #screen-registro-evolucao select.input-field').forEach(el=>el.disabled=true);
+        document.getElementById('evolBtnSalvar').style.display = 'none';
+      } else {
+        document.getElementById('evolBannerBloq').style.display = 'none';
+        document.querySelectorAll('#screen-registro-evolucao .input-field, #screen-registro-evolucao select.input-field').forEach(el=>el.disabled=false);
+        document.getElementById('evolBtnSalvar').style.display = 'flex';
+      }
+    }
+  } else {
+    document.querySelectorAll('#screen-registro-evolucao .input-field, #screen-registro-evolucao select.input-field').forEach(el=>el.disabled=false);
+    document.getElementById('evolBtnSalvar').style.display = 'flex';
+  }
+}
+
+function salvarEvolucao(){
+  const presenca = document.getElementById('evolPresenca').value;
+  const hi = document.getElementById('evolHoraInicio').value;
+  const hf = document.getElementById('evolHoraFim').value;
+  const local = document.getElementById('evolLocal').value;
+  const dor = parseInt(document.getElementById('evolDor').value) || 0;
+  const texto = document.getElementById('evolTexto').value.trim();
+  const condicao = document.getElementById('evolCondicao').value;
+
+  if(!hi||!hf||!texto){alert('Preencha horários e texto da evolução.');return}
+
+  if(editandoEvolucao){
+    Object.assign(editandoEvolucao,{presenca,horarioInicio:hi,horarioFim:hf,local, dor,pa:document.getElementById('evolPa').value,fc:parseInt(document.getElementById('evolFc').value)||null,texto,condicao,dataReg:new Date().toISOString()});
+    MOCK.logsAuditoria.push({data:new Date().toISOString(),op:'EDITAR_EVOLUCAO',det:'Evolução '+editandoEvolucao.id+' atualizada.'});
+    alert('Evolução atualizada!');
+  } else {
+    const newId = 'E' + String(MOCK.evolucoes.length+1).padStart(3,'0');
+    const pacId = document.querySelector('#screen-registro-evolucao #evolHeader div')?.textContent?.trim() ? currentPacienteId || 'P001' : 'P001';
+    MOCK.evolucoes.push({id:newId,idPac:pacId,idAgend:'',data:new Date().toISOString().split('T')[0],horaInicio:hi,horaFim:hf,local,presenca, dor,pa:document.getElementById('evolPa').value,fc:parseInt(document.getElementById('evolFc').value)||null,texto,condicao,dataReg:new Date().toISOString()});
+    MOCK.logsAuditoria.push({data:new Date().toISOString(),op:'REGISTRO_EVOLUCAO',det:'Evolução '+newId+' criada.'});
+    alert('Evolução registrada!');
+  }
+  navigateBack();
+}
+
+let micOuvindo = false;
+function toggleMic(){
+  if(!('webkitSpeechRecognition' in window)){alert('Dictafone disponível apenas no Chrome.');return}
+  if(micOuvindo) return;
+  const recognition = new webkitSpeechRecognition();
+  recognition.lang = 'pt-BR';
+  recognition.continuous = false;
+  recognition.interimResults = false;
+  document.getElementById('micBtn').style.backgroundColor = '#FEE2E2';
+  micOuvindo = true;
+  recognition.onresult = (e)=>{
+    document.getElementById('evolTexto').value += (document.getElementById('evolTexto').value?' ':'') + e.results[0][0].transcript;
+    document.getElementById('micBtn').style.backgroundColor = '';
+    micOuvindo = false;
+  };
+  recognition.onerror = ()=>{document.getElementById('micBtn').style.backgroundColor = '';micOuvindo = false};
+  recognition.start();
+}
+
+// ===== HISTORICO EVOLUCOES =====
+function renderHistorico(params){
+  const p = MOCK.pacientes.find(x=>x.id===params?.pacienteId);
+  document.getElementById('histTitulo').textContent = p ? 'Evoluções: '+p.nome : 'Histórico de Evoluções';
+
+  const evolucoes = MOCK.evolucoes.filter(e=>e.idPac===params?.pacienteId||!params?.pacienteId)
+    .sort((a,b)=>b.data.localeCompare(a.data)||b.horaInicio.localeCompare(a.horaInicio));
+
+  if(evolucoes.length===0){
+    document.getElementById('historicoList').innerHTML = '<div class="empty-state"><div class="empty-icon">&#128214;</div><p>Nenhuma evolução registrada.</p></div>';
+    return;
+  }
+
+  document.getElementById('historicoList').innerHTML = '<div class="timeline">' + evolucoes.map(e => {
+    const condClass = condicaoClass(e.condicao);
+    const corBorder = {'green':'border-green','amber':'border-amber','red':'border-red','grey':'border-grey'}[condClass]||'border-grey';
+    const dataReg = new Date(e.dataReg);
+    const diffH = (Date.now() - dataReg.getTime()) / 3600000;
+    const podeEditar = diffH < 24;
+    return `<div class="timeline-item">
+      <div class="timeline-dot ${condClass}"></div>
+      <div class="timeline-card ${corBorder}">
+        <div class="tl-date">${formatarData(e.data)}</div>
+        <div class="tl-header">
+          <span class="tl-title">Sessão - ${e.horaInicio} às ${e.horaFim}</span>
+          <span class="tl-badge ${condClass}">${e.condicao}</span>
+        </div>
+        <div class="tl-meta">${e.local} • Presença: ${e.presenca} • Dor: ${e.dor}/10</div>
+        ${e.pa||e.fc?`<div class="tl-meta">${e.pa?'PA: '+e.pa:''}${e.pa&&e.fc?' • ':''}${e.fc?'FC: '+e.fc+' bpm':''}</div>`:''}
+        <div class="tl-text">${e.texto}</div>
+        ${podeEditar?`<button class="btn btn-sm btn-secondary" style="width:auto;margin-top:8px;font-size:12px" onclick="closeModal('modalDetalhes');navigateTo('registro-evolucao',{pacienteId:'${e.idPac}',evolucaoId:'${e.id}'})">&#9998; Editar</button>`:''}
+      </div>
+    </div>`;
+  }).join('') + '</div>';
+}
+
+// ===== CONFIGURACOES =====
+function renderConfig(){
+  document.getElementById('configValor').value = MOCK.valorPadrao;
+  document.getElementById('logsList').innerHTML = MOCK.logsAuditoria.length===0
+    ? '<p class="text-muted">Nenhum log registrado nesta sessão.</p>'
+    : MOCK.logsAuditoria.slice(-10).reverse().map(l => `<div class="log-item">${new Date(l.data).toLocaleString('pt-BR')} - ${l.op} - ${l.det}</div>`).join('');
+}
+
+function salvarValorPadrao(){
+  MOCK.valorPadrao = document.getElementById('configValor').value.trim() || '150,00';
+  MOCK.logsAuditoria.push({data:new Date().toISOString(),op:'CONFIGURACAO',det:'Valor padrão atualizado para R$ '+MOCK.valorPadrao});
+  renderConfig();
+  alert('Valor padrão salvo!');
+}
+
+function onLogout(){
+  if(confirm('Tem certeza que deseja sair?')){showScreen('login')}
+}
+
+// ===== MASCARA =====
+function mascaraCpf(el){
+  let v = el.value.replace(/\D/g,'').slice(0,11);
+  if(v.length>9) v = v.slice(0,3)+'.'+v.slice(3,6)+'.'+v.slice(6,9)+'-'+v.slice(9);
+  else if(v.length>6) v = v.slice(0,3)+'.'+v.slice(3,6)+'.'+v.slice(6);
+  else if(v.length>3) v = v.slice(0,3)+'.'+v.slice(3);
+  el.value = v;
+}
+function mascaraTel(el){
+  let v = el.value.replace(/\D/g,'').slice(0,11);
+  if(v.length>6) v = '('+v.slice(0,2)+') '+v.slice(2,7)+'-'+v.slice(7);
+  else if(v.length>2) v = '('+v.slice(0,2)+') '+v.slice(2);
+  el.value = v;
+}
+
+// ===== MODAL HELPERS =====
+function openModal(id){document.getElementById(id).classList.add('active')}
+function closeModal(id){document.getElementById(id).classList.remove('active')}
+document.querySelectorAll('.modal-overlay').forEach(m=>{
+  m.addEventListener('click',function(e){if(e.target===this)this.classList.remove('active')})
+});
+
+// ===== FORMATTER =====
+function formatarData(dataStr){
+  const d = new Date(dataStr+'T00:00:00');
+  return d.toLocaleDateString('pt-BR');
+}
+
+// ===== INIT =====
+showScreen('login');
+</script>
+</body>
+</html>

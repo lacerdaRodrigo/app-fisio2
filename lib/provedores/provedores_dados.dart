@@ -232,15 +232,32 @@ Future<void> marcarAgendamentoRealizadoReal(
   WidgetRef ref,
   String idAgendamento,
 ) async {
-  await _repositorio(ref).marcarAgendamentoRealizado(idAgendamento);
+  await atualizarSituacaoAgendamentoReal(
+    ref,
+    idAgendamento,
+    Agendamento.situacaoRealizado,
+  );
+}
+
+Future<void> atualizarSituacaoAgendamentoReal(
+  WidgetRef ref,
+  String idAgendamento,
+  String situacao,
+) async {
+  await _repositorio(ref).atualizarSituacaoAgendamento(idAgendamento, situacao);
   final agendamentos = ref.read(provedorListaAgendamentos);
   ref.read(provedorListaAgendamentos.notifier).definir([
     for (final agendamento in agendamentos)
       if (agendamento.idAgendamento == idAgendamento)
-        agendamento.copiarCom(situacao: 'Realizado')
+        agendamento.copiarCom(situacao: situacao)
       else
         agendamento,
   ]);
+  registrarLog(
+    ref,
+    'ATUALIZAR_AGENDAMENTO',
+    'Sessão $idAgendamento atualizada para $situacao.',
+  );
 }
 
 Future<void> arquivarPacienteReal(WidgetRef ref, String idPaciente) async {

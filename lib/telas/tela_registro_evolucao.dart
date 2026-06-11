@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:speech_to_text/speech_to_text.dart' as stt;
 
+import '../componentes/design_system.dart';
 import '../modelos/agendamento.dart';
 import '../utilitarios/formatters.dart';
 import '../modelos/evolucao.dart';
@@ -50,7 +51,9 @@ class _TelaRegistroEvolucaoState extends ConsumerState<TelaRegistroEvolucao> {
 
   bool get _editavel {
     if (!_editando) return true;
-    final diff = DateTime.now().difference(widget.evolucaoExistente!.dataRegistro);
+    final diff = DateTime.now().difference(
+      widget.evolucaoExistente!.dataRegistro,
+    );
     return diff.inHours < 24;
   }
 
@@ -67,8 +70,9 @@ class _TelaRegistroEvolucaoState extends ConsumerState<TelaRegistroEvolucao> {
       _statusPresenca = evol.statusPresenca;
       _localAtendimento = evol.localAtendimento;
       _dorSessao = evol.dorSessao;
-      _condicaoClinica =
-          evol.condicaoPaciente == 'Faltou' ? 'Melhora' : evol.condicaoPaciente;
+      _condicaoClinica = evol.condicaoPaciente == 'Faltou'
+          ? 'Melhora'
+          : evol.condicaoPaciente;
       _horarioInicio = _dateToTimeOfDay(evol.horarioInicioReal);
       _horarioFim = _dateToTimeOfDay(evol.horarioFimReal);
       _evolucaoController.text = evol.evolucaoTexto;
@@ -113,48 +117,62 @@ class _TelaRegistroEvolucaoState extends ConsumerState<TelaRegistroEvolucao> {
     final horario = widget.agendamento?.horaInicio;
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text(_editando ? 'Editar Evolução' : 'Registrar Evolução'),
-      ),
-      body: Form(
-        key: _chaveFormulario,
-        child: ListView(
-          padding: const EdgeInsets.all(20),
-          children: [
-            if (!_editavel && _editando) _buildBloqueioBanner(theme),
-            _buildHeader(theme, dataAtendimento, horario),
-            const SizedBox(height: 24),
-            _buildSectionTitle('Informações Básicas', Icons.info_outline_rounded),
-            const SizedBox(height: 12),
-            _buildStatusPresenca(theme),
-            const SizedBox(height: 12),
-            _buildHorariosReais(theme),
-            const SizedBox(height: 12),
-            _buildLocalAtendimento(theme),
-            const SizedBox(height: 12),
-            _buildDorSessao(theme),
-            const SizedBox(height: 24),
-            _buildSectionTitle(
-              'Sinais Vitais (Opcional)',
-              Icons.favorite_outline_rounded,
+      body: Column(
+        children: [
+          FisioPageHeader(
+            title: _editando ? 'Editar Evolução' : 'Registrar Evolução',
+            subtitle: widget.paciente.nome,
+            onBack: () => Navigator.pop(context),
+          ),
+          Expanded(
+            child: Form(
+              key: _chaveFormulario,
+              child: FisioResponsiveCenter(
+                maxWidth: 680,
+                child: ListView(
+                  padding: const EdgeInsets.fromLTRB(20, 18, 20, 96),
+                  children: [
+                    if (!_editavel && _editando) _buildBloqueioBanner(theme),
+                    _buildHeader(theme, dataAtendimento, horario),
+                    const SizedBox(height: 24),
+                    _buildSectionTitle(
+                      'Informações Básicas',
+                      Icons.info_outline_rounded,
+                    ),
+                    const SizedBox(height: 12),
+                    _buildStatusPresenca(theme),
+                    const SizedBox(height: 12),
+                    _buildHorariosReais(theme),
+                    const SizedBox(height: 12),
+                    _buildLocalAtendimento(theme),
+                    const SizedBox(height: 12),
+                    _buildDorSessao(theme),
+                    const SizedBox(height: 24),
+                    _buildSectionTitle(
+                      'Sinais Vitais (Opcional)',
+                      Icons.favorite_outline_rounded,
+                    ),
+                    const SizedBox(height: 12),
+                    _buildSinaisVitais(theme),
+                    const SizedBox(height: 24),
+                    _buildSectionTitle(
+                      'Evolução Clínica',
+                      Icons.edit_note_rounded,
+                    ),
+                    const SizedBox(height: 12),
+                    _buildEvolucaoTexto(theme),
+                    if (_ouvindo) _buildOuvindoIndicator(),
+                    const SizedBox(height: 24),
+                    _buildCondicaoClinica(theme),
+                    const SizedBox(height: 32),
+                    if (_editavel) _buildSaveButton(theme),
+                    const SizedBox(height: 24),
+                  ],
+                ),
+              ),
             ),
-            const SizedBox(height: 12),
-            _buildSinaisVitais(theme),
-            const SizedBox(height: 24),
-            _buildSectionTitle(
-              'Evolução Clínica',
-              Icons.edit_note_rounded,
-            ),
-            const SizedBox(height: 12),
-            _buildEvolucaoTexto(theme),
-            if (_ouvindo) _buildOuvindoIndicator(),
-            const SizedBox(height: 24),
-            _buildCondicaoClinica(theme),
-            const SizedBox(height: 32),
-            if (_editavel) _buildSaveButton(theme),
-            const SizedBox(height: 24),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
@@ -164,20 +182,24 @@ class _TelaRegistroEvolucaoState extends ConsumerState<TelaRegistroEvolucao> {
       margin: const EdgeInsets.only(bottom: 16),
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: BoxDecoration(
-        color: Colors.grey.shade100,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.grey.shade300),
+        color: FisioCores.warning.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: FisioCores.warning.withValues(alpha: 0.32)),
       ),
       child: Row(
         children: [
-          Icon(Icons.lock_outline_rounded, color: Colors.grey.shade600, size: 20),
+          const Icon(
+            Icons.lock_outline_rounded,
+            color: Color(0xFF92400E),
+            size: 20,
+          ),
           const SizedBox(width: 10),
           Expanded(
-            child: Text(
+            child: const Text(
               'Evolução bloqueada — mais de 24h do registro',
               style: TextStyle(
                 fontSize: 13,
-                color: Colors.grey.shade700,
+                color: Color(0xFF92400E),
                 fontWeight: FontWeight.w500,
               ),
             ),
@@ -187,12 +209,18 @@ class _TelaRegistroEvolucaoState extends ConsumerState<TelaRegistroEvolucao> {
     );
   }
 
-  Widget _buildHeader(ThemeData theme, DateTime dataAtendimento, String? horario) {
+  Widget _buildHeader(
+    ThemeData theme,
+    DateTime dataAtendimento,
+    String? horario,
+  ) {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: theme.colorScheme.primary.withValues(alpha: 0.08),
-        borderRadius: BorderRadius.circular(20),
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: const Color(0xFFE2E8F0)),
+        boxShadow: FisioSombras.card,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -200,8 +228,11 @@ class _TelaRegistroEvolucaoState extends ConsumerState<TelaRegistroEvolucao> {
           Row(
             children: [
               CircleAvatar(
-                backgroundColor: theme.colorScheme.primary.withValues(alpha: 0.2),
-                child: Icon(Icons.person_rounded, color: theme.colorScheme.primary),
+                backgroundColor: FisioCores.primary.withValues(alpha: 0.12),
+                child: const Icon(
+                  Icons.person_rounded,
+                  color: FisioCores.primary,
+                ),
               ),
               const SizedBox(width: 12),
               Expanded(
@@ -211,7 +242,7 @@ class _TelaRegistroEvolucaoState extends ConsumerState<TelaRegistroEvolucao> {
                     Text(
                       widget.paciente.nome,
                       style: theme.textTheme.titleLarge?.copyWith(
-                        fontWeight: FontWeight.bold,
+                        fontWeight: FontWeight.w800,
                       ),
                     ),
                     Text(
@@ -226,7 +257,11 @@ class _TelaRegistroEvolucaoState extends ConsumerState<TelaRegistroEvolucao> {
           const SizedBox(height: 12),
           Row(
             children: [
-              Icon(Icons.calendar_today_rounded, size: 16, color: Colors.grey.shade600),
+              Icon(
+                Icons.calendar_today_rounded,
+                size: 16,
+                color: Colors.grey.shade600,
+              ),
               const SizedBox(width: 6),
               Text(
                 UtilitariosData.formatarDataBr(dataAtendimento),
@@ -234,12 +269,13 @@ class _TelaRegistroEvolucaoState extends ConsumerState<TelaRegistroEvolucao> {
               ),
               if (horario != null) ...[
                 const SizedBox(width: 16),
-                Icon(Icons.access_time_rounded, size: 16, color: Colors.grey.shade600),
-                const SizedBox(width: 6),
-                Text(
-                  horario,
-                  style: TextStyle(color: Colors.grey.shade700),
+                Icon(
+                  Icons.access_time_rounded,
+                  size: 16,
+                  color: Colors.grey.shade600,
                 ),
+                const SizedBox(width: 6),
+                Text(horario, style: TextStyle(color: Colors.grey.shade700)),
               ],
             ],
           ),
@@ -249,25 +285,12 @@ class _TelaRegistroEvolucaoState extends ConsumerState<TelaRegistroEvolucao> {
   }
 
   Widget _buildSectionTitle(String titulo, IconData icone) {
-    return Row(
-      children: [
-        Icon(icone, size: 20, color: Theme.of(context).colorScheme.primary),
-        const SizedBox(width: 8),
-        Text(
-          titulo,
-          style: TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.bold,
-            color: Theme.of(context).colorScheme.primary,
-          ),
-        ),
-      ],
-    );
+    return FisioSectionTitle(title: titulo, icon: icone);
   }
 
   Widget _buildStatusPresenca(ThemeData theme) {
     return DropdownButtonFormField<String>(
-      value: _statusPresenca,
+      initialValue: _statusPresenca,
       decoration: const InputDecoration(
         labelText: 'Status de Presença *',
         prefixIcon: Icon(Icons.person_pin_rounded),
@@ -336,7 +359,7 @@ class _TelaRegistroEvolucaoState extends ConsumerState<TelaRegistroEvolucao> {
 
   Widget _buildLocalAtendimento(ThemeData theme) {
     return DropdownButtonFormField<String>(
-      value: _localAtendimento,
+      initialValue: _localAtendimento,
       decoration: const InputDecoration(
         labelText: 'Local de Atendimento *',
         prefixIcon: Icon(Icons.home_rounded),
@@ -426,13 +449,25 @@ class _TelaRegistroEvolucaoState extends ConsumerState<TelaRegistroEvolucao> {
         hintText: 'Descreva exercícios, resposta do paciente e orientações...',
         alignLabelWithHint: true,
         suffixIcon: _editavel
-            ? IconButton(
-                onPressed: _alternarMicrofone,
-                tooltip: _ouvindo ? 'Parar transcrição' : 'Transcrever por voz',
-                icon: Icon(
-                  _ouvindo ? Icons.mic_rounded : Icons.mic_none_rounded,
+            ? Container(
+                decoration: BoxDecoration(
+                  color: _ouvindo
+                      ? const Color(0xFFFEE2E2)
+                      : const Color(0xFFF0FDF4),
+                  borderRadius: BorderRadius.circular(12),
                 ),
-                color: _ouvindo ? Colors.red : theme.colorScheme.primary,
+                child: IconButton(
+                  onPressed: _alternarMicrofone,
+                  tooltip: _ouvindo
+                      ? 'Parar transcrição'
+                      : 'Transcrever por voz',
+                  icon: Icon(
+                    _ouvindo ? Icons.mic_rounded : Icons.mic_none_rounded,
+                  ),
+                  color: _ouvindo
+                      ? const Color(0xFFE11D48)
+                      : const Color(0xFF0D9488),
+                ),
               )
             : null,
       ),
@@ -486,7 +521,7 @@ class _TelaRegistroEvolucaoState extends ConsumerState<TelaRegistroEvolucao> {
     }
 
     return DropdownButtonFormField<String>(
-      value: _condicaoClinica,
+      initialValue: _condicaoClinica,
       decoration: const InputDecoration(
         labelText: 'Condição Clínica *',
         prefixIcon: Icon(Icons.trending_up_rounded),
@@ -522,12 +557,8 @@ class _TelaRegistroEvolucaoState extends ConsumerState<TelaRegistroEvolucao> {
           _salvando
               ? 'Salvando...'
               : _editando
-                  ? 'Atualizar Evolução'
-                  : 'Salvar Evolução',
-        ),
-        style: ElevatedButton.styleFrom(
-          backgroundColor: theme.colorScheme.primary,
-          foregroundColor: Colors.white,
+              ? 'Atualizar Evolução'
+              : 'Salvar Evolução',
         ),
       ),
     );

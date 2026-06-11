@@ -43,6 +43,7 @@ void main() {
 
   group('TelaConfiguracoes', () {
     testWidgets('deve exibir o cartão Conta com o botão Sair', (tester) async {
+      await tester.binding.setSurfaceSize(const Size(600, 2000));
       await tester.pumpWidget(criarAppTeste());
       await tester.pumpAndSettle();
 

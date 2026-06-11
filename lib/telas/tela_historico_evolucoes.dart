@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../componentes/design_system.dart';
 import '../modelos/evolucao.dart';
 import '../modelos/paciente.dart';
 import '../provedores/provedores_dados.dart';
@@ -23,49 +24,32 @@ class TelaHistoricoEvolucoes extends ConsumerWidget {
     final theme = Theme.of(context);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Histórico Clínico')),
-      body: SafeArea(
-        child: Column(
-          children: [
-            Container(
-              width: double.infinity,
-              margin: const EdgeInsets.all(16),
-              padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                color: theme.colorScheme.primary.withValues(alpha: 0.08),
-                borderRadius: BorderRadius.circular(20),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    paciente.nome,
-                    style: theme.textTheme.titleLarge?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    '${paciente.calcularIdade()} anos  •  ${paciente.telefone}',
-                  ),
-                ],
-              ),
-            ),
-            Expanded(
+      body: Column(
+        children: [
+          FisioPageHeader(
+            title: 'Histórico Clínico',
+            subtitle: paciente.nome,
+            onBack: () => Navigator.pop(context),
+          ),
+          Expanded(
+            child: SafeArea(
               child: evolucoes.isEmpty
                   ? _EstadoVazio(theme: theme)
-                  : ListView.builder(
-                      padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
-                      itemCount: evolucoes.length,
-                      itemBuilder: (context, index) => _ItemTimeline(
-                        paciente: paciente,
-                        evolucao: evolucoes[index],
-                        ultimo: index == evolucoes.length - 1,
+                  : FisioResponsiveCenter(
+                      maxWidth: 700,
+                      child: ListView.builder(
+                        padding: const EdgeInsets.fromLTRB(16, 8, 16, 28),
+                        itemCount: evolucoes.length,
+                        itemBuilder: (context, index) => _ItemTimeline(
+                          paciente: paciente,
+                          evolucao: evolucoes[index],
+                          ultimo: index == evolucoes.length - 1,
+                        ),
                       ),
                     ),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
@@ -118,15 +102,15 @@ class _ItemTimeline extends StatelessWidget {
   Color _condicaoColor(String condicao) {
     switch (condicao) {
       case 'Melhora':
-        return Colors.green;
+        return FisioCores.success;
       case 'Estável':
-        return Colors.orange;
+        return FisioCores.warning;
       case 'Piora':
-        return Colors.red;
+        return FisioCores.danger;
       case 'Faltou':
-        return Colors.grey;
+        return FisioCores.textMuted;
       default:
-        return Colors.blue;
+        return FisioCores.info;
     }
   }
 
@@ -149,13 +133,13 @@ class _ItemTimeline extends StatelessWidget {
   Color _presencaColor(String status) {
     switch (status) {
       case 'Presente':
-        return Colors.green;
+        return FisioCores.success;
       case 'Ausente com aviso':
-        return Colors.orange;
+        return FisioCores.warning;
       case 'Ausente sem aviso':
-        return Colors.red;
+        return FisioCores.danger;
       default:
-        return Colors.grey;
+        return FisioCores.textMuted;
     }
   }
 
@@ -163,7 +147,8 @@ class _ItemTimeline extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final temSinaisVitais =
-        (evolucao.pressaoArterial != null && evolucao.pressaoArterial!.isNotEmpty) ||
+        (evolucao.pressaoArterial != null &&
+            evolucao.pressaoArterial!.isNotEmpty) ||
         evolucao.frequenciaCardiaca != null;
 
     return IntrinsicHeight(
@@ -173,11 +158,21 @@ class _ItemTimeline extends StatelessWidget {
           Column(
             children: [
               Container(
-                width: 14,
-                height: 14,
+                width: 20,
+                height: 20,
                 decoration: BoxDecoration(
                   color: _condicaoColor(evolucao.condicaoPaciente),
                   shape: BoxShape.circle,
+                  border: Border.all(color: Colors.white, width: 4),
+                  boxShadow: [
+                    BoxShadow(
+                      color: _condicaoColor(
+                        evolucao.condicaoPaciente,
+                      ).withValues(alpha: 0.3),
+                      blurRadius: 4,
+                      offset: Offset(0, 2),
+                    ),
+                  ],
                 ),
               ),
               if (!ultimo)
@@ -194,17 +189,7 @@ class _ItemTimeline extends StatelessWidget {
             child: Container(
               margin: const EdgeInsets.only(bottom: 16),
               padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(16),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.06),
-                    blurRadius: 12,
-                    offset: const Offset(0, 4),
-                  ),
-                ],
-              ),
+              decoration: FisioDecoracoes.card(),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -224,48 +209,51 @@ class _ItemTimeline extends StatelessWidget {
                       ),
                       Container(
                         padding: const EdgeInsets.symmetric(
-                          horizontal: 8,
-                          vertical: 2,
+                          horizontal: 12,
+                          vertical: 4,
                         ),
                         decoration: BoxDecoration(
                           color: _condicaoColor(
                             evolucao.condicaoPaciente,
                           ).withValues(alpha: 0.15),
-                          borderRadius: BorderRadius.circular(8),
+                          borderRadius: BorderRadius.circular(20),
                         ),
                         child: Text(
                           evolucao.condicaoPaciente,
                           style: TextStyle(
-                            fontSize: 11,
-                            fontWeight: FontWeight.w600,
+                            fontSize: 10,
+                            fontWeight: FontWeight.bold,
                             color: _condicaoColor(evolucao.condicaoPaciente),
                           ),
                         ),
                       ),
-                      if (DateTime.now().difference(evolucao.dataRegistro).inHours < 24)
-                        Padding(
-                          padding: const EdgeInsets.only(left: 4),
-                          child: SizedBox(
-                            width: 32,
-                            height: 32,
-                            child: IconButton(
-                              padding: EdgeInsets.zero,
-                              icon: Icon(
-                                Icons.edit_outlined,
-                                size: 18,
-                                color: theme.colorScheme.primary,
+                      if (DateTime.now()
+                              .difference(evolucao.dataRegistro)
+                              .inHours <
+                          24)
+                        TextButton(
+                          onPressed: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => TelaRegistroEvolucao(
+                                  paciente: paciente,
+                                  evolucaoExistente: evolucao,
+                                ),
                               ),
-                              onPressed: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (_) => TelaRegistroEvolucao(
-                                      paciente: paciente,
-                                      evolucaoExistente: evolucao,
-                                    ),
-                                  ),
-                                );
-                              },
+                            );
+                          },
+                          style: TextButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(horizontal: 12),
+                            minimumSize: Size.zero,
+                            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                          ),
+                          child: const Text(
+                            'Editar',
+                            style: TextStyle(
+                              color: Color(0xFF0D9488),
+                              fontWeight: FontWeight.bold,
+                              fontSize: 13,
                             ),
                           ),
                         ),
@@ -310,9 +298,17 @@ class _ItemTimeline extends StatelessWidget {
                     const SizedBox(height: 8),
                     const Divider(height: 1),
                     const SizedBox(height: 8),
-                    Text(
-                      evolucao.evolucaoTexto,
-                      style: theme.textTheme.bodyMedium,
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFF8FAFC),
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      child: Text(
+                        evolucao.evolucaoTexto,
+                        style: theme.textTheme.bodyMedium,
+                      ),
                     ),
                   ],
                 ],
@@ -330,11 +326,7 @@ class _LinhaInfo extends StatelessWidget {
   final String texto;
   final Color? corIcone;
 
-  const _LinhaInfo({
-    required this.icone,
-    required this.texto,
-    this.corIcone,
-  });
+  const _LinhaInfo({required this.icone, required this.texto, this.corIcone});
 
   @override
   Widget build(BuildContext context) {

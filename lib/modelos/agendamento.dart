@@ -1,6 +1,14 @@
 /// Modelo de dados representando um agendamento de sessão.
 /// Espelha a aba `Agenda` da planilha `__saas_fisio_db__`.
 class Agendamento {
+  static const situacaoAgendado = 'Agendado';
+  static const situacaoRealizado = 'Realizado';
+  static const situacaoCancelado = 'Cancelado';
+  static const situacaoCanceladoPaciente = 'Cancelado pelo paciente';
+  static const situacaoCanceladoProfissional = 'Cancelado pelo profissional';
+  static const situacaoFaltouComAviso = 'Faltou com aviso';
+  static const situacaoFaltouSemAviso = 'Faltou sem aviso';
+
   final String idAgendamento;
   final String idPaciente;
   final DateTime data;
@@ -8,7 +16,7 @@ class Agendamento {
   final String horaFim;
   final double valorSessao;
   final String? observacoes;
-  final String situacao; // 'Agendado', 'Realizado' ou 'Cancelado'
+  final String situacao;
   final DateTime dataCriacao;
 
   Agendamento({
@@ -19,13 +27,46 @@ class Agendamento {
     required this.horaFim,
     required this.valorSessao,
     this.observacoes,
-    this.situacao = 'Agendado',
+    this.situacao = situacaoAgendado,
     DateTime? dataCriacao,
   }) : dataCriacao = dataCriacao ?? DateTime.now();
 
-  bool get estaAgendado => situacao == 'Agendado';
-  bool get foiRealizado => situacao == 'Realizado';
-  bool get foiCancelado => situacao == 'Cancelado';
+  bool get estaAgendado => situacao == situacaoAgendado;
+  bool get foiRealizado => situacao == situacaoRealizado;
+  bool get foiCancelado =>
+      situacao == situacaoCancelado ||
+      situacao == situacaoCanceladoPaciente ||
+      situacao == situacaoCanceladoProfissional;
+  bool get foiFalta =>
+      situacao == situacaoFaltouComAviso || situacao == situacaoFaltouSemAviso;
+  bool get possuiDesfecho => foiRealizado || foiCancelado || foiFalta;
+
+  DateTime get inicioPrevisto {
+    final partes = horaInicio.split(':');
+    return DateTime(
+      data.year,
+      data.month,
+      data.day,
+      int.tryParse(partes.first) ?? 0,
+      partes.length > 1 ? int.tryParse(partes[1]) ?? 0 : 0,
+    );
+  }
+
+  bool ehDeHoje(DateTime referencia) {
+    return data.year == referencia.year &&
+        data.month == referencia.month &&
+        data.day == referencia.day;
+  }
+
+  bool estaAtrasado(DateTime referencia) {
+    return estaAgendado && inicioPrevisto.isBefore(referencia);
+  }
+
+  bool pendenteDeDiaAnterior(DateTime referencia) {
+    final hoje = DateTime(referencia.year, referencia.month, referencia.day);
+    final diaAgendamento = DateTime(data.year, data.month, data.day);
+    return estaAgendado && diaAgendamento.isBefore(hoje);
+  }
 
   /// Converte para mapa de valores para envio à planilha.
   Map<String, dynamic> paraMapaPlanilha() {

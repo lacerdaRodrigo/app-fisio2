@@ -50,14 +50,14 @@ group('TelaCadastroPaciente - Endereço', () {
  await tester.pumpWidget(criarAppTeste());
  await tester.pumpAndSettle();
 
- expect(find.byType(InkWell).at(1), findsOneWidget);
- });
+      expect(find.text('Toque para preencher endereço'), findsOneWidget);
+    });
 
-testWidgets('tocar no endereço abre o modal com 4 campos', (tester) async {
- await tester.pumpWidget(criarAppTeste());
- await tester.pumpAndSettle();
+    testWidgets('tocar no endereço abre o modal com 4 campos', (tester) async {
+      await tester.pumpWidget(criarAppTeste());
+      await tester.pumpAndSettle();
 
- await tester.tap(find.byType(InkWell).at(1));
+      await tester.tap(find.text('Toque para preencher endereço'));
  await tester.pumpAndSettle();
 
  expect(find.text('Editar Endereço'), findsOneWidget);
@@ -75,10 +75,10 @@ testWidgets('preencher campos e confirmar atualiza o endereço exibido', (
  await tester.pumpWidget(criarAppTeste());
  await tester.pumpAndSettle();
 
- await tester.tap(find.byType(InkWell).at(1));
- await tester.pumpAndSettle();
+  await tester.tap(find.text('Toque para preencher endereço'));
+  await tester.pumpAndSettle();
 
- await tester.enterText(find.widgetWithText(TextFormField, 'Rua/Avenida *'), 'Rua Belém');
+  await tester.enterText(find.widgetWithText(TextFormField, 'Rua/Avenida *'), 'Rua Belém');
  await tester.enterText(find.widgetWithText(TextFormField, 'Número'), '105');
  await tester.enterText(find.widgetWithText(TextFormField, 'Bairro *'), 'Centro');
  await tester.enterText(find.widgetWithText(TextFormField, 'Cidade *'), 'São Paulo');
@@ -95,10 +95,10 @@ testWidgets('campos obrigatórios impedem confirmar sem preenchimento', (
  await tester.pumpWidget(criarAppTeste());
  await tester.pumpAndSettle();
 
- await tester.tap(find.byType(InkWell).at(1));
- await tester.pumpAndSettle();
+  await tester.tap(find.text('Toque para preencher endereço'));
+  await tester.pumpAndSettle();
 
- await tester.tap(find.text('Confirmar'));
+  await tester.tap(find.text('Confirmar'));
  await tester.pumpAndSettle();
 
  expect(find.text('Editar Endereço'), findsOneWidget);
@@ -113,10 +113,10 @@ testWidgets('endereço com apenas rua e cidade é composto corretamente', (
  await tester.pumpWidget(criarAppTeste());
  await tester.pumpAndSettle();
 
- await tester.tap(find.byType(InkWell).at(1));
- await tester.pumpAndSettle();
+  await tester.tap(find.text('Toque para preencher endereço'));
+  await tester.pumpAndSettle();
 
- await tester.enterText(find.widgetWithText(TextFormField, 'Rua/Avenida *'), 'Av Paulista');
+  await tester.enterText(find.widgetWithText(TextFormField, 'Rua/Avenida *'), 'Av Paulista');
  await tester.enterText(find.widgetWithText(TextFormField, 'Bairro *'), 'Bela Vista');
  await tester.enterText(find.widgetWithText(TextFormField, 'Cidade *'), 'São Paulo');
  // Número vazio
@@ -131,9 +131,9 @@ testWidgets('cancelar não altera o endereço', (tester) async {
  await tester.pumpWidget(criarAppTeste());
  await tester.pumpAndSettle();
 
- expect(find.byType(InkWell).at(1), findsOneWidget);
+  expect(find.text('Toque para preencher endereço'), findsOneWidget);
 
- await tester.tap(find.byType(InkWell).at(1));
+  await tester.tap(find.text('Toque para preencher endereço'));
  await tester.pumpAndSettle();
 
  await tester.enterText(find.widgetWithText(TextFormField, 'Rua/Avenida *'), 'Rua X');
@@ -143,8 +143,8 @@ testWidgets('cancelar não altera o endereço', (tester) async {
  await tester.tap(find.text('Cancelar'));
  await tester.pumpAndSettle();
 
- expect(find.byType(InkWell).at(1), findsOneWidget);
- expect(find.text('Rua X'), findsNothing);
+  expect(find.text('Toque para preencher endereço'), findsOneWidget);
+  expect(find.text('Rua X'), findsNothing);
 });
 });
 
@@ -234,7 +234,7 @@ testWidgets('deve permitir salvar paciente sem preencher campos de anamnese', (
   await tester.pumpAndSettle();
 
   // Preencher endereço
-  await tester.tap(find.byType(InkWell).at(1));
+  await tester.tap(find.text('Toque para preencher endereço'));
   await tester.pumpAndSettle();
   await tester.enterText(find.widgetWithText(TextFormField, 'Rua/Avenida *'), 'Rua B');
   await tester.enterText(find.widgetWithText(TextFormField, 'Bairro *'), 'Bairro C');

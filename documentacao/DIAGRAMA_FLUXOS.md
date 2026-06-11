@@ -17,11 +17,15 @@ graph TD
     
     %% Fluxo Principal
     Dashboard["Dashboard / Início"]
+    SessoesScreen["Tela de Sessões"]
     PacientesScreen["Tela de Pacientes"]
     ConfiguracoesScreen["Tela de Configurações"]
     
     %% Subfluxos do Dashboard
     NovaSessaoScreen["Tela: Nova Sessão"]
+    PendenciasAgenda["Seção: Pendências"]
+    AcoesSessao["Menu: Desfecho da Sessão"]
+    HistoricoGeral["Tela: Histórico Geral de Evoluções"]
     DateValidator{"Data Futura?"}
     GoogleSheets[("Google Sheets Backend")]
     
@@ -51,22 +55,29 @@ graph TD
     DbLoading -->|Planilha OK| Dashboard
     
     %% Navegação Principal (Menu Inferior)
+    Dashboard <-->|Menu Inferior| SessoesScreen
     Dashboard <-->|Menu Inferior| PacientesScreen
-    Dashboard <-->|Menu Inferior| ConfiguracoesScreen
+    Dashboard -.->|Configurações fora da navegação principal| ConfiguracoesScreen
     
     %% Fluxo Nova Sessão
-    Dashboard -->|Botão: Novo Agendamento| NovaSessaoScreen
+    Dashboard -->|Botão Central + no Início| NovaSessaoScreen
     NovaSessaoScreen -->|Selecionar Data/Hora| DateValidator
     DateValidator -- Não -->|Alerta de Erro| NovaSessaoScreen
     DateValidator -- Sim -->|Confirmar Agendamento| GoogleSheets
     GoogleSheets -->|Retorna| Dashboard
     
     %% Rotas no Dashboard
-    Dashboard -->|Botão: Como Chegar| RouteSelection
-    RouteSelection -->|Deep Link| GmapsWaze
+    Dashboard -->|Agenda de Hoje| AcoesSessao
+    Dashboard -->|Sessões antigas sem desfecho| PendenciasAgenda
+    SessoesScreen -->|Filtrar futuras, pendentes, canceladas, faltas, realizadas| SessoesScreen
+    SessoesScreen -->|Resolver sessão| AcoesSessao
+    PendenciasAgenda -->|Resolver sessão| AcoesSessao
+    Dashboard -->|Card Total de Evoluções| HistoricoGeral
+    AcoesSessao -->|Registrar evolução| EvolucaoScreen
+    AcoesSessao -->|Falta ou cancelamento| GoogleSheets
     
     %% Fluxo Cadastro Paciente
-    PacientesScreen -->|Botão Flutuante +| CadastroPaciente
+    PacientesScreen -->|Botão Central + em Pacientes| CadastroPaciente
     CadastroPaciente -->|Salvar| CpfValidator
     CpfValidator -- Duplicado -->|Alerta: CPF Existente| CadastroPaciente
     CpfValidator -- Único -->|Salvar Ativo| GoogleSheets
@@ -78,6 +89,7 @@ graph TD
     
     %% Detalhes do Paciente
     DetailsModal -->|Botão: Como Chegar| RouteSelection
+    RouteSelection -->|Deep Link| GmapsWaze
     DetailsModal -->|Ação: Arquivar| GoogleSheets
     DetailsModal -->|Botão: Ver Histórico| TimelineScreen
     DetailsModal -->|Botão: Nova Evolução| EvolucaoScreen
@@ -86,7 +98,7 @@ graph TD
     EvolucaoScreen -->|Botão Microfone| SpeechToText
     SpeechToText -->|Preencher Texto| EvolucaoScreen
     EvolucaoScreen -->|Salvar Evolução| GoogleSheets
-    GoogleSheets -->|Grava evolução & Conclui consulta| PacientesScreen
+    GoogleSheets -->|Grava evolução & Agenda.Situacao Realizado| PacientesScreen
 
     %% Fluxo Configurações
     ConfiguracoesScreen -->|Alterar Valor Padrão| GoogleSheets
@@ -104,9 +116,9 @@ graph TD
     %% Aplicação das classes nos elementos correspondentes
     class Start startEnd;
     
-    class LoginScreen,TermsModal,Dashboard,PacientesScreen,NovaSessaoScreen,CadastroPaciente,DetailsModal,TimelineScreen,EvolucaoScreen,ConfiguracoesScreen screen;
+    class LoginScreen,TermsModal,Dashboard,SessoesScreen,PacientesScreen,NovaSessaoScreen,CadastroPaciente,DetailsModal,TimelineScreen,EvolucaoScreen,ConfiguracoesScreen,HistoricoGeral screen;
     
-    class Splash,CheckboxLGPD,DbLoading,DateValidator,CpfValidator,SpeechToText,RouteSelection,LogoutAction action;
+    class Splash,CheckboxLGPD,DbLoading,DateValidator,CpfValidator,SpeechToText,RouteSelection,LogoutAction,AcoesSessao,PendenciasAgenda action;
     
     class GoogleSheets sheets;
     

@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../componentes/design_system.dart';
 import '../provedores/provedores_dados.dart';
 import '../provedores/provedor_autenticacao.dart';
 import 'tela_login.dart';
@@ -35,115 +36,183 @@ class _TelaConfiguracoesState extends ConsumerState<TelaConfiguracoes> {
     final logs = ref.watch(provedorLogsAuditoria);
 
     return Scaffold(
-      body: SafeArea(
-        child: ListView(
-          padding: const EdgeInsets.all(20),
-          children: [
-            Text(
-              'Configurações',
-              style: theme.textTheme.headlineSmall?.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            const SizedBox(height: 24),
-            _CartaoSecao(
-              titulo: 'Valor padrão da sessão',
-              icone: Icons.attach_money_rounded,
-              child: Column(
-                children: [
-                  TextField(
-                    controller: _valorController,
-                    decoration: const InputDecoration(
-                      labelText: 'Valor em R\$',
-                      hintText: '150,00',
+      body: Column(
+        children: [
+          const FisioPageHeader(
+            title: 'Configurações',
+            subtitle: 'Ajustes da conta e sistema',
+            leadingIcon: Icons.settings_rounded,
+          ),
+          Expanded(
+            child: SafeArea(
+              child: FisioResponsiveCenter(
+                maxWidth: 680,
+                child: ListView(
+                  padding: const EdgeInsets.all(20),
+                  children: [
+                    _CartaoSecao(
+                      titulo: 'Valor padrão da sessão',
+                      icone: Icons.attach_money_rounded,
+                      child: Column(
+                        children: [
+                          TextField(
+                            controller: _valorController,
+                            decoration: const InputDecoration(
+                              labelText: 'Valor em R\$',
+                              hintText: '150,00',
+                            ),
+                            keyboardType: const TextInputType.numberWithOptions(
+                              decimal: true,
+                            ),
+                            inputFormatters: [
+                              FilteringTextInputFormatter.allow(
+                                RegExp(r'[0-9,.]'),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 12),
+                          SizedBox(
+                            width: double.infinity,
+                            child: FilledButton.icon(
+                              onPressed: _salvarValorPadrao,
+                              icon: const Icon(Icons.save_outlined),
+                              label: const Text('Salvar valor padrão'),
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
-                    keyboardType: const TextInputType.numberWithOptions(
-                      decimal: true,
-                    ),
-                    inputFormatters: [
-                      FilteringTextInputFormatter.allow(RegExp(r'[0-9,.]')),
-                    ],
-                  ),
-                  const SizedBox(height: 12),
-                  SizedBox(
-                    width: double.infinity,
-                    child: FilledButton.icon(
-                      onPressed: _salvarValorPadrao,
-                      icon: const Icon(Icons.save_outlined),
-                      label: const Text('Salvar valor padrão'),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 16),
-            _CartaoSecao(
-              titulo: 'Dados e privacidade',
-              icone: Icons.privacy_tip_outlined,
-              child: Column(
-                children: [
-                  ListTile(
-                    contentPadding: EdgeInsets.zero,
-                    leading: const Icon(Icons.table_chart_outlined),
-                    title: const Text('Visualizar Planilha de Dados'),
-                    subtitle: const Text('Abre o Google Sheets no navegador.'),
-                    onTap: () => _abrirPlanilha(context),
-                  ),
-                  const Divider(),
-                  ListTile(
-                    contentPadding: EdgeInsets.zero,
-                    leading: const Icon(Icons.article_outlined),
-                    title: const Text('Visualizar Termos de Uso'),
-                    subtitle: const Text(
-                      'Releia a declaração LGPD aceita no login.',
-                    ),
-                    onTap: () => _mostrarTermos(context),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 16),
-            _CartaoSecao(
-              titulo: 'Conta',
-              icone: Icons.person_outlined,
-              child: ListTile(
-                contentPadding: EdgeInsets.zero,
-                leading: const Icon(Icons.logout_rounded, color: Colors.red),
-                title: const Text(
-                  'Sair da conta',
-                  style: TextStyle(color: Colors.red),
-                ),
-                subtitle: const Text('Desconecta o Google e volta ao login.'),
-                onTap: () => _confirmarLogout(context),
-              ),
-            ),
-            const SizedBox(height: 16),
-            _CartaoSecao(
-              titulo: 'Logs de auditoria',
-              icone: Icons.fact_check_outlined,
-              child: logs.isEmpty
-                  ? Text(
-                      'Nenhuma ação crítica registrada nesta sessão.',
-                      style: TextStyle(color: Colors.grey.shade600),
-                    )
-                  : Column(
-                      children: [
-                        for (final log in logs.take(10))
+                    const SizedBox(height: 16),
+                    _CartaoSecao(
+                      titulo: 'Dados e privacidade',
+                      icone: Icons.privacy_tip_outlined,
+                      child: Column(
+                        children: [
                           ListTile(
                             contentPadding: EdgeInsets.zero,
-                            dense: true,
-                            leading: Icon(
-                              Icons.circle,
-                              size: 8,
-                              color: theme.colorScheme.primary,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(16),
                             ),
-                            title: Text(log, style: theme.textTheme.bodySmall),
+                            hoverColor: const Color(0xFFF8FAFC),
+                            leading: Container(
+                              width: 40,
+                              height: 40,
+                              decoration: BoxDecoration(
+                                color: theme.colorScheme.primary.withValues(
+                                  alpha: 0.1,
+                                ),
+                                borderRadius: BorderRadius.circular(20),
+                              ),
+                              child: Icon(
+                                Icons.table_chart_outlined,
+                                color: theme.colorScheme.primary,
+                                size: 20,
+                              ),
+                            ),
+                            title: const Text('Visualizar Planilha de Dados'),
+                            subtitle: const Text(
+                              'Abre o Google Sheets no navegador.',
+                            ),
+                            onTap: () => _abrirPlanilha(context),
                           ),
-                      ],
+                          const Divider(),
+                          ListTile(
+                            contentPadding: EdgeInsets.zero,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(16),
+                            ),
+                            hoverColor: const Color(0xFFF8FAFC),
+                            leading: Container(
+                              width: 40,
+                              height: 40,
+                              decoration: BoxDecoration(
+                                color: theme.colorScheme.primary.withValues(
+                                  alpha: 0.1,
+                                ),
+                                borderRadius: BorderRadius.circular(20),
+                              ),
+                              child: Icon(
+                                Icons.article_outlined,
+                                color: theme.colorScheme.primary,
+                                size: 20,
+                              ),
+                            ),
+                            title: const Text('Visualizar Termos de Uso'),
+                            subtitle: const Text(
+                              'Releia a declaração LGPD aceita no login.',
+                            ),
+                            onTap: () => _mostrarTermos(context),
+                          ),
+                        ],
+                      ),
                     ),
+                    const SizedBox(height: 16),
+                    _CartaoSecao(
+                      titulo: 'Conta',
+                      icone: Icons.person_outlined,
+                      child: ListTile(
+                        contentPadding: EdgeInsets.zero,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        hoverColor: const Color(0xFFF8FAFC),
+                        leading: Container(
+                          width: 40,
+                          height: 40,
+                          decoration: BoxDecoration(
+                            color: Colors.red.withValues(alpha: 0.1),
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: const Icon(
+                            Icons.logout_rounded,
+                            color: Colors.red,
+                            size: 20,
+                          ),
+                        ),
+                        title: const Text(
+                          'Sair da conta',
+                          style: TextStyle(color: Colors.red),
+                        ),
+                        subtitle: const Text(
+                          'Desconecta o Google e volta ao login.',
+                        ),
+                        onTap: () => _confirmarLogout(context),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    _CartaoSecao(
+                      titulo: 'Logs de auditoria',
+                      icone: Icons.fact_check_outlined,
+                      child: logs.isEmpty
+                          ? Text(
+                              'Nenhuma ação crítica registrada nesta sessão.',
+                              style: TextStyle(color: Colors.grey.shade600),
+                            )
+                          : Column(
+                              children: [
+                                for (final log in logs.take(10))
+                                  ListTile(
+                                    contentPadding: EdgeInsets.zero,
+                                    dense: true,
+                                    leading: Icon(
+                                      Icons.circle,
+                                      size: 8,
+                                      color: theme.colorScheme.primary,
+                                    ),
+                                    title: Text(
+                                      log,
+                                      style: theme.textTheme.bodySmall,
+                                    ),
+                                  ),
+                              ],
+                            ),
+                    ),
+                  ],
+                ),
+              ),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
@@ -239,12 +308,12 @@ class _TelaConfiguracoesState extends ConsumerState<TelaConfiguracoes> {
       ),
     );
 
-    if (confirmou != true || !mounted) return;
+    if (confirmou != true || !context.mounted) return;
 
     await ref.read(provedorAutenticacao.notifier).sair();
     limparDados(ref);
 
-    if (!mounted) return;
+    if (!context.mounted) return;
     Navigator.of(context).pushAndRemoveUntil(
       MaterialPageRoute(builder: (_) => const TelaLogin()),
       (_) => false,
@@ -268,37 +337,38 @@ class _CartaoSecao extends StatelessWidget {
     final theme = Theme.of(context);
     return Container(
       padding: const EdgeInsets.all(18),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(18),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.06),
-            blurRadius: 14,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
+      decoration: FisioDecoracoes.card(),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              Icon(icone, color: theme.colorScheme.primary),
+              Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(
+                  color: theme.colorScheme.primary.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(
+                    color: theme.colorScheme.primary.withValues(alpha: 0.14),
+                  ),
+                ),
+                child: Icon(icone, color: theme.colorScheme.primary, size: 20),
+              ),
               const SizedBox(width: 8),
               Text(
                 titulo,
-                style: theme.textTheme.titleMedium?.copyWith(
+                style: const TextStyle(
+                  fontSize: 11,
                   fontWeight: FontWeight.bold,
+                  color: Color(0xFF94A3B8),
+                  letterSpacing: 1,
                 ),
               ),
             ],
           ),
           const SizedBox(height: 16),
-          Material(
-            color: Colors.white,
-            child: child,
-          ),
+          Material(color: Colors.white, child: child),
         ],
       ),
     );

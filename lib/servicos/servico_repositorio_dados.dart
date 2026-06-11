@@ -58,7 +58,7 @@ class RepositorioDadosGoogle {
 
   Future<DadosCarregados> carregarTudo() async {
     final id = await obterPlanilhaId();
-    
+
     // Carrega todas as abas em paralelo
     final results = await Future.wait([
       _sheets.lerAba(id, 'Pacientes'),
@@ -180,6 +180,16 @@ class RepositorioDadosGoogle {
   }
 
   Future<void> marcarAgendamentoRealizado(String idAgendamento) async {
+    await atualizarSituacaoAgendamento(
+      idAgendamento,
+      Agendamento.situacaoRealizado,
+    );
+  }
+
+  Future<void> atualizarSituacaoAgendamento(
+    String idAgendamento,
+    String situacao,
+  ) async {
     final id = await obterPlanilhaId();
     final linhas = await _sheets.lerAba(id, 'Agenda');
     final indice = linhas.indexWhere(
@@ -188,11 +198,15 @@ class RepositorioDadosGoogle {
     if (indice == -1) return;
 
     final linha = _preencher(linhas[indice], 9);
-    linha[7] = 'Realizado';
+    linha[7] = situacao;
     await _sheets.atualizarLinha(
       id,
       'Agenda!A${indice + 2}:I${indice + 2}',
       linha,
+    );
+    await registrarAuditoria(
+      'ATUALIZAR_AGENDAMENTO',
+      'Sessão $idAgendamento atualizada para $situacao.',
     );
   }
 

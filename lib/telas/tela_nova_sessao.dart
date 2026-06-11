@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../componentes/design_system.dart';
 import '../modelos/agendamento.dart';
 import '../provedores/provedores_dados.dart';
 import '../utilitarios/utilitarios_data.dart';
@@ -36,149 +37,161 @@ class _TelaNovaSessaoState extends ConsumerState<TelaNovaSessao> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     final pacientesAtivos = ref
         .watch(provedorListaPacientes)
         .where((paciente) => paciente.estaAtivo)
         .toList();
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Nova Sessão'),
-        leading: IconButton(
-          icon: const Icon(Icons.close_rounded),
-          onPressed: () => Navigator.pop(context),
-        ),
-      ),
-      body: Form(
-        key: _chaveFormulario,
-        child: ListView(
-          padding: const EdgeInsets.all(20),
-          children: [
-            // Seleção de Paciente
-            DropdownButtonFormField<String>(
-              initialValue: _pacienteSelecionado,
-              decoration: const InputDecoration(
-                labelText: 'Paciente *',
-                prefixIcon: Icon(Icons.person_outline_rounded),
-              ),
-              items: [
-                for (final paciente in pacientesAtivos)
-                  DropdownMenuItem(
-                    value: paciente.idPaciente,
-                    child: Text(paciente.nome),
-                  ),
-              ],
-              onChanged: (v) => setState(() => _pacienteSelecionado = v),
-              validator: (v) => v == null ? 'Selecione um paciente.' : null,
-            ),
-            if (pacientesAtivos.isEmpty) ...[
-              const SizedBox(height: 8),
-              Text(
-                'Cadastre um paciente ativo antes de criar uma sessão.',
-                style: TextStyle(color: Colors.orange.shade700, fontSize: 13),
-              ),
-            ],
-            const SizedBox(height: 16),
-
-            // Data
-            InkWell(
-              borderRadius: BorderRadius.circular(12),
-              onTap: _selecionarData,
-              child: InputDecorator(
-                decoration: InputDecoration(
-                  labelText: 'Data do Atendimento *',
-                  prefixIcon: const Icon(Icons.calendar_today_rounded),
-                  errorText: _mensagemErroData,
-                ),
-                child: Text(
-                  _dataSelecionada != null
-                      ? UtilitariosData.formatarDataBr(_dataSelecionada!)
-                      : 'Selecionar data',
-                  style: TextStyle(
-                    color: _dataSelecionada != null
-                        ? Colors.black87
-                        : Colors.grey,
-                  ),
-                ),
-              ),
-            ),
-            const SizedBox(height: 16),
-
-            // Hora
-            InkWell(
-              borderRadius: BorderRadius.circular(12),
-              onTap: _selecionarHora,
-              child: InputDecorator(
-                decoration: const InputDecoration(
-                  labelText: 'Horário de Início *',
-                  prefixIcon: Icon(Icons.access_time_rounded),
-                ),
-                child: Text(
-                  _horaSelecionada != null
-                      ? '${_horaSelecionada!.hour.toString().padLeft(2, '0')}:${_horaSelecionada!.minute.toString().padLeft(2, '0')}'
-                      : 'Selecionar horário',
-                  style: TextStyle(
-                    color: _horaSelecionada != null
-                        ? Colors.black87
-                        : Colors.grey,
-                  ),
-                ),
-              ),
-            ),
-            const SizedBox(height: 16),
-
-            // Valor
-            TextFormField(
-              controller: _valorController,
-              decoration: const InputDecoration(
-                labelText: 'Valor da Sessão (R\$)',
-                prefixIcon: Icon(Icons.attach_money_rounded),
-                hintText: '150,00',
-              ),
-              keyboardType: const TextInputType.numberWithOptions(
-                decimal: true,
-              ),
-            ),
-            const SizedBox(height: 16),
-
-            // Observações
-            TextFormField(
-              controller: _observacoesController,
-              decoration: const InputDecoration(
-                labelText: 'Observações',
-                prefixIcon: Icon(Icons.note_alt_outlined),
-                hintText: 'Levar eletroestimulador, etc...',
-              ),
-              maxLines: 3,
-              textCapitalization: TextCapitalization.sentences,
-            ),
-            const SizedBox(height: 32),
-
-            // Botão Agendar
-            SizedBox(
-              height: 56,
-              child: ElevatedButton.icon(
-                onPressed: _salvando ? null : _agendarSessao,
-                icon: _salvando
-                    ? const SizedBox(
-                        width: 20,
-                        height: 20,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          color: Colors.white,
+      body: Column(
+        children: [
+          FisioPageHeader(
+            title: 'Nova Sessão',
+            subtitle: 'Agende um atendimento domiciliar',
+            onBack: () => Navigator.pop(context),
+            closeIcon: true,
+          ),
+          Expanded(
+            child: Form(
+              key: _chaveFormulario,
+              child: FisioResponsiveCenter(
+                maxWidth: 560,
+                child: ListView(
+                  padding: const EdgeInsets.fromLTRB(20, 18, 20, 96),
+                  children: [
+                    // Seleção de Paciente
+                    DropdownButtonFormField<String>(
+                      initialValue: _pacienteSelecionado,
+                      decoration: const InputDecoration(
+                        labelText: 'Paciente *',
+                        prefixIcon: Icon(Icons.person_outline_rounded),
+                      ),
+                      items: [
+                        for (final paciente in pacientesAtivos)
+                          DropdownMenuItem(
+                            value: paciente.idPaciente,
+                            child: Text(paciente.nome),
+                          ),
+                      ],
+                      onChanged: (v) =>
+                          setState(() => _pacienteSelecionado = v),
+                      validator: (v) =>
+                          v == null ? 'Selecione um paciente.' : null,
+                    ),
+                    if (pacientesAtivos.isEmpty) ...[
+                      const SizedBox(height: 8),
+                      Text(
+                        'Cadastre um paciente ativo antes de criar uma sessão.',
+                        style: TextStyle(
+                          color: Colors.orange.shade700,
+                          fontSize: 13,
                         ),
-                      )
-                    : const Icon(Icons.event_available_rounded),
-                label: Text(_salvando ? 'Agendando...' : 'Agendar Sessão'),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: theme.colorScheme.primary,
-                  foregroundColor: Colors.white,
+                      ),
+                    ],
+                    const SizedBox(height: 16),
+
+                    // Data
+                    InkWell(
+                      borderRadius: BorderRadius.circular(12),
+                      onTap: _selecionarData,
+                      child: InputDecorator(
+                        decoration: InputDecoration(
+                          labelText: 'Data do Atendimento *',
+                          prefixIcon: const Icon(Icons.calendar_today_rounded),
+                          errorText: _mensagemErroData,
+                        ),
+                        child: Text(
+                          _dataSelecionada != null
+                              ? UtilitariosData.formatarDataBr(
+                                  _dataSelecionada!,
+                                )
+                              : 'Selecionar data',
+                          style: TextStyle(
+                            color: _dataSelecionada != null
+                                ? Colors.black87
+                                : Colors.grey,
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+
+                    // Hora
+                    InkWell(
+                      borderRadius: BorderRadius.circular(12),
+                      onTap: _selecionarHora,
+                      child: InputDecorator(
+                        decoration: const InputDecoration(
+                          labelText: 'Horário de Início *',
+                          prefixIcon: Icon(Icons.access_time_rounded),
+                        ),
+                        child: Text(
+                          _horaSelecionada != null
+                              ? '${_horaSelecionada!.hour.toString().padLeft(2, '0')}:${_horaSelecionada!.minute.toString().padLeft(2, '0')}'
+                              : 'Selecionar horário',
+                          style: TextStyle(
+                            color: _horaSelecionada != null
+                                ? Colors.black87
+                                : Colors.grey,
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+
+                    // Valor
+                    TextFormField(
+                      controller: _valorController,
+                      decoration: const InputDecoration(
+                        labelText: 'Valor da Sessão (R\$)',
+                        prefixIcon: Icon(Icons.attach_money_rounded),
+                        hintText: '150,00',
+                      ),
+                      keyboardType: const TextInputType.numberWithOptions(
+                        decimal: true,
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+
+                    // Observações
+                    TextFormField(
+                      controller: _observacoesController,
+                      decoration: const InputDecoration(
+                        labelText: 'Observações',
+                        prefixIcon: Icon(Icons.note_alt_outlined),
+                        hintText: 'Levar eletroestimulador, etc...',
+                      ),
+                      maxLines: 3,
+                      textCapitalization: TextCapitalization.sentences,
+                    ),
+                    const SizedBox(height: 32),
+
+                    // Botão Agendar
+                    SizedBox(
+                      height: 56,
+                      child: ElevatedButton.icon(
+                        onPressed: _salvando ? null : _agendarSessao,
+                        icon: _salvando
+                            ? const SizedBox(
+                                width: 20,
+                                height: 20,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  color: Colors.white,
+                                ),
+                              )
+                            : const Icon(Icons.event_available_rounded),
+                        label: Text(
+                          _salvando ? 'Agendando...' : 'Agendar Sessão',
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

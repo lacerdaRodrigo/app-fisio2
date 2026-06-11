@@ -43,8 +43,16 @@ Armazena a grade de atendimentos e compromissos agendados. É uma aba puramente 
 | `Hora_Fim` | Horário estimado de término. | `15:00` |
 | `Valor_Sessao` | Preço cobrado pela sessão domiciliar. | `150,00` |
 | `Observacoes` | Notas prévias para a sessão (Ex: levar aparelhos). | `Levar eletroestimulador TENS` |
-| `Situacao` | Estado atual do agendamento. | `Agendado`, `Realizado` ou `Cancelado` |
+| `Situacao` | Estado atual do agendamento. Usado para controlar agenda do dia, pendências e desfechos sem excluir histórico. | `Agendado`, `Realizado`, `Cancelado`, `Cancelado pelo paciente`, `Cancelado pelo profissional`, `Faltou com aviso`, `Faltou sem aviso` |
 | `Data_Criacao` | Data em que o agendamento foi marcado no app. | `04/06/2026 11:30:00` |
+
+### Regras operacionais da agenda
+
+- Agendamentos com `Situacao = "Agendado"` e `Data` igual ao dia atual aparecem em **Agenda de Hoje**.
+- Agendamentos com `Situacao = "Agendado"` e `Data` anterior ao dia atual aparecem em **Pendências** até receberem um desfecho.
+- Agendamentos cujo horário já passou no mesmo dia são exibidos como **Atrasado**, mas continuam com `Situacao = "Agendado"` até o usuário registrar evolução, falta ou cancelamento.
+- O app não exclui agendamentos automaticamente. O histórico é preservado e o campo `Situacao` registra o desfecho operacional.
+- Registrar uma evolução vinculada ao agendamento atualiza `Agenda.Situacao` para `"Realizado"`.
 
 ---
 

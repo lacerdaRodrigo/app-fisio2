@@ -12,25 +12,30 @@ Esta tela é o painel central de controle do fisioterapeuta, apresentando um res
 * **Saudação Dinâmica:** O sistema deve exibir uma saudação personalizada ("Bom dia", "Boa tarde" ou "Boa noite") baseada no horário do sistema, seguida do nome do fisioterapeuta autenticado.
 * **Data Atual:** Exibição da data completa (dia, mês e ano) no cabeçalho.
 * **Resumo Operacional (Cards):** Quatro indicadores (cards) no topo da tela:
-    1. **Pacientes Cadastrados:** Contagem total de pacientes registrados na aba `Pacientes`.
-    2. **Pacientes Ativos:** Contagem de pacientes com situação "Ativo".
-    3. **Agendamentos do Dia:** Contagem de atendimentos marcados para a data atual, extraídos da aba `Agenda`.
-    4. **Total de Evoluções:** Contagem acumulada de evoluções clínicas registradas na aba `Evolucoes`.
-* **Agenda Semanal:**
-    * Exibição do calendário com mês e ano correntes.
-    * Visualização da grade semanal (Domingo a Sábado).
-    * Indicadores visuais para identificar dias com agendamentos.
-    * Funcionalidade para criar novo agendamento a partir de um dia selecionado.
+    1. **Pacientes Cadastrados:** Contagem total de pacientes registrados na aba `Pacientes`. Ao clicar, abre a tela de pacientes no filtro `Todos`.
+    2. **Pacientes Ativos:** Contagem de pacientes com situação "Ativo". Ao clicar, abre a tela de pacientes no filtro `Ativos`.
+    3. **Agenda do Dia:** Contagem de atendimentos `Agendado` para a data atual. Ao clicar, rola o Dashboard até a seção `Agenda de Hoje`.
+    4. **Total de Evoluções:** Contagem acumulada de evoluções clínicas registradas na aba `Evolucoes`. Ao clicar, abre a tela de histórico geral de evoluções.
+* **Pendências:** Exibe sessões de dias anteriores que continuam com `Situacao = "Agendado"`, permitindo que o profissional defina o desfecho sem misturar atendimentos antigos com a agenda do dia.
+* **Agenda de Hoje:** Exibe somente sessões do dia atual com `Situacao = "Agendado"`. Ao virar o dia, sessões antigas sem desfecho saem desta lista e entram em `Pendências`.
+* **Navegação Inferior:** O rodapé possui três áreas principais: `Início`, `Sessões` e `Pacientes`. O botão central `+` é contextual:
+    * Em `Início` e `Sessões`, abre `TelaNovaSessao`.
+    * Em `Pacientes`, abre `TelaCadastroPaciente`.
 * **Card de Atendimento da Agenda:**
-    * Apresenta o nome do paciente, horário e o endereço.
-    * **Integração de Rotas (Google Maps / Waze):** Exibe um botão "Como Chegar". Ao ser clicado, exibe uma janela/bottom-sheet permitindo selecionar entre Google Maps e Waze, e abre a rota via deep linking com o endereço do paciente de forma gratuita.
+    * Apresenta o nome do paciente, horário, badge de estado (`Agendado`, `Atrasado` ou `Pendente`) e, quando necessário, a data do agendamento.
+    * Disponibiliza um menu de ações para `Registrar evolução`, `Faltou com aviso`, `Faltou sem aviso`, `Cancelar pelo paciente` e `Cancelar pelo profissional`.
+    * **Integração de Rotas (Google Maps / Waze):** No modal de detalhes do paciente, o botão de rota abre um bottom sheet dedicado com Google Maps e Waze, usando o endereço codificado para URL.
 
 ## 2. Implementação Técnica
 * **Gerenciamento de Estado:** Utilizar `Riverpod` para gerenciar os dados dos cards.
 * **Lógica Dinâmica:** O widget de saudação deve ser um componente que utiliza `DateTime.now()` para determinar o período do dia (Manhã: 05h-12h; Tarde: 12h-18h; Noite: 18h-05h).
 * **Integração de Dados:**
     * Os dados para os cards devem ser filtrados a partir da aba `Pacientes`, `Agenda` e `Evolucoes`.
-    * O calendário deve permitir a navegação e filtragem dinâmica dos agendamentos conforme o dia selecionado.
+    * O Dashboard separa os agendamentos por data e situação:
+        * Hoje: `Data == DateTime.now()` e `Situacao == "Agendado"`.
+        * Pendências: `Data < hoje` e `Situacao == "Agendado"`.
+        * Desfechos: `Realizado`, `Cancelado`, `Cancelado pelo paciente`, `Cancelado pelo profissional`, `Faltou com aviso`, `Faltou sem aviso`.
+    * As ações de desfecho atualizam apenas a coluna `Situacao` da aba `Agenda`.
 * **Deep Link de Rotas:** Usar a biblioteca `url_launcher` para abrir:
   * Google Maps: `https://www.google.com/maps/search/?api=1&query=ENDERECO`
   * Waze: `https://waze.com/ul?q=ENDERECO`
@@ -61,11 +66,31 @@ Esta tela permite ao profissional agendar um novo atendimento domiciliar, garant
     * Ao confirmar o agendamento, o app deve disparar uma requisição POST para a Google Sheets API para criar uma nova linha na aba `Agenda`.
 
 ## 3. Fluxo de Navegação
-1. Tela de Início -> Clicar em "Novo Agendamento".
+1. Tela de Início -> Clicar no botão central "+" enquanto está na aba Início.
 2. Abrir `TelaNovaSessao`.
 3. Selecionar paciente, definir data/hora, inserir valor e observação.
 4. Validar preenchimento e regra de horário retroativo.
 5. Confirmar agendamento -> Persistir no Google Sheets -> Retornar à Tela de Início.
+
+---
+
+# Especificação da Tela: Sessões
+
+Esta tela é o histórico operacional da agenda e centraliza todas as sessões, incluindo futuras, pendentes, realizadas, canceladas e faltas. Ela evita poluir o Dashboard e serve como local de consulta para sessões que já saíram da agenda de hoje.
+
+## 1. Requisitos Funcionais
+* **Filtros:** A tela possui filtros `Todas`, `Hoje`, `Futuras`, `Pendentes`, `Canceladas`, `Faltas` e `Realizadas`.
+* **Busca:** Permite pesquisar sessões por nome/CPF do paciente, data, horário ou situação.
+* **Visualização:** Permite alternar entre lista operacional e agrupamento `Por paciente`, facilitando ver todas as agendas de uma mesma pessoa.
+* **Consulta de Canceladas:** Sessões marcadas como `Cancelado`, `Cancelado pelo paciente` ou `Cancelado pelo profissional` aparecem no filtro `Canceladas`.
+* **Consulta de Faltas:** Sessões com `Faltou com aviso` ou `Faltou sem aviso` aparecem no filtro `Faltas`.
+* **Consulta de Pendências:** Sessões `Agendado` atrasadas no dia atual ou de dias anteriores aparecem no filtro `Pendentes`.
+* **Ações por Sessão:** Cada card permite registrar evolução ou aplicar desfechos operacionais.
+
+## 2. Implementação Técnica
+* **Dados:** Usa `provedorListaAgendamentos` e cruza `ID_Paciente` com `provedorListaPacientes`.
+* **Persistência:** Não cria nova aba nem nova coluna. Desfechos são gravados em `Agenda.Situacao`.
+* **Design:** Tela acessada pelo rodapé, com busca, chips horizontais de filtro, alternância de visualização e cards alinhados ao design system do app.
 
 ---
 
@@ -136,6 +161,7 @@ Esta tela permite que o fisioterapeuta registre a evolução clínica do pacient
     * Valida todos os campos obrigatórios.
     * Cria registro na aba `Evolucoes` (14 colunas).
     * Atualiza o agendamento na aba `Agenda` para `Situacao = "Realizado"`.
+* **Evolução Avulsa:** Evoluções criadas pelo modal do paciente sem agendamento associado usam um identificador `AVULSA-*` para manter rastreabilidade.
 
 ## 2. Implementação Técnica
 * **Modelo de Dados:** `Evolucao` agora possui 12 campos (6 originais + 6 novos obrigatórios + 2 opcionais). Serialização via `paraMapaPlanilha()` e `deLinhaPlanilha()`.
@@ -161,6 +187,24 @@ Esta tela exibe o prontuário clínico consolidado do paciente em ordem cronoló
 ## 2. Implementação Técnica
 * **Filtro de Dados:** O aplicativo deve realizar a consulta na aba `Evolucoes` do Google Sheets aplicando o filtro `ID_Paciente == PacienteSelecionado.ID_Paciente`.
 * **Ordenação no App:** A ordenação decrescente deve ser realizada via código (`list.sort()`) comparando as datas do campo `Data_Atendimento`.
+
+---
+
+# Especificação da Tela: Histórico Geral de Evoluções
+
+Esta tela consolida todas as evoluções registradas, independentemente do paciente, para apoiar auditoria rápida e navegação a partir do card `Total de Evoluções`.
+
+## 1. Requisitos Funcionais
+* **Lista Geral:** Exibe todas as evoluções da aba `Evolucoes` em ordem decrescente por `Data_Atendimento`.
+* **Busca:** Permite pesquisar por paciente, CPF, data, texto da evolução, condição clínica, local ou presença.
+* **Visualização:** Permite alternar entre lista geral e agrupamento `Por paciente`, reunindo todas as evoluções de uma pessoa em um grupo expansível.
+* **Contexto do Paciente:** Cada card exibe o nome do paciente, data da evolução, condição clínica, texto resumido e metadados de dor, local e presença.
+* **Estado Vazio:** Se não houver evoluções, exibe mensagem amigável informando que nenhum registro foi criado.
+
+## 2. Implementação Técnica
+* **Dados:** Usa `provedorListaEvolucoes` e `provedorListaPacientes` para cruzar `ID_Paciente` com o nome do paciente.
+* **Persistência:** Não grava dados. É uma tela somente leitura.
+* **Ordenação:** A lista geral e os grupos por paciente mantêm as evoluções mais recentes no topo.
 
 ---
 

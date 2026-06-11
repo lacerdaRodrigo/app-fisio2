@@ -212,7 +212,7 @@ void main() {
       ));
       await tester.pumpAndSettle();
 
-      expect(find.byIcon(Icons.edit_outlined), findsOneWidget);
+      expect(find.text('Editar'), findsOneWidget);
     });
 
     testWidgets('não deve exibir botão editar quando evolução tem >24h', (
@@ -224,7 +224,7 @@ void main() {
       ));
       await tester.pumpAndSettle();
 
-      expect(find.byIcon(Icons.edit_outlined), findsNothing);
+      expect(find.text('Editar'), findsNothing);
     });
   });
 }
