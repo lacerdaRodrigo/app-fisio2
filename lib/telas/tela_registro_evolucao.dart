@@ -13,11 +13,13 @@ import '../utilitarios/utilitarios_data.dart';
 class TelaRegistroEvolucao extends ConsumerStatefulWidget {
   final Paciente paciente;
   final Agendamento? agendamento;
+  final Evolucao? evolucaoExistente;
 
   const TelaRegistroEvolucao({
     super.key,
     required this.paciente,
     this.agendamento,
+    this.evolucaoExistente,
   });
 
   @override
@@ -44,19 +46,46 @@ class _TelaRegistroEvolucaoState extends ConsumerState<TelaRegistroEvolucao> {
   final _statusOpcoes = ['Presente', 'Ausente com aviso', 'Ausente sem aviso'];
   final _localOpcoes = ['Domicílio', 'Clínica', 'Teleatendimento'];
 
+  bool get _editando => widget.evolucaoExistente != null;
+
+  bool get _editavel {
+    if (!_editando) return true;
+    final diff = DateTime.now().difference(widget.evolucaoExistente!.dataRegistro);
+    return diff.inHours < 24;
+  }
+
+  TimeOfDay _dateToTimeOfDay(DateTime data) =>
+      TimeOfDay(hour: data.hour, minute: data.minute);
+
   @override
   void initState() {
     super.initState();
-    final agora = TimeOfDay.now();
-    _horarioInicio = widget.agendamento != null
-        ? _parseTimeOfDay(widget.agendamento!.horaInicio)
-        : agora;
-    _horarioFim = widget.agendamento != null
-        ? _parseTimeOfDay(widget.agendamento!.horaFim)
-        : TimeOfDay(
-            hour: agora.hour + 1 > 23 ? 23 : agora.hour + 1,
-            minute: agora.minute,
-          );
+
+    final evol = widget.evolucaoExistente;
+
+    if (evol != null) {
+      _statusPresenca = evol.statusPresenca;
+      _localAtendimento = evol.localAtendimento;
+      _dorSessao = evol.dorSessao;
+      _condicaoClinica =
+          evol.condicaoPaciente == 'Faltou' ? 'Melhora' : evol.condicaoPaciente;
+      _horarioInicio = _dateToTimeOfDay(evol.horarioInicioReal);
+      _horarioFim = _dateToTimeOfDay(evol.horarioFimReal);
+      _evolucaoController.text = evol.evolucaoTexto;
+      _paController.text = evol.pressaoArterial ?? '';
+      _fcController.text = evol.frequenciaCardiaca?.toString() ?? '';
+    } else {
+      final agora = TimeOfDay.now();
+      _horarioInicio = widget.agendamento != null
+          ? _parseTimeOfDay(widget.agendamento!.horaInicio)
+          : agora;
+      _horarioFim = widget.agendamento != null
+          ? _parseTimeOfDay(widget.agendamento!.horaFim)
+          : TimeOfDay(
+              hour: agora.hour + 1 > 23 ? 23 : agora.hour + 1,
+              minute: agora.minute,
+            );
+    }
   }
 
   TimeOfDay _parseTimeOfDay(String hora) {
@@ -84,12 +113,15 @@ class _TelaRegistroEvolucaoState extends ConsumerState<TelaRegistroEvolucao> {
     final horario = widget.agendamento?.horaInicio;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Registrar Evolução')),
+      appBar: AppBar(
+        title: Text(_editando ? 'Editar Evolução' : 'Registrar Evolução'),
+      ),
       body: Form(
         key: _chaveFormulario,
         child: ListView(
           padding: const EdgeInsets.all(20),
           children: [
+            if (!_editavel && _editando) _buildBloqueioBanner(theme),
             _buildHeader(theme, dataAtendimento, horario),
             const SizedBox(height: 24),
             _buildSectionTitle('Informações Básicas', Icons.info_outline_rounded),
@@ -119,10 +151,38 @@ class _TelaRegistroEvolucaoState extends ConsumerState<TelaRegistroEvolucao> {
             const SizedBox(height: 24),
             _buildCondicaoClinica(theme),
             const SizedBox(height: 32),
-            _buildSaveButton(theme),
+            if (_editavel) _buildSaveButton(theme),
             const SizedBox(height: 24),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildBloqueioBanner(ThemeData theme) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      decoration: BoxDecoration(
+        color: Colors.grey.shade100,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.grey.shade300),
+      ),
+      child: Row(
+        children: [
+          Icon(Icons.lock_outline_rounded, color: Colors.grey.shade600, size: 20),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              'Evolução bloqueada — mais de 24h do registro',
+              style: TextStyle(
+                fontSize: 13,
+                color: Colors.grey.shade700,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -215,11 +275,11 @@ class _TelaRegistroEvolucaoState extends ConsumerState<TelaRegistroEvolucao> {
       items: _statusOpcoes.map((v) {
         return DropdownMenuItem(value: v, child: Text(v));
       }).toList(),
-      onChanged: (v) {
-        if (v != null) {
-          setState(() => _statusPresenca = v);
-        }
-      },
+      onChanged: _editavel
+          ? (v) {
+              if (v != null) setState(() => _statusPresenca = v);
+            }
+          : null,
       validator: (v) => v == null ? 'Selecione o status de presença' : null,
     );
   }
@@ -253,13 +313,15 @@ class _TelaRegistroEvolucaoState extends ConsumerState<TelaRegistroEvolucao> {
   }) {
     return InkWell(
       borderRadius: BorderRadius.circular(12),
-      onTap: () async {
-        final picked = await showTimePicker(
-          context: context,
-          initialTime: value,
-        );
-        if (picked != null) onPicked(picked);
-      },
+      onTap: _editavel
+          ? () async {
+              final picked = await showTimePicker(
+                context: context,
+                initialTime: value,
+              );
+              if (picked != null) onPicked(picked);
+            }
+          : null,
       child: InputDecorator(
         decoration: InputDecoration(
           labelText: label,
@@ -282,9 +344,11 @@ class _TelaRegistroEvolucaoState extends ConsumerState<TelaRegistroEvolucao> {
       items: _localOpcoes.map((v) {
         return DropdownMenuItem(value: v, child: Text(v));
       }).toList(),
-      onChanged: (v) {
-        if (v != null) setState(() => _localAtendimento = v);
-      },
+      onChanged: _editavel
+          ? (v) {
+              if (v != null) setState(() => _localAtendimento = v);
+            }
+          : null,
       validator: (v) => v == null ? 'Selecione o local' : null,
     );
   }
@@ -297,16 +361,19 @@ class _TelaRegistroEvolucaoState extends ConsumerState<TelaRegistroEvolucao> {
         hintText: '0 a 10',
       ),
       keyboardType: TextInputType.number,
+      readOnly: !_editavel,
       inputFormatters: [
-        FilteringTextInputFormatter.digitsOnly,
-        FormatterEscalaDor(),
+        if (_editavel) FilteringTextInputFormatter.digitsOnly,
+        if (_editavel) FormatterEscalaDor(),
       ],
-      onChanged: (v) {
-        final parsed = int.tryParse(v);
-        if (parsed != null && parsed >= 0 && parsed <= 10) {
-          _dorSessao = parsed;
-        }
-      },
+      onChanged: _editavel
+          ? (v) {
+              final parsed = int.tryParse(v);
+              if (parsed != null && parsed >= 0 && parsed <= 10) {
+                _dorSessao = parsed;
+              }
+            }
+          : null,
       validator: (v) {
         if (v == null || v.isEmpty) return 'Informe a intensidade da dor';
         final dor = int.tryParse(v);
@@ -330,6 +397,7 @@ class _TelaRegistroEvolucaoState extends ConsumerState<TelaRegistroEvolucao> {
               prefixIcon: Icon(Icons.monitor_heart_outlined),
             ),
             keyboardType: TextInputType.text,
+            readOnly: !_editavel,
           ),
         ),
         const SizedBox(width: 12),
@@ -342,6 +410,7 @@ class _TelaRegistroEvolucaoState extends ConsumerState<TelaRegistroEvolucao> {
               prefixIcon: Icon(Icons.favorite_border_rounded),
             ),
             keyboardType: TextInputType.number,
+            readOnly: !_editavel,
           ),
         ),
       ],
@@ -351,18 +420,21 @@ class _TelaRegistroEvolucaoState extends ConsumerState<TelaRegistroEvolucao> {
   Widget _buildEvolucaoTexto(ThemeData theme) {
     return TextFormField(
       controller: _evolucaoController,
+      readOnly: !_editavel,
       decoration: InputDecoration(
         labelText: 'Evolução técnica *',
         hintText: 'Descreva exercícios, resposta do paciente e orientações...',
         alignLabelWithHint: true,
-        suffixIcon: IconButton(
-          onPressed: _alternarMicrofone,
-          tooltip: _ouvindo ? 'Parar transcrição' : 'Transcrever por voz',
-          icon: Icon(
-            _ouvindo ? Icons.mic_rounded : Icons.mic_none_rounded,
-          ),
-          color: _ouvindo ? Colors.red : theme.colorScheme.primary,
-        ),
+        suffixIcon: _editavel
+            ? IconButton(
+                onPressed: _alternarMicrofone,
+                tooltip: _ouvindo ? 'Parar transcrição' : 'Transcrever por voz',
+                icon: Icon(
+                  _ouvindo ? Icons.mic_rounded : Icons.mic_none_rounded,
+                ),
+                color: _ouvindo ? Colors.red : theme.colorScheme.primary,
+              )
+            : null,
       ),
       minLines: 6,
       maxLines: 12,
@@ -422,9 +494,11 @@ class _TelaRegistroEvolucaoState extends ConsumerState<TelaRegistroEvolucao> {
       items: ['Melhora', 'Estável', 'Piora'].map((v) {
         return DropdownMenuItem(value: v, child: Text(v));
       }).toList(),
-      onChanged: (v) {
-        if (v != null) setState(() => _condicaoClinica = v);
-      },
+      onChanged: _editavel
+          ? (v) {
+              if (v != null) setState(() => _condicaoClinica = v);
+            }
+          : null,
       validator: (v) => v == null ? 'Selecione a condição' : null,
     );
   }
@@ -444,7 +518,13 @@ class _TelaRegistroEvolucaoState extends ConsumerState<TelaRegistroEvolucao> {
                 ),
               )
             : const Icon(Icons.check_circle_outline_rounded),
-        label: Text(_salvando ? 'Salvando...' : 'Salvar Evolução'),
+        label: Text(
+          _salvando
+              ? 'Salvando...'
+              : _editando
+                  ? 'Atualizar Evolução'
+                  : 'Salvar Evolução',
+        ),
         style: ElevatedButton.styleFrom(
           backgroundColor: theme.colorScheme.primary,
           foregroundColor: Colors.white,
@@ -497,6 +577,7 @@ class _TelaRegistroEvolucaoState extends ConsumerState<TelaRegistroEvolucao> {
 
   Future<void> _salvarEvolucao() async {
     if (!_chaveFormulario.currentState!.validate()) return;
+    if (!_editavel) return;
 
     setState(() => _salvando = true);
 
@@ -506,9 +587,14 @@ class _TelaRegistroEvolucaoState extends ConsumerState<TelaRegistroEvolucao> {
     final isAusente = _statusPresenca != 'Presente';
     final condicao = isAusente ? 'Faltou' : _condicaoClinica;
 
-    final novaEvolucao = Evolucao(
-      idEvolucao: 'E${(evolucoes.length + 1).toString().padLeft(3, '0')}',
+    final idEvolucao = _editando
+        ? widget.evolucaoExistente!.idEvolucao
+        : 'E${(evolucoes.length + 1).toString().padLeft(3, '0')}';
+
+    final evolucao = Evolucao(
+      idEvolucao: idEvolucao,
       idPaciente: widget.paciente.idPaciente,
+      dataRegistro: widget.evolucaoExistente?.dataRegistro,
       idAgendamento:
           widget.agendamento?.idAgendamento ??
           'AVULSA-${DateTime.now().millisecondsSinceEpoch}',
@@ -539,19 +625,27 @@ class _TelaRegistroEvolucaoState extends ConsumerState<TelaRegistroEvolucao> {
     );
 
     try {
-      await salvarEvolucaoReal(ref, novaEvolucao);
-      if (widget.agendamento != null) {
-        await marcarAgendamentoRealizadoReal(
-          ref,
-          widget.agendamento!.idAgendamento,
-        );
+      if (_editando) {
+        await atualizarEvolucaoReal(ref, evolucao);
+      } else {
+        await salvarEvolucaoReal(ref, evolucao);
+        if (widget.agendamento != null) {
+          await marcarAgendamentoRealizadoReal(
+            ref,
+            widget.agendamento!.idAgendamento,
+          );
+        }
       }
 
       if (!mounted) return;
       setState(() => _salvando = false);
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Evolução salva com sucesso!'),
+        SnackBar(
+          content: Text(
+            _editando
+                ? 'Evolução atualizada com sucesso!'
+                : 'Evolução salva com sucesso!',
+          ),
           backgroundColor: Colors.green,
         ),
       );

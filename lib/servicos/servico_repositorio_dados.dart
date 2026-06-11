@@ -118,6 +118,25 @@ class RepositorioDadosGoogle {
     );
   }
 
+  Future<void> atualizarEvolucao(Evolucao evolucao) async {
+    final id = await obterPlanilhaId();
+    final linhas = await _sheets.lerAba(id, 'Evolucoes');
+    final indice = linhas.indexWhere(
+      (linha) => linha.isNotEmpty && linha.first == evolucao.idEvolucao,
+    );
+    if (indice == -1) return;
+
+    await _sheets.atualizarLinha(
+      id,
+      'Evolucoes!A${indice + 2}:N${indice + 2}',
+      _valoresEvolucao(evolucao),
+    );
+    await registrarAuditoria(
+      'EDITAR_EVOLUCAO',
+      'Evolução ${evolucao.idEvolucao} atualizada.',
+    );
+  }
+
   Future<void> arquivarPaciente(String idPaciente) async {
     final id = await obterPlanilhaId();
     final linhas = await _sheets.lerAba(id, 'Pacientes');
@@ -136,6 +155,27 @@ class RepositorioDadosGoogle {
     await registrarAuditoria(
       'ARQUIVAMENTO_PACIENTE',
       'Paciente $idPaciente arquivado.',
+    );
+  }
+
+  Future<void> restaurarPaciente(String idPaciente) async {
+    final id = await obterPlanilhaId();
+    final linhas = await _sheets.lerAba(id, 'Pacientes');
+    final indice = linhas.indexWhere(
+      (linha) => linha.isNotEmpty && linha.first == idPaciente,
+    );
+    if (indice == -1) return;
+
+    final linha = _preencher(linhas[indice], 19);
+    linha[10] = 'Ativo';
+    await _sheets.atualizarLinha(
+      id,
+      'Pacientes!A${indice + 2}:S${indice + 2}',
+      linha,
+    );
+    await registrarAuditoria(
+      'RESTAURACAO_PACIENTE',
+      'Paciente $idPaciente restaurado.',
     );
   }
 

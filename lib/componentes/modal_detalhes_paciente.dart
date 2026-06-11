@@ -21,176 +21,183 @@ void mostrarModalDetalhesPaciente(BuildContext context, Paciente paciente) {
           final theme = Theme.of(context);
           final idade = paciente.calcularIdade();
 
+          final alturaMaxima = MediaQuery.of(context).size.height * 0.55;
+
           return SafeArea(
             child: Padding(
               padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      CircleAvatar(
-                        radius: 28,
-                        backgroundColor: theme.colorScheme.primary.withValues(
-                          alpha: 0.12,
+              child: ConstrainedBox(
+                constraints: BoxConstraints(maxHeight: alturaMaxima),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Header fixo
+                    Row(
+                      children: [
+                        CircleAvatar(
+                          radius: 28,
+                          backgroundColor: theme.colorScheme.primary.withValues(
+                            alpha: 0.12,
+                          ),
+                          child: Icon(
+                            Icons.person_rounded,
+                            color: theme.colorScheme.primary,
+                          ),
                         ),
-                        child: Icon(
-                          Icons.person_rounded,
-                          color: theme.colorScheme.primary,
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                paciente.nome,
+                                style: theme.textTheme.titleLarge?.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              Text(
+                                '$idade anos  •  ${paciente.cpf}',
+                                style: theme.textTheme.bodySmall,
+                              ),
+                            ],
+                          ),
                         ),
-                      ),
-                      const SizedBox(width: 16),
-                      Expanded(
+                      ],
+                    ),
+                    const SizedBox(height: 20),
+                    // Corpo rolável
+                    Expanded(
+                      child: SingleChildScrollView(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(
-                              paciente.nome,
-                              style: theme.textTheme.titleLarge?.copyWith(
-                                fontWeight: FontWeight.bold,
+                            _LinhaInfo(
+                              icone: Icons.phone_outlined,
+                              titulo: 'Telefone',
+                              valor: paciente.telefone,
+                            ),
+                            _LinhaInfo(
+                              icone: Icons.location_on_outlined,
+                              titulo: 'Endereço',
+                              valor: paciente.endereco,
+                              acao: IconButton.filledTonal(
+                                onPressed: () =>
+                                    _mostrarOpcoesRota(context, paciente.endereco),
+                                icon: const Icon(Icons.route_rounded),
+                                tooltip: 'Como chegar',
                               ),
                             ),
-                            Text(
-                              '$idade anos  •  ${paciente.cpf}',
-                              style: theme.textTheme.bodySmall,
-                            ),
+                            if ((paciente.queixaPrincipal ?? '').isNotEmpty)
+                              _LinhaInfo(
+                                icone: Icons.medical_information_outlined,
+                                titulo: 'Queixa principal',
+                                valor: paciente.queixaPrincipal!,
+                              ),
+                            if ((paciente.histDoencaAtual ?? '').isNotEmpty)
+                              _LinhaInfo(
+                                icone: Icons.history_rounded,
+                                titulo: 'Histórico da Doença Atual',
+                                valor: paciente.histDoencaAtual!,
+                              ),
+                            if ((paciente.genero ?? '').isNotEmpty)
+                              _LinhaInfo(
+                                icone: Icons.transgender,
+                                titulo: 'Gênero',
+                                valor: paciente.genero!,
+                              ),
+                            if ((paciente.dor ?? '').isNotEmpty)
+                              _LinhaInfo(
+                                icone: Icons.favorite_outline_rounded,
+                                titulo: 'Escala de Dor',
+                                valor: '${paciente.dor}/10',
+                              ),
+                            if ((paciente.comorbidades ?? '').isNotEmpty)
+                              _LinhaInfo(
+                                icone: Icons.medical_services_outlined,
+                                titulo: 'Comorbidades',
+                                valor: paciente.comorbidades!,
+                              ),
+                            if ((paciente.medicamentos ?? '').isNotEmpty)
+                              _LinhaInfo(
+                                icone: Icons.medication_outlined,
+                                titulo: 'Medicamentos em Uso',
+                                valor: paciente.medicamentos!,
+                              ),
+                            if ((paciente.alergias ?? '').isNotEmpty)
+                              _LinhaInfo(
+                                icone: Icons.warning_amber_rounded,
+                                titulo: 'Alergias',
+                                valor: paciente.alergias!,
+                              ),
+                            if ((paciente.cirurgias ?? '').isNotEmpty)
+                              _LinhaInfo(
+                                icone: Icons.healing_outlined,
+                                titulo: 'Cirurgias/Traumas',
+                                valor: paciente.cirurgias!,
+                              ),
+                            if ((paciente.habitosVida ?? '').isNotEmpty)
+                              _LinhaInfo(
+                                icone: Icons.directions_run_rounded,
+                                titulo: 'Hábitos de Vida / Atividade Física',
+                                valor: paciente.habitosVida!,
+                              ),
+                            if (paciente.estaAtivo) ...[
+                              const SizedBox(height: 8),
+                              _UltimaCondicao(paciente: paciente),
+                            ],
                           ],
                         ),
                       ),
-                    ],
-                  ),
-                  const SizedBox(height: 24),
-                  _LinhaInfo(
-                    icone: Icons.phone_outlined,
-                    titulo: 'Telefone',
-                    valor: paciente.telefone,
-                  ),
-                  const SizedBox(height: 12),
-                  _LinhaInfo(
-                    icone: Icons.location_on_outlined,
-                    titulo: 'Endereço',
-                    valor: paciente.endereco,
-                    acao: IconButton.filledTonal(
-                      onPressed: () =>
-                          _mostrarOpcoesRota(context, paciente.endereco),
-                      icon: const Icon(Icons.route_rounded),
-                      tooltip: 'Como chegar',
                     ),
-                  ),
-                  if ((paciente.queixaPrincipal ?? '').isNotEmpty) ...[
                     const SizedBox(height: 12),
-                    _LinhaInfo(
-                      icone: Icons.medical_information_outlined,
-                      titulo: 'Queixa principal',
-                      valor: paciente.queixaPrincipal!,
+                    // Footer fixo
+                    _BotaoAcao(
+                      icone: Icons.edit_note_rounded,
+                      texto: 'Nova Evolução',
+                      onTap: () {
+                        Navigator.pop(sheetContext);
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) =>
+                                TelaRegistroEvolucao(paciente: paciente),
+                          ),
+                        );
+                      },
                     ),
-                  ],
-                  if ((paciente.histDoencaAtual ?? '').isNotEmpty) ...[
-                    const SizedBox(height: 12),
-                    _LinhaInfo(
-                      icone: Icons.history_rounded,
-                      titulo: 'Histórico da Doença Atual',
-                      valor: paciente.histDoencaAtual!,
+                    _BotaoAcao(
+                      icone: Icons.history_edu_rounded,
+                      texto: 'Ver Histórico',
+                      onTap: () {
+                        Navigator.pop(sheetContext);
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) =>
+                                TelaHistoricoEvolucoes(paciente: paciente),
+                          ),
+                        );
+                      },
                     ),
+                    if (paciente.estaAtivo)
+                      _BotaoAcao(
+                        icone: Icons.archive_outlined,
+                        texto: 'Arquivar Paciente',
+                        cor: Colors.orange.shade700,
+                        onTap: () =>
+                            _arquivarPaciente(context, sheetContext, ref, paciente),
+                      )
+                    else
+                      _BotaoAcao(
+                        icone: Icons.unarchive_outlined,
+                        texto: 'Restaurar Paciente',
+                        cor: Colors.green.shade700,
+                        onTap: () =>
+                            _restaurarPaciente(context, sheetContext, ref, paciente),
+                      ),
                   ],
-                  if ((paciente.genero ?? '').isNotEmpty) ...[
-                    const SizedBox(height: 12),
-                    _LinhaInfo(
-                      icone: Icons.transgender,
-                      titulo: 'Gênero',
-                      valor: paciente.genero!,
-                    ),
-                  ],
-                  if ((paciente.dor ?? '').isNotEmpty) ...[
-                    const SizedBox(height: 12),
-                    _LinhaInfo(
-                      icone: Icons.favorite_outline_rounded,
-                      titulo: 'Escala de Dor',
-                      valor: '${paciente.dor}/10',
-                    ),
-                  ],
-                  if ((paciente.comorbidades ?? '').isNotEmpty) ...[
-                    const SizedBox(height: 12),
-                    _LinhaInfo(
-                      icone: Icons.medical_services_outlined,
-                      titulo: 'Comorbidades',
-                      valor: paciente.comorbidades!,
-                    ),
-                  ],
-                  if ((paciente.medicamentos ?? '').isNotEmpty) ...[
-                    const SizedBox(height: 12),
-                    _LinhaInfo(
-                      icone: Icons.medication_outlined,
-                      titulo: 'Medicamentos em Uso',
-                      valor: paciente.medicamentos!,
-                    ),
-                  ],
-                  if ((paciente.alergias ?? '').isNotEmpty) ...[
-                    const SizedBox(height: 12),
-                    _LinhaInfo(
-                      icone: Icons.warning_amber_rounded,
-                      titulo: 'Alergias',
-                      valor: paciente.alergias!,
-                    ),
-                  ],
-                  if ((paciente.cirurgias ?? '').isNotEmpty) ...[
-                    const SizedBox(height: 12),
-                    _LinhaInfo(
-                      icone: Icons.healing_outlined,
-                      titulo: 'Cirurgias/Traumas',
-                      valor: paciente.cirurgias!,
-                    ),
-                  ],
-                  if ((paciente.habitosVida ?? '').isNotEmpty) ...[
-                    const SizedBox(height: 12),
-                    _LinhaInfo(
-                      icone: Icons.directions_run_rounded,
-                      titulo: 'Hábitos de Vida / Atividade Física',
-                      valor: paciente.habitosVida!,
-                    ),
-                  ],
-                  if (paciente.estaAtivo) ...[
-                    const SizedBox(height: 12),
-                    _UltimaCondicao(paciente: paciente),
-                  ],
-                  const SizedBox(height: 24),
-                  _BotaoAcao(
-                    icone: Icons.edit_note_rounded,
-                    texto: 'Nova Evolução',
-                    onTap: () {
-                      Navigator.pop(sheetContext);
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) =>
-                              TelaRegistroEvolucao(paciente: paciente),
-                        ),
-                      );
-                    },
-                  ),
-                  _BotaoAcao(
-                    icone: Icons.history_edu_rounded,
-                    texto: 'Ver Histórico',
-                    onTap: () {
-                      Navigator.pop(sheetContext);
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) =>
-                              TelaHistoricoEvolucoes(paciente: paciente),
-                        ),
-                      );
-                    },
-                  ),
-                  _BotaoAcao(
-                    icone: Icons.archive_outlined,
-                    texto: 'Arquivar Paciente',
-                    cor: Colors.orange.shade700,
-                    onTap: () =>
-                        _arquivarPaciente(context, sheetContext, ref, paciente),
-                  ),
-                ],
+                ),
               ),
             ),
           );
@@ -295,6 +302,57 @@ Future<void> _arquivarPaciente(
   );
 }
 
+Future<void> _restaurarPaciente(
+  BuildContext context,
+  BuildContext sheetContext,
+  WidgetRef ref,
+  Paciente paciente,
+) async {
+  final confirmou = await showDialog<bool>(
+    context: context,
+    builder: (context) => AlertDialog(
+      title: const Text('Restaurar paciente?'),
+      content: Text(
+        '${paciente.nome} voltará a aparecer na lista principal.',
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context, false),
+          child: const Text('Cancelar'),
+        ),
+        FilledButton(
+          onPressed: () => Navigator.pop(context, true),
+          child: const Text('Restaurar'),
+        ),
+      ],
+    ),
+  );
+
+  if (confirmou != true || !context.mounted) return;
+
+  try {
+    await restaurarPacienteReal(ref, paciente.idPaciente);
+  } catch (e) {
+    if (!context.mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Falha ao restaurar paciente: $e'),
+        backgroundColor: Colors.red,
+      ),
+    );
+    return;
+  }
+
+  if (!context.mounted) return;
+  Navigator.pop(sheetContext);
+  ScaffoldMessenger.of(context).showSnackBar(
+    const SnackBar(
+      content: Text('Paciente restaurado.'),
+      backgroundColor: Colors.green,
+    ),
+  );
+}
+
 class _LinhaInfo extends StatelessWidget {
   final IconData icone;
   final String titulo;
@@ -311,28 +369,31 @@ class _LinhaInfo extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Icon(icone, color: theme.colorScheme.primary, size: 22),
-        const SizedBox(width: 12),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                titulo,
-                style: theme.textTheme.labelMedium?.copyWith(
-                  color: Colors.grey.shade600,
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(icone, color: theme.colorScheme.primary, size: 22),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  titulo,
+                  style: theme.textTheme.labelMedium?.copyWith(
+                    color: Colors.grey.shade600,
+                  ),
                 ),
-              ),
-              const SizedBox(height: 2),
-              Text(valor, style: theme.textTheme.bodyMedium),
-            ],
+                const SizedBox(height: 2),
+                Text(valor, style: theme.textTheme.bodyMedium),
+              ],
+            ),
           ),
-        ),
-        ?acao,
-      ],
+          if (acao != null) acao!,
+        ],
+      ),
     );
   }
 }
@@ -341,21 +402,6 @@ class _UltimaCondicao extends ConsumerWidget {
   final Paciente paciente;
 
   const _UltimaCondicao({required this.paciente});
-
-  Color _condicaoColor(String condicao) {
-    switch (condicao) {
-      case 'Melhora':
-        return Colors.green;
-      case 'Estável':
-        return Colors.orange;
-      case 'Piora':
-        return Colors.red;
-      case 'Faltou':
-        return Colors.grey;
-      default:
-        return Colors.blue;
-    }
-  }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -368,22 +414,11 @@ class _UltimaCondicao extends ConsumerWidget {
     if (ultima.isEmpty) return const SizedBox.shrink();
 
     final evol = ultima.first;
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-      decoration: BoxDecoration(
-        color: _condicaoColor(evol.condicaoPaciente).withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(
-          color: _condicaoColor(evol.condicaoPaciente).withValues(alpha: 0.3),
-        ),
-      ),
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 6),
       child: Row(
         children: [
-          Icon(
-            Icons.trending_up_rounded,
-            color: _condicaoColor(evol.condicaoPaciente),
-            size: 22,
-          ),
+          Icon(Icons.trending_up_rounded, color: Colors.grey.shade600, size: 20),
           const SizedBox(width: 10),
           Expanded(
             child: Column(
@@ -391,18 +426,11 @@ class _UltimaCondicao extends ConsumerWidget {
               children: [
                 Text(
                   'Última evolução',
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: Colors.grey.shade600,
-                  ),
+                  style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
                 ),
                 Text(
                   'Condição: ${evol.condicaoPaciente}  •  Dor: ${evol.dorSessao}/10',
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 14,
-                    color: _condicaoColor(evol.condicaoPaciente),
-                  ),
+                  style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
                 ),
               ],
             ),

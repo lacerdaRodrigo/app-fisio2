@@ -5,6 +5,7 @@ import '../modelos/evolucao.dart';
 import '../modelos/paciente.dart';
 import '../provedores/provedores_dados.dart';
 import '../utilitarios/utilitarios_data.dart';
+import 'tela_registro_evolucao.dart';
 
 class TelaHistoricoEvolucoes extends ConsumerWidget {
   final Paciente paciente;
@@ -57,6 +58,7 @@ class TelaHistoricoEvolucoes extends ConsumerWidget {
                       padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
                       itemCount: evolucoes.length,
                       itemBuilder: (context, index) => _ItemTimeline(
+                        paciente: paciente,
                         evolucao: evolucoes[index],
                         ultimo: index == evolucoes.length - 1,
                       ),
@@ -103,10 +105,15 @@ class _EstadoVazio extends StatelessWidget {
 }
 
 class _ItemTimeline extends StatelessWidget {
+  final Paciente paciente;
   final Evolucao evolucao;
   final bool ultimo;
 
-  const _ItemTimeline({required this.evolucao, required this.ultimo});
+  const _ItemTimeline({
+    required this.paciente,
+    required this.evolucao,
+    required this.ultimo,
+  });
 
   Color _condicaoColor(String condicao) {
     switch (condicao) {
@@ -202,17 +209,19 @@ class _ItemTimeline extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        UtilitariosData.formatarDataBr(
-                          evolucao.dataAtendimento,
-                        ),
-                        style: theme.textTheme.titleSmall?.copyWith(
-                          color: theme.colorScheme.primary,
-                          fontWeight: FontWeight.bold,
+                      Expanded(
+                        child: Text(
+                          UtilitariosData.formatarDataBr(
+                            evolucao.dataAtendimento,
+                          ),
+                          style: theme.textTheme.titleSmall?.copyWith(
+                            color: theme.colorScheme.primary,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                       ),
-                      const Spacer(),
                       Container(
                         padding: const EdgeInsets.symmetric(
                           horizontal: 8,
@@ -233,6 +242,33 @@ class _ItemTimeline extends StatelessWidget {
                           ),
                         ),
                       ),
+                      if (DateTime.now().difference(evolucao.dataRegistro).inHours < 24)
+                        Padding(
+                          padding: const EdgeInsets.only(left: 4),
+                          child: SizedBox(
+                            width: 32,
+                            height: 32,
+                            child: IconButton(
+                              padding: EdgeInsets.zero,
+                              icon: Icon(
+                                Icons.edit_outlined,
+                                size: 18,
+                                color: theme.colorScheme.primary,
+                              ),
+                              onPressed: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (_) => TelaRegistroEvolucao(
+                                      paciente: paciente,
+                                      evolucaoExistente: evolucao,
+                                    ),
+                                  ),
+                                );
+                              },
+                            ),
+                          ),
+                        ),
                     ],
                   ),
                   const SizedBox(height: 10),

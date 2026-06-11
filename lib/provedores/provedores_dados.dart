@@ -214,6 +214,20 @@ Future<void> salvarEvolucaoReal(WidgetRef ref, Evolucao evolucao) async {
   );
 }
 
+Future<void> atualizarEvolucaoReal(WidgetRef ref, Evolucao evolucao) async {
+  await _repositorio(ref).atualizarEvolucao(evolucao);
+  final evolucoes = ref.read(provedorListaEvolucoes);
+  ref.read(provedorListaEvolucoes.notifier).definir([
+    for (final e in evolucoes)
+      if (e.idEvolucao == evolucao.idEvolucao) evolucao else e,
+  ]);
+  registrarLog(
+    ref,
+    'EDITAR_EVOLUCAO',
+    'Evolução ${evolucao.idEvolucao} atualizada.',
+  );
+}
+
 Future<void> marcarAgendamentoRealizadoReal(
   WidgetRef ref,
   String idAgendamento,
@@ -240,6 +254,19 @@ Future<void> arquivarPacienteReal(WidgetRef ref, String idPaciente) async {
         paciente,
   ]);
   registrarLog(ref, 'ARQUIVAMENTO_PACIENTE', 'Paciente $idPaciente arquivado.');
+}
+
+Future<void> restaurarPacienteReal(WidgetRef ref, String idPaciente) async {
+  await _repositorio(ref).restaurarPaciente(idPaciente);
+  final pacientes = ref.read(provedorListaPacientes);
+  ref.read(provedorListaPacientes.notifier).definir([
+    for (final paciente in pacientes)
+      if (paciente.idPaciente == idPaciente)
+        paciente.copiarCom(situacao: 'Ativo')
+      else
+        paciente,
+  ]);
+  registrarLog(ref, 'RESTAURACAO_PACIENTE', 'Paciente $idPaciente restaurado.');
 }
 
 Future<void> salvarValorSessaoPadraoReal(WidgetRef ref, String valor) async {

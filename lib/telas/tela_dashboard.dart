@@ -118,9 +118,8 @@ class _TelaDashboardState extends ConsumerState<TelaDashboard> {
             .toList()
           ..sort((a, b) => a.horaInicio.compareTo(b.horaInicio));
 
-    return SafeArea(
-      child: CustomScrollView(
-        slivers: [
+    return CustomScrollView(
+      slivers: [
           // Cabeçalho
           SliverToBoxAdapter(
             child: Container(
@@ -256,8 +255,7 @@ class _TelaDashboardState extends ConsumerState<TelaDashboard> {
           ),
           const SliverToBoxAdapter(child: SizedBox(height: 24)),
         ],
-      ),
-    );
+      );
   }
 
   Widget _construirCard(
