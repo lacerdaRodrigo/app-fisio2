@@ -69,4 +69,5 @@ GoogleService-Info.local.plist
 /documentacao/chaves.local.md
 
 # Local editor/session files
-.cursor/
+.cursor/*
+!.cursor/mcp.json

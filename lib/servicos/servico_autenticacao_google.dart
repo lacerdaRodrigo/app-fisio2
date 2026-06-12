@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 
 import 'cliente_google_autenticado.dart';
@@ -47,13 +48,26 @@ abstract class ServicoAutenticacaoGoogle {
   Future<void> sair();
 }
 
+GoogleSignIn _criarGoogleSignIn() {
+  if (kIsWeb) {
+    return GoogleSignIn(
+      clientId: googleOAuthClientIdWeb,
+      scopes: escoposGoogleFisio,
+    );
+  }
+
+  // Android/iOS: clientId vem do google-services.json / GoogleService-Info.plist.
+  // serverClientId (OAuth Web) é necessário para obter access token das APIs Google.
+  return GoogleSignIn(
+    scopes: escoposGoogleFisio,
+    serverClientId: googleOAuthClientIdWeb,
+  );
+}
+
 class ServicoAutenticacaoGoogleReal implements ServicoAutenticacaoGoogle {
   final _contasController = StreamController<ContaGoogleConectada>.broadcast();
   final _sessoesController = StreamController<SessaoGoogle>.broadcast();
-  late final GoogleSignIn _googleSignIn = GoogleSignIn(
-    clientId: googleOAuthClientIdWeb,
-    scopes: escoposGoogleFisio,
-  );
+  late final GoogleSignIn _googleSignIn = _criarGoogleSignIn();
   GoogleSignInAccount? _contaAtual;
   bool _inicializado = false;
 

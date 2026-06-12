@@ -31,12 +31,42 @@ Toda a documentação técnica, de segurança e de arquitetura do sistema foi mo
 * **Url Launcher:** Rotas (Google Maps / Waze).
 
 ## Como Executar
-1. Instale as dependências: `flutter pub get`
-2. Execute o aplicativo: `flutter run`
 
-## Como Publicar na Web
-1. Gere e publique a versão Web:
-   `make prod-web`
+### Android (dispositivo físico — recomendado)
+1. Ative **Depuração USB** no celular e conecte via cabo.
+2. Verifique se o device aparece: `flutter devices`
+3. Rode no celular: `make dev-android`
+
+O login Google no Android exige o SHA-1 do keystore debug registrado no Firebase (projeto `app-fisio-care-2`). Após adicionar a impressão digital, baixe o novo `google-services.json` e substitua em `android/app/google-services.json`.
+
+Para obter o SHA-1 debug local:
+```bash
+keytool -list -v -keystore ~/.android/debug.keystore -alias androiddebugkey -storepass android -keypass android
+```
+
+### Web (navegador)
+```bash
+make dev-web
+```
+
+## Como Publicar
+
+### Web
+```bash
+make prod-web
+```
+
+### Android (APK release)
+```bash
+make prod-android
+```
+
+### Maestro (E2E mobile)
+- MCP configurado em `.cursor/mcp.json` (reinicie o Cursor após clonar)
+- Flows em `.maestro/flows/`
+```bash
+make maestro-test
+```
 
 ## Segurança e LGPD
 O aplicativo opera num modelo soberano: o fisioterapeuta conecta a própria conta do Google e atua como Controlador dos dados. Não há servidores centrais de terceiros processando os prontuários.

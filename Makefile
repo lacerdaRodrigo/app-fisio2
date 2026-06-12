@@ -8,13 +8,30 @@ APP_VERSION := $(shell grep '^version: ' pubspec.yaml | sed 's/version: //')
 
 .DEFAULT_GOAL := help
 
-.PHONY: help dev dev-android dev-web prod-web prod-android
+.PHONY: help dev dev-android dev-web prod-web prod-android check-android-oauth maestro-test maestro-check
 
 help: ## Lista os comandos disponíveis
 	@echo "Comandos disponíveis:"
 	@awk 'BEGIN {FS = ":.*## "}; /^[a-zA-Z0-9_-]+:.*## / {printf "  make %-14s %s\n", $$1, $$2}' $(MAKEFILE_LIST)
 
 dev: dev-android ## Alias compatível para rodar no device Android
+
+maestro-check: ## Verifica se Maestro CLI está instalado
+	@command -v maestro >/dev/null 2>&1 || command -v $(HOME)/.maestro/bin/maestro >/dev/null 2>&1 || \
+		(echo "Maestro não encontrado. Instale: curl -Ls https://get.maestro.mobile.dev | bash" && exit 1)
+	@maestro --version 2>/dev/null || $(HOME)/.maestro/bin/maestro --version
+
+maestro-test: maestro-check ## Roda smoke E2E Maestro (.maestro/flows/smoke_app_abre.yaml)
+	maestro test .maestro/flows/smoke_app_abre.yaml
+
+check-android-oauth: ## Verifica se google-services.json tem cliente OAuth Android
+	@if grep -q '"client_type": 1' android/app/google-services.json; then \
+		echo "OK: cliente OAuth Android (client_type 1) encontrado."; \
+	else \
+		echo "ERRO: google-services.json sem cliente OAuth Android (client_type 1)."; \
+		echo "Siga documentacao/chaves.md → seção Login Android."; \
+		exit 1; \
+	fi
 
 dev-android: ## Roda local no celular/device Android conectado
 	flutter pub get

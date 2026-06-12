@@ -1,9 +1,11 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../servicos/preferencias.dart';
 import '../servicos/servico_autenticacao_google.dart';
+import '../utilitarios/mensagens_erro_google.dart';
 
 final provedorServicoAutenticacaoGoogle = Provider<ServicoAutenticacaoGoogle>(
   (ref) => ServicoAutenticacaoGoogleReal(),
@@ -113,11 +115,13 @@ class AutenticacaoNotificador extends Notifier<EstadoAutenticacao> {
         sessao: sessao,
       );
     } catch (e) {
-      print('ERRO_LOGIN_GOOGLE: $e');
+      if (kDebugMode) {
+        // ignore: avoid_print
+        print('ERRO_LOGIN_GOOGLE: $e');
+      }
       state = state.copiarCom(
         estaCarregando: false,
-        mensagemErro:
-            'Falha ao autenticar. Verifique sua conexão e tente novamente.',
+        mensagemErro: mensagemErroLoginGoogle(e),
       );
     }
   }

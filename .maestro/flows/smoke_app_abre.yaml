@@ -1,0 +1,4 @@
+appId: com.rodrigo.fisio_care
+---
+- launchApp
+- assertVisible: "Entrar com Google"

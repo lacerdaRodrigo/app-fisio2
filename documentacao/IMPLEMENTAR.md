@@ -121,6 +121,7 @@ Base: Flutter + Riverpod + Google Sheets API + Google Sign-In
 - **Autenticação:** `google_sign_in` 6.2.1 com escopo OAuth `drive.file`
 - **Pendências infra:**
   - iOS: falta `GoogleService-Info.plist`, `CFBundleURLTypes`, permissões de microfone
-  - Android: configurar release signing
+  - Android: registrar SHA-1 debug no Firebase e baixar `google-services.json` atualizado; configurar release signing para Play Store
+  - Android: permissão `RECORD_AUDIO` e OAuth nativo já configurados no código
   - dependências não usadas devem ser removidas em limpezas periódicas
   - `print()` em `provedor_autenticacao.dart:91` — substituir por logger

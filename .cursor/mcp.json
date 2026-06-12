@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "maestro": {
+      "command": "/home/rodrigo/.maestro/bin/maestro",
+      "args": ["mcp"],
+      "env": {
+        "JAVA_HOME": "/usr/lib/jvm/java-17-openjdk-amd64"
+      }
+    }
+  }
+}
