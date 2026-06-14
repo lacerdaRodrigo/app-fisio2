@@ -35,6 +35,11 @@ class RepositorioDadosGoogle {
     : _drive = ServicoGoogleDrive(cliente),
       _sheets = ServicoGoogleSheets(cliente);
 
+  void limparCache() {
+    _planilhaId = null;
+    Preferencias.limparPlanilhaId();
+  }
+
   Future<String> obterPlanilhaId() async {
     if (_planilhaId != null) return _planilhaId!;
 

@@ -160,19 +160,33 @@ Future<void> carregarDadosReais(WidgetRef ref) async {
   carregamento.carregando();
 
   try {
-    final dados = await _repositorio(ref).carregarTudo();
-    ref.read(provedorListaPacientes.notifier).definir(dados.pacientes);
-    ref.read(provedorListaAgendamentos.notifier).definir(dados.agendamentos);
-    ref.read(provedorListaEvolucoes.notifier).definir(dados.evolucoes);
-    ref
-        .read(provedorValorSessaoPadrao.notifier)
-        .definir(dados.valorSessaoPadrao);
-    ref.read(provedorLogsAuditoria.notifier).definir(dados.logsAuditoria);
-    ref.read(provedorPlanilhaId.notifier).definir(dados.planilhaId);
-    carregamento.sucesso();
+    await _executarCarregamento(ref);
   } catch (erro) {
+    if (erro.toString().contains('404')) {
+      _repositorio(ref).limparCache();
+      try {
+        await _executarCarregamento(ref);
+        return;
+      } catch (e2) {
+        carregamento.erro(e2);
+        return;
+      }
+    }
     carregamento.erro(erro);
   }
+}
+
+Future<void> _executarCarregamento(WidgetRef ref) async {
+  final dados = await _repositorio(ref).carregarTudo();
+  ref.read(provedorListaPacientes.notifier).definir(dados.pacientes);
+  ref.read(provedorListaAgendamentos.notifier).definir(dados.agendamentos);
+  ref.read(provedorListaEvolucoes.notifier).definir(dados.evolucoes);
+  ref
+      .read(provedorValorSessaoPadrao.notifier)
+      .definir(dados.valorSessaoPadrao);
+  ref.read(provedorLogsAuditoria.notifier).definir(dados.logsAuditoria);
+  ref.read(provedorPlanilhaId.notifier).definir(dados.planilhaId);
+  ref.read(provedorCarregamentoDados.notifier).sucesso();
 }
 
 Future<void> salvarPacienteReal(WidgetRef ref, Paciente paciente) async {

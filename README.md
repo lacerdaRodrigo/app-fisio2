@@ -62,7 +62,7 @@ make prod-android
 ```
 
 ### Maestro (E2E mobile)
-- MCP configurado em `.cursor/mcp.json` (reinicie o Cursor após clonar)
+- Mobile MCP configurado em `.cursor/mcp.json` (reinicie o Cursor após clonar)
 - Flows em `.maestro/flows/`
 ```bash
 make maestro-test

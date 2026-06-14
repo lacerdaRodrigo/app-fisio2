@@ -1,13 +1,10 @@
 {
   "$schema": "https://opencode.ai/config.json",
   "mcp": {
-    "maestro": {
+    "mobile-mcp": {
       "type": "local",
-      "command": ["/home/rodrigo/.maestro/bin/maestro", "mcp"],
-      "enabled": true,
-      "environment": {
-        "JAVA_HOME": "/usr/lib/jvm/java-17-openjdk-amd64"
-      }
+      "command": ["npx", "-y", "@mobilenext/mobile-mcp@latest"],
+      "enabled": true
     }
   }
 }

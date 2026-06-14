@@ -85,6 +85,7 @@ class AutenticacaoNotificador extends Notifier<EstadoAutenticacao> {
   }
 
   void _autenticarComSessao(SessaoGoogle sessao) {
+    Preferencias.limparPlanilhaId();
     state = state.copiarCom(
       estaAutenticado: true,
       estaCarregando: false,
@@ -106,6 +107,7 @@ class AutenticacaoNotificador extends Notifier<EstadoAutenticacao> {
     }
 
     state = state.copiarCom(estaCarregando: true, mensagemErro: null);
+    await Preferencias.limparPlanilhaId();
 
     try {
       final sessao = await ref.read(provedorServicoAutenticacaoGoogle).entrar();

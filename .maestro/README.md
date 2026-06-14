@@ -16,6 +16,6 @@ maestro test .maestro/flows/smoke_app_abre.yaml
 
 ## MCP no Cursor
 
-Config em `.cursor/mcp.json`. Após alterar, reinicie o Cursor ou em **Settings → Tools & MCP** desligue/ligue o servidor **maestro**.
+Config em `.cursor/mcp.json` ([mobile-mcp](https://github.com/mobile-next/mobile-mcp)). Após alterar, reinicie o Cursor ou em **Settings → Tools & MCP** desligue/ligue o servidor **mobile-mcp**.
 
-Ferramentas disponíveis: `list_devices`, `inspect_screen`, `run`, `open_maestro_viewer`, etc.
+Ferramentas disponíveis: `mobile_list_available_devices`, `mobile_launch_app`, `mobile_list_elements_on_screen`, `mobile_take_screenshot`, etc.
