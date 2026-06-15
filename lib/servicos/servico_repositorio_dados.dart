@@ -1,3 +1,5 @@
+import 'dart:developer' as developer;
+
 import 'package:http/http.dart' as http;
 
 import '../modelos/agendamento.dart';
@@ -7,6 +9,7 @@ import '../utilitarios/utilitarios_data.dart';
 import 'preferencias.dart';
 import 'servico_google_drive.dart';
 import 'servico_google_sheets.dart';
+import 'versao_esquema.dart';
 
 class DadosCarregados {
   final List<Paciente> pacientes;
@@ -41,68 +44,154 @@ class RepositorioDadosGoogle {
   }
 
   Future<String> obterPlanilhaId() async {
-    if (_planilhaId != null) return _planilhaId!;
+    if (_planilhaId != null) {
+      // Planilha já em cache, mas ainda validar versão
+      try {
+        await _sheets.validarVersao(_planilhaId!);
+      } catch (e) {
+        developer.log(
+          'Erro ao validar versão da planilha em cache',
+          error: e,
+          name: 'RepositorioDadosGoogle',
+        );
+        // Tentar recuperar - limpar cache e carregar novamente
+        limparCache();
+      }
+      return _planilhaId!;
+    }
 
     _planilhaId = await Preferencias.lerPlanilhaId();
     if (_planilhaId != null) {
-      return _planilhaId!;
+      try {
+        await _sheets.validarVersao(_planilhaId!);
+        return _planilhaId!;
+      } catch (e) {
+        developer.log(
+          'Planilha armazenada tem versão incompatível',
+          error: e,
+          name: 'RepositorioDadosGoogle',
+        );
+        // Limpar e tentar encontrar outra
+        await Preferencias.limparPlanilhaId();
+        _planilhaId = null;
+      }
     }
 
     final existente = await _drive.buscarPlanilhaBanco();
     if (existente != null) {
       _planilhaId = existente;
-      await _sheets.garantirEstrutura(existente);
-      await Preferencias.salvarPlanilhaId(existente);
-      return existente;
+      try {
+        await _sheets.garantirEstrutura(existente);
+        await _sheets.validarVersao(existente);
+        await Preferencias.salvarPlanilhaId(existente);
+        developer.log(
+          'Planilha existente encontrada e validada',
+          name: 'RepositorioDadosGoogle',
+        );
+        return existente;
+      } catch (e, st) {
+        developer.log(
+          'Erro ao validar planilha existente',
+          error: e,
+          stackTrace: st,
+          name: 'RepositorioDadosGoogle',
+        );
+        _planilhaId = null;
+        rethrow;
+      }
     }
 
+    // Criar nova planilha
     _planilhaId = await _sheets.criarPlanilhaBanco();
+    await _sheets.salvarVersaoEsquema(_planilhaId!);
     await Preferencias.salvarPlanilhaId(_planilhaId!);
+    developer.log(
+      'Nova planilha criada com versão ${VersaoEsquema.VERSAO_ATUAL}',
+      name: 'RepositorioDadosGoogle',
+    );
     return _planilhaId!;
   }
 
   Future<DadosCarregados> carregarTudo() async {
-    final id = await obterPlanilhaId();
+    try {
+      final id = await obterPlanilhaId();
 
-    // Carrega todas as abas em paralelo
-    final results = await Future.wait([
-      _sheets.lerAba(id, 'Pacientes'),
-      _sheets.lerAba(id, 'Agenda'),
-      _sheets.lerAba(id, 'Evolucoes'),
-      _sheets.lerAba(id, 'Configuracoes'),
-      _sheets.lerAba(id, 'Auditoria'),
-    ]);
+      developer.log(
+        'Iniciando carregamento de dados',
+        name: 'RepositorioDadosGoogle',
+      );
 
-    final pacientes = results[0].map(_pacienteDeLinha).toList();
-    final agendamentos = results[1].map(_agendamentoDeLinha).toList();
-    final evolucoes = results[2].map(_evolucaoDeLinha).toList();
-    final configuracoes = results[3];
-    final logs = results[4].reversed.map((linha) {
-      final dados = _preencher(linha, 4);
-      return '${dados[1]} - ${dados[2]} - ${dados[3]}';
-    }).toList();
+      // Carrega todas as abas em paralelo
+      final results = await Future.wait([
+        _sheets.lerAba(id, 'Pacientes'),
+        _sheets.lerAba(id, 'Agenda'),
+        _sheets.lerAba(id, 'Evolucoes'),
+        _sheets.lerAba(id, 'Configuracoes'),
+        _sheets.lerAba(id, 'Auditoria'),
+      ]);
 
-    return DadosCarregados(
-      pacientes: pacientes,
-      agendamentos: agendamentos,
-      evolucoes: evolucoes,
-      valorSessaoPadrao: _valorConfiguracao(
-        configuracoes,
-        'valor_sessao_padrao',
-        padrao: '150,00',
-      ),
-      logsAuditoria: logs,
-      planilhaId: id,
-    );
+      final pacientes = results[0].map(_pacienteDeLinha).toList();
+      final agendamentos = results[1].map(_agendamentoDeLinha).toList();
+      final evolucoes = results[2].map(_evolucaoDeLinha).toList();
+      final configuracoes = results[3];
+      final logs = results[4].reversed.map((linha) {
+        final dados = _preencher(linha, 4);
+        return '${dados[1]} - ${dados[2]} - ${dados[3]}';
+      }).toList();
+
+      developer.log(
+        'Dados carregados com sucesso: '
+        '${pacientes.length} pacientes, '
+        '${agendamentos.length} agendamentos, '
+        '${evolucoes.length} evoluções',
+        name: 'RepositorioDadosGoogle',
+      );
+
+      return DadosCarregados(
+        pacientes: pacientes,
+        agendamentos: agendamentos,
+        evolucoes: evolucoes,
+        valorSessaoPadrao: _valorConfiguracao(
+          configuracoes,
+          'valor_sessao_padrao',
+          padrao: '150,00',
+        ),
+        logsAuditoria: logs,
+        planilhaId: id,
+      );
+    } catch (e, st) {
+      developer.log(
+        'Erro ao carregar dados',
+        error: e,
+        stackTrace: st,
+        name: 'RepositorioDadosGoogle',
+      );
+      rethrow;
+    }
   }
 
   Future<void> salvarPaciente(Paciente paciente) async {
-    final id = await obterPlanilhaId();
-    await _sheets.inserirLinha(id, 'Pacientes', _valoresPaciente(paciente));
-    await registrarAuditoria(
-      'CADASTRO_PACIENTE',
-      'Paciente ${paciente.idPaciente} cadastrado.',
-    );
+    try {
+      final id = await obterPlanilhaId();
+      await _sheets.inserirLinha(id, 'Pacientes', _valoresPaciente(paciente));
+      await registrarAuditoria(
+        'CADASTRO_PACIENTE',
+        'Paciente ${paciente.idPaciente} cadastrado.',
+      );
+
+      developer.log(
+        'Paciente salvo com sucesso: ${paciente.idPaciente}',
+        name: 'RepositorioDadosGoogle',
+      );
+    } catch (e, st) {
+      developer.log(
+        'Erro ao salvar paciente: ${paciente.idPaciente}',
+        error: e,
+        stackTrace: st,
+        name: 'RepositorioDadosGoogle',
+      );
+      rethrow;
+    }
   }
 
   Future<void> salvarAgendamento(Agendamento agendamento) async {

@@ -1,8 +1,15 @@
+import 'dart:developer' as developer;
+
 import 'package:googleapis/sheets/v4.dart' as sheets;
 import 'package:http/http.dart' as http;
 
+import 'versao_esquema.dart';
+
 class ServicoGoogleSheets {
   static const nomeBanco = '__saas_fisio_db__';
+
+  /// Versão do esquema suportada por esta classe de serviço
+  static const int VERSAO_ESQUEMA = VersaoEsquema.VERSAO_ATUAL;
 
   static const cabecalhos = <String, List<String>>{
     'Pacientes': [
@@ -166,6 +173,89 @@ class ServicoGoogleSheets {
       range,
       valueInputOption: 'USER_ENTERED',
     );
+  }
+
+  /// Lê a versão do esquema armazenada na planilha
+  /// Retorna 1 por padrão se a aba "Versao" não existir (planilhas antigas)
+  Future<int> lerVersaoEsquema(String planilhaId) async {
+    try {
+      final resposta = await _api.spreadsheets.values.get(
+        planilhaId,
+        'Versao!B1',
+      );
+
+      final valores = resposta.values;
+      if (valores == null || valores.isEmpty) {
+        developer.log(
+          'Aba Versao não encontrada ou vazia. Assumindo versão 1.',
+          name: 'ServicoGoogleSheets',
+        );
+        return 1;
+      }
+
+      final versaoStr = valores[0].toString().trim();
+      final versao = int.tryParse(versaoStr);
+
+      if (versao == null) {
+        developer.log(
+          'Versão inválida: "$versaoStr". Assumindo versão 1.',
+          name: 'ServicoGoogleSheets',
+        );
+        return 1;
+      }
+
+      return versao;
+    } catch (e, st) {
+      developer.log(
+        'Erro ao ler versão de esquema',
+        error: e,
+        stackTrace: st,
+        name: 'ServicoGoogleSheets',
+      );
+      return 1; // Assumir versão 1 se houver erro
+    }
+  }
+
+  /// Valida se a versão da planilha é compatível com este app
+  /// Lança exceção se incompatível
+  Future<void> validarVersao(String planilhaId) async {
+    final versaoSheets = await lerVersaoEsquema(planilhaId);
+    final mensagem = VersaoEsquema.validar(versaoSheets);
+
+    if (mensagem != null) {
+      throw StateError(mensagem);
+    }
+
+    developer.log(
+      'Versão de esquema compatível: $versaoSheets',
+      name: 'ServicoGoogleSheets',
+    );
+  }
+
+  /// Salva a versão do esquema na planilha
+  /// Cria a aba "Versao" se não existir
+  Future<void> salvarVersaoEsquema(String planilhaId) async {
+    try {
+      // Tenta atualizar a célula de versão
+      await atualizarLinha(
+        planilhaId,
+        'Versao!A1:B1',
+        ['versao', VERSAO_ESQUEMA.toString()],
+      );
+
+      developer.log(
+        'Versão de esquema salva: $VERSAO_ESQUEMA',
+        name: 'ServicoGoogleSheets',
+      );
+    } catch (e, st) {
+      developer.log(
+        'Erro ao salvar versão de esquema',
+        error: e,
+        stackTrace: st,
+        name: 'ServicoGoogleSheets',
+      );
+      rethrow;
+    }
   }
 
   String _coluna(int indice1Base) {
