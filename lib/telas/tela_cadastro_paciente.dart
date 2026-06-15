@@ -462,11 +462,28 @@ class _TelaCadastroPacienteState extends ConsumerState<TelaCadastroPaciente> {
 
   List<String> _listarCamposFaltando() {
     final faltando = <String>[];
+
     if (_nomeController.text.trim().isEmpty) faltando.add('Nome Completo');
-    if (_cpfController.text.trim().isEmpty) faltando.add('CPF');
-    if (_telefoneController.text.trim().isEmpty) faltando.add('Telefone');
+
+    final cpfTexto = _cpfController.text.trim();
+    if (cpfTexto.isEmpty) {
+      faltando.add('CPF');
+    } else {
+      final cpfLimpo = cpfTexto.replaceAll(RegExp(r'[^\d]'), '');
+      if (!ValidadorCpf.validar(cpfLimpo)) faltando.add('CPF inválido');
+    }
+
+    final digitosTel = _telefoneController.text.trim().replaceAll(RegExp(r'[^\d]'), '');
+    if (digitosTel.isEmpty) {
+      faltando.add('Telefone');
+    } else if (digitosTel.length < 10) {
+      faltando.add('Telefone inválido (mínimo 10 dígitos)');
+    }
+
     if (_dataNascimento == null) faltando.add('Data de Nascimento');
     if (_enderecoCompleto.isEmpty) faltando.add('Endereço');
+    if (_dorController.text.trim().isEmpty) faltando.add('Escala de dor (0-10)');
+
     return faltando;
   }
 
@@ -480,7 +497,7 @@ class _TelaCadastroPacienteState extends ConsumerState<TelaCadastroPaciente> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text('Preencha os seguintes campos:'),
+            const Text('Verifique os seguintes campos:'),
             const SizedBox(height: 12),
             ...campos.map(
               (c) => Padding(
@@ -517,45 +534,10 @@ class _TelaCadastroPacienteState extends ConsumerState<TelaCadastroPaciente> {
       return;
     }
 
-    if (_dorController.text.trim().isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Informe a intensidade da dor'),
-          backgroundColor: Colors.red,
-        ),
-      );
-      return;
-    }
-
-    final cpf = _cpfController.text.trim();
-    final cpfLimpo = cpf.replaceAll(RegExp(r'[^\d]'), '');
-    if (!ValidadorCpf.validar(cpfLimpo)) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('CPF inválido.'),
-          backgroundColor: Colors.red,
-        ),
-      );
-      return;
-    }
-
-    final digitosTel = _telefoneController.text.trim().replaceAll(
-      RegExp(r'[^\d]'),
-      '',
-    );
-    if (digitosTel.length < 10) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Telefone deve ter pelo menos 10 dígitos.'),
-          backgroundColor: Colors.red,
-        ),
-      );
-      return;
-    }
-
     setState(() => _salvando = true);
 
     final pacientes = ref.read(provedorListaPacientes);
+    final cpfLimpo = _cpfController.text.trim().replaceAll(RegExp(r'[^\d]'), '');
     final cpfJaCadastrado = pacientes.any(
       (p) => p.cpf.replaceAll(RegExp(r'[^\d]'), '') == cpfLimpo,
     );
@@ -585,7 +567,7 @@ class _TelaCadastroPacienteState extends ConsumerState<TelaCadastroPaciente> {
       nome: _nomeController.text.trim(),
       telefone: _telefoneController.text.trim(),
       dataNascimento: _dataNascimento!,
-      cpf: cpf,
+      cpf: _cpfController.text.trim(),
       endereco: _enderecoCompleto,
       queixaPrincipal: _queixaController.text.trim().isEmpty
           ? null
