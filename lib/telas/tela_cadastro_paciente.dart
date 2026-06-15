@@ -636,7 +636,7 @@ class _TelaCadastroPacienteState extends ConsumerState<TelaCadastroPaciente> {
       setState(() => _salvando = false);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Falha ao salvar paciente: $e'),
+          content: Text('Ocorreu um erro inesperado. Tente novamente.'),
           backgroundColor: Colors.red,
         ),
       );

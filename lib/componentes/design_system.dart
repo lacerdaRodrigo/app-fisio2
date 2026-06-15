@@ -6,7 +6,6 @@ class FisioCores {
   static const Color primaryDark = Color(0xFF0F172A);
   static const Color primary = Color(0xFF00796B);
   static const Color primaryLight = Color(0xFF00BFA5);
-  static const Color secondary = Color(0xFF0D9488);
   static const Color surface = Color(0xFFF8FAFC);
   static const Color card = Colors.white;
   static const Color textPrimary = Color(0xFF1A1A2E);

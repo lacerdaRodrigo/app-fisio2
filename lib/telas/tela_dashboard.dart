@@ -6,11 +6,11 @@ import '../modelos/paciente.dart';
 import '../componentes/design_system.dart';
 import '../provedores/provedores_dados.dart';
 import '../utilitarios/utilitarios_data.dart';
+import '../utilitarios/acoes_agendamento.dart';
 import 'tela_cadastro_paciente.dart';
 import 'tela_historico_geral_evolucoes.dart';
 import 'tela_pacientes.dart';
 import 'tela_nova_sessao.dart';
-import 'tela_registro_evolucao.dart';
 import 'tela_sessoes.dart';
 import 'tela_configuracoes.dart';
 
@@ -676,30 +676,30 @@ class _TelaDashboardState extends ConsumerState<TelaDashboard> {
               ],
             ),
           ),
-          PopupMenuButton<_AcaoAgendamento>(
+          PopupMenuButton<AcaoAgendamento>(
             tooltip: 'Ações da sessão',
             icon: Icon(Icons.more_vert_rounded, color: Colors.grey.shade500),
             onSelected: (acao) =>
-                _executarAcaoAgendamento(context, acao, agendamento, paciente),
+                executarAcaoAgendamento(context, ref, acao, agendamento, paciente),
             itemBuilder: (context) => const [
               PopupMenuItem(
-                value: _AcaoAgendamento.registrarEvolucao,
+                value: AcaoAgendamento.registrarEvolucao,
                 child: Text('Registrar evolução'),
               ),
               PopupMenuItem(
-                value: _AcaoAgendamento.faltouComAviso,
+                value: AcaoAgendamento.faltouComAviso,
                 child: Text('Faltou com aviso'),
               ),
               PopupMenuItem(
-                value: _AcaoAgendamento.faltouSemAviso,
+                value: AcaoAgendamento.faltouSemAviso,
                 child: Text('Faltou sem aviso'),
               ),
               PopupMenuItem(
-                value: _AcaoAgendamento.canceladoPaciente,
+                value: AcaoAgendamento.canceladoPaciente,
                 child: Text('Cancelar pelo paciente'),
               ),
               PopupMenuItem(
-                value: _AcaoAgendamento.canceladoProfissional,
+                value: AcaoAgendamento.canceladoProfissional,
                 child: Text('Cancelar pelo profissional'),
               ),
             ],
@@ -707,77 +707,6 @@ class _TelaDashboardState extends ConsumerState<TelaDashboard> {
         ],
       ),
     );
-  }
-
-  Future<void> _executarAcaoAgendamento(
-    BuildContext context,
-    _AcaoAgendamento acao,
-    Agendamento agendamento,
-    Paciente? paciente,
-  ) async {
-    if (acao == _AcaoAgendamento.registrarEvolucao) {
-      if (paciente == null) return;
-      await Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (_) => TelaRegistroEvolucao(
-            paciente: paciente,
-            agendamento: agendamento,
-          ),
-        ),
-      );
-      return;
-    }
-
-    final situacao = switch (acao) {
-      _AcaoAgendamento.faltouComAviso => Agendamento.situacaoFaltouComAviso,
-      _AcaoAgendamento.faltouSemAviso => Agendamento.situacaoFaltouSemAviso,
-      _AcaoAgendamento.canceladoPaciente =>
-        Agendamento.situacaoCanceladoPaciente,
-      _AcaoAgendamento.canceladoProfissional =>
-        Agendamento.situacaoCanceladoProfissional,
-      _AcaoAgendamento.registrarEvolucao => Agendamento.situacaoAgendado,
-    };
-
-    final confirmou = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Atualizar sessão?'),
-        content: Text('Marcar esta sessão como "$situacao"?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancelar'),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.pop(context, true),
-            child: const Text('Confirmar'),
-          ),
-        ],
-      ),
-    );
-
-    if (confirmou != true || !context.mounted) return;
-
-    try {
-      await atualizarSituacaoAgendamentoReal(
-        ref,
-        agendamento.idAgendamento,
-        situacao,
-      );
-      if (!context.mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Sessão atualizada para $situacao.')),
-      );
-    } catch (e) {
-      if (!context.mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Falha ao atualizar sessão: $e'),
-          backgroundColor: FisioCores.danger,
-        ),
-      );
-    }
   }
 
   Widget _construirDashboardCarregando(BuildContext context) {
@@ -890,14 +819,6 @@ class _NavItem extends StatelessWidget {
       ),
     );
   }
-}
-
-enum _AcaoAgendamento {
-  registrarEvolucao,
-  faltouComAviso,
-  faltouSemAviso,
-  canceladoPaciente,
-  canceladoProfissional,
 }
 
 class _MetaAgenda extends StatelessWidget {

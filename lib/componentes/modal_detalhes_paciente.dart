@@ -413,7 +413,7 @@ Future<void> _arquivarPaciente(
     if (!context.mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text('Falha ao arquivar paciente: $e'),
+        content: Text('Ocorreu um erro inesperado. Tente novamente.'),
         backgroundColor: Colors.red,
       ),
     );
@@ -462,7 +462,7 @@ Future<void> _restaurarPaciente(
     if (!context.mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text('Falha ao restaurar paciente: $e'),
+        content: Text('Ocorreu um erro inesperado. Tente novamente.'),
         backgroundColor: Colors.red,
       ),
     );

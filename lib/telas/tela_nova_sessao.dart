@@ -283,7 +283,7 @@ class _TelaNovaSessaoState extends ConsumerState<TelaNovaSessao> {
       setState(() => _salvando = false);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Falha ao agendar sessão: $e'),
+          content: Text('Ocorreu um erro inesperado. Tente novamente.'),
           backgroundColor: Colors.red,
         ),
       );

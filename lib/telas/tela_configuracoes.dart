@@ -241,7 +241,7 @@ class _TelaConfiguracoesState extends ConsumerState<TelaConfiguracoes> {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Falha ao salvar configuração: $e'),
+          content: Text('Ocorreu um erro inesperado. Tente novamente.'),
           backgroundColor: Colors.red,
         ),
       );

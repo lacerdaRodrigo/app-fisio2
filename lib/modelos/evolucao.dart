@@ -1,4 +1,21 @@
 class Evolucao {
+  static const indicesColunas = {
+    'idEvolucao': 0,
+    'idPaciente': 1,
+    'idAgendamento': 2,
+    'dataAtendimento': 3,
+    'evolucaoTexto': 4,
+    'dataRegistro': 5,
+    'localAtendimento': 6,
+    'statusPresenca': 7,
+    'dorSessao': 8,
+    'horarioInicioReal': 9,
+    'horarioFimReal': 10,
+    'condicaoPaciente': 11,
+    'pressaoArterial': 12,
+    'frequenciaCardiaca': 13,
+  };
+
   final String idEvolucao;
   final String idPaciente;
   final String idAgendamento;
@@ -54,33 +71,33 @@ class Evolucao {
   }
 
   factory Evolucao.deLinhaPlanilha(List<String> linha) {
-    final horarioInicio = _parseHora(linha.length > 9 ? linha[9] : '');
-    final horarioFim = _parseHora(linha.length > 10 ? linha[10] : '');
+    String _obterValor(String nomeColuna, {String padrao = ''}) {
+      final idx = indicesColunas[nomeColuna] ?? -1;
+      if (idx == -1 || idx >= linha.length) return padrao;
+      final valor = linha[idx].trim();
+      return valor.isEmpty ? padrao : valor;
+    }
+
+    final horarioInicio = _parseHora(_obterValor('horarioInicioReal'));
+    final horarioFim = _parseHora(_obterValor('horarioFimReal'));
+
     return Evolucao(
-      idEvolucao: linha[0],
-      idPaciente: linha[1],
-      idAgendamento: linha[2],
-      dataAtendimento: _parseData(linha[3]),
-      evolucaoTexto: linha[4],
-      dataRegistro: DateTime.tryParse(linha[5]) ?? DateTime.now(),
-      localAtendimento: linha.length > 6 && linha[6].isNotEmpty
-          ? linha[6]
-          : 'Domicílio',
-      statusPresenca: linha.length > 7 && linha[7].isNotEmpty
-          ? linha[7]
-          : 'Presente',
-      dorSessao: linha.length > 8 && linha[8].isNotEmpty
-          ? int.tryParse(linha[8]) ?? 0
-          : 0,
+      idEvolucao: _obterValor('idEvolucao'),
+      idPaciente: _obterValor('idPaciente'),
+      idAgendamento: _obterValor('idAgendamento'),
+      dataAtendimento: _parseData(_obterValor('dataAtendimento')),
+      evolucaoTexto: _obterValor('evolucaoTexto'),
+      dataRegistro: DateTime.tryParse(_obterValor('dataRegistro')) ?? DateTime.now(),
+      localAtendimento: _obterValor('localAtendimento', padrao: 'Domicílio'),
+      statusPresenca: _obterValor('statusPresenca', padrao: 'Presente'),
+      dorSessao: int.tryParse(_obterValor('dorSessao', padrao: '0')) ?? 0,
       horarioInicioReal: horarioInicio,
       horarioFimReal: horarioFim,
-      condicaoPaciente: linha.length > 11 && linha[11].isNotEmpty
-          ? linha[11]
-          : 'Melhora',
-      pressaoArterial: linha.length > 12 ? linha[12] : null,
-      frequenciaCardiaca: linha.length > 13 && linha[13].isNotEmpty
-          ? int.tryParse(linha[13])
-          : null,
+      condicaoPaciente: _obterValor('condicaoPaciente', padrao: 'Melhora'),
+      pressaoArterial: _obterValor('pressaoArterial').isEmpty
+          ? null
+          : _obterValor('pressaoArterial'),
+      frequenciaCardiaca: int.tryParse(_obterValor('frequenciaCardiaca')),
     );
   }
 
