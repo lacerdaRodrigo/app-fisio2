@@ -73,6 +73,7 @@ class _TelaDashboardState extends ConsumerState<TelaDashboard> {
         children: [
           telas[_indiceSelecionado.clamp(0, telas.length - 1)],
           _construirNavFlutuante(context, pacientes, carregamento),
+          _construirFab(context, pacientes, carregamento),
         ],
       ),
     );
@@ -122,7 +123,7 @@ class _TelaDashboardState extends ConsumerState<TelaDashboard> {
                       ],
                     ),
                     child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      mainAxisAlignment: MainAxisAlignment.spaceAround,
                       children: [
                         _NavItem(
                           icon: Icons.home_rounded,
@@ -136,7 +137,6 @@ class _TelaDashboardState extends ConsumerState<TelaDashboard> {
                           isActive: _indiceSelecionado == 1,
                           onTap: () => setState(() => _indiceSelecionado = 1),
                         ),
-                        const SizedBox(width: 72),
                         _NavItem(
                           icon: Icons.people_alt_rounded,
                           label: 'Pacientes',
@@ -149,16 +149,44 @@ class _TelaDashboardState extends ConsumerState<TelaDashboard> {
                 ),
               ),
             ),
-            FloatingActionButton.extended(
-              heroTag: 'fab_novo_paciente',
-              onPressed: _acaoFabCentral(context, pacientes, carregamento),
-              icon: const Icon(Icons.person_add_alt_1_rounded),
-              label: const Text('Novo Paciente'),
-              backgroundColor: FisioCores.primary,
-              foregroundColor: Colors.white,
-              elevation: 6,
-            ),
           ],
+        ),
+      ),
+    );
+  }
+
+  Widget _construirFab(
+    BuildContext context,
+    List<Paciente> pacientes,
+    EstadoCarregamentoDados carregamento,
+  ) {
+    if (_indiceSelecionado == 0) return const SizedBox.shrink();
+
+    if (!carregamento.carregouComSucesso) return const SizedBox.shrink();
+
+    final bool ehAbaPacientes = _indiceSelecionado == 2;
+
+    if (!ehAbaPacientes && pacientes.isEmpty) return const SizedBox.shrink();
+
+    return Positioned(
+      bottom: 120,
+      left: 0,
+      right: 0,
+      child: Center(
+        child: FloatingActionButton.extended(
+          heroTag: 'fab_principal',
+          onPressed: ehAbaPacientes
+              ? () => Navigator.push(context, MaterialPageRoute(builder: (_) => const TelaCadastroPaciente()))
+              : () => Navigator.push(context, MaterialPageRoute(builder: (_) => const TelaNovaSessao())),
+          icon: Icon(
+            ehAbaPacientes
+                ? Icons.person_add_alt_1_rounded
+                : Icons.add_rounded,
+          ),
+          label: Text(ehAbaPacientes ? 'Novo Paciente' : 'Nova Sessão'),
+          backgroundColor: FisioCores.primary,
+          foregroundColor: Colors.white,
+          elevation: 6,
         ),
       ),
     );
@@ -391,30 +419,6 @@ class _TelaDashboardState extends ConsumerState<TelaDashboard> {
         const SliverToBoxAdapter(child: SizedBox(height: 132)),
       ],
     );
-  }
-
-  VoidCallback? _acaoFabCentral(
-    BuildContext context,
-    List<Paciente> pacientes,
-    EstadoCarregamentoDados carregamento,
-  ) {
-    if (_indiceSelecionado == 2 && carregamento.carregouComSucesso) {
-      return () => Navigator.push(
-        context,
-        MaterialPageRoute(builder: (_) => const TelaCadastroPaciente()),
-      );
-    }
-
-    if ((_indiceSelecionado == 0 || _indiceSelecionado == 1) &&
-        carregamento.carregouComSucesso &&
-        pacientes.isNotEmpty) {
-      return () => Navigator.push(
-        context,
-        MaterialPageRoute(builder: (_) => const TelaNovaSessao()),
-      );
-    }
-
-    return null;
   }
 
   void _abrirPacientes(FiltroPacientes filtro) {
