@@ -25,6 +25,8 @@ class _TelaCadastroPacienteState extends ConsumerState<TelaCadastroPaciente> {
   String _genero = 'Masculino';
   final _dorController = TextEditingController();
   final _historicoController = TextEditingController();
+  final _histPregressoController = TextEditingController();
+  final _ocupacaoController = TextEditingController();
   final _comorbidadesController = TextEditingController();
   final _medicamentosController = TextEditingController();
   final _alergiasController = TextEditingController();
@@ -65,6 +67,8 @@ class _TelaCadastroPacienteState extends ConsumerState<TelaCadastroPaciente> {
     _queixaController.dispose();
     _dorController.dispose();
     _historicoController.dispose();
+    _histPregressoController.dispose();
+    _ocupacaoController.dispose();
     _comorbidadesController.dispose();
     _medicamentosController.dispose();
     _alergiasController.dispose();
@@ -89,301 +93,323 @@ class _TelaCadastroPacienteState extends ConsumerState<TelaCadastroPaciente> {
               key: _chaveFormulario,
               child: FisioResponsiveCenter(
                 maxWidth: 680,
-                child: ListView(
-                  padding: const EdgeInsets.fromLTRB(20, 18, 20, 96),
-                  children: [
-                    // Seção: Dados Pessoais
-                    _construirTituloSecao(
-                      'Dados Pessoais',
-                      Icons.person_outline_rounded,
-                    ),
-                    const SizedBox(height: 12),
-
-                    TextFormField(
-                      controller: _nomeController,
-                      decoration: const InputDecoration(
-                        labelText: 'Nome Completo *',
-                        prefixIcon: Icon(Icons.badge_outlined),
+                child: AbsorbPointer(
+                  absorbing: _salvando,
+                  child: ListView(
+                    padding: const EdgeInsets.fromLTRB(20, 18, 20, 8),
+                    children: [
+                      // Seção: Dados Pessoais
+                      _construirTituloSecao(
+                        'Dados Pessoais',
+                        Icons.person_outline_rounded,
                       ),
-                      textCapitalization: TextCapitalization.words,
-                      validator: (v) => (v == null || v.trim().isEmpty)
-                          ? 'Nome é obrigatório.'
-                          : null,
-                    ),
-                    const SizedBox(height: 12),
+                      const SizedBox(height: 12),
 
-                    TextFormField(
-                      controller: _cpfController,
-                      decoration: const InputDecoration(
-                        labelText: 'CPF *',
-                        prefixIcon: Icon(Icons.fingerprint_rounded),
-                        hintText: '000.000.000-00',
-                      ),
-                      keyboardType: TextInputType.number,
-                      inputFormatters: [
-                        FilteringTextInputFormatter.digitsOnly,
-                        _cpfFormatter,
-                      ],
-                      validator: (v) {
-                        if (v == null || v.isEmpty) return 'CPF é obrigatório.';
-                        // Remove formatting for validation
-                        final cpf = v.replaceAll(RegExp(r'[^\d]'), '');
-                        if (!ValidadorCpf.validar(cpf)) return 'CPF inválido.';
-                        return null;
-                      },
-                    ),
-                    const SizedBox(height: 12),
-
-                    TextFormField(
-                      controller: _telefoneController,
-                      decoration: const InputDecoration(
-                        labelText: 'Telefone *',
-                        prefixIcon: Icon(Icons.phone_outlined),
-                        hintText: '(00) 00000-0000',
-                      ),
-                      keyboardType: TextInputType.number,
-                      inputFormatters: [
-                        FilteringTextInputFormatter.digitsOnly,
-                        _telefoneFormatter,
-                      ],
-                      validator: (v) => (v == null || v.trim().isEmpty)
-                          ? 'Telefone é obrigatório.'
-                          : null,
-                    ),
-                    const SizedBox(height: 12),
-
-                    // Data de Nascimento
-                    InkWell(
-                      borderRadius: BorderRadius.circular(12),
-                      onTap: () {
-                        showDatePicker(
-                          context: context,
-                          initialDate: _dataNascimento ?? DateTime(1990),
-                          firstDate: DateTime(1900),
-                          lastDate: DateTime.now(),
-                          locale: const Locale('pt', 'BR'),
-                        ).then((data) {
-                          if (data != null) {
-                            setState(() => _dataNascimento = data);
-                          }
-                        });
-                      },
-                      child: InputDecorator(
+                      TextFormField(
+                        key: const Key('campo_nome'),
+                        controller: _nomeController,
                         decoration: const InputDecoration(
-                          labelText: 'Data de Nascimento',
-                          prefixIcon: Icon(Icons.cake_outlined),
+                          labelText: 'Nome Completo *',
+                          prefixIcon: Icon(Icons.badge_outlined),
                         ),
-                        child: Text(
-                          _dataNascimento != null
-                              ? '${_dataNascimento!.day.toString().padLeft(2, '0')}/${_dataNascimento!.month.toString().padLeft(2, '0')}/${_dataNascimento!.year}'
-                              : 'Selecionar data',
-                          style: TextStyle(
-                            color: _dataNascimento != null
-                                ? Colors.black87
-                                : Colors.grey,
+                        textCapitalization: TextCapitalization.words,
+                      ),
+                      const SizedBox(height: 12),
+
+                      TextFormField(
+                        key: const Key('campo_cpf'),
+                        controller: _cpfController,
+                        decoration: const InputDecoration(
+                          labelText: 'CPF *',
+                          prefixIcon: Icon(Icons.fingerprint_rounded),
+                          hintText: '000.000.000-00',
+                        ),
+                        keyboardType: TextInputType.number,
+                        inputFormatters: [
+                          FilteringTextInputFormatter.digitsOnly,
+                          _cpfFormatter,
+                        ],
+                      ),
+                      const SizedBox(height: 12),
+
+                      TextFormField(
+                        key: const Key('campo_telefone'),
+                        controller: _telefoneController,
+                        decoration: const InputDecoration(
+                          labelText: 'Telefone *',
+                          prefixIcon: Icon(Icons.phone_outlined),
+                          hintText: '(00) 00000-0000',
+                        ),
+                        keyboardType: TextInputType.number,
+                        inputFormatters: [
+                          FilteringTextInputFormatter.digitsOnly,
+                          _telefoneFormatter,
+                        ],
+                      ),
+                      const SizedBox(height: 12),
+
+                      // Data de Nascimento
+                      InkWell(
+                        key: const Key('campo_data_nascimento'),
+                        borderRadius: BorderRadius.circular(12),
+                        onTap: () {
+                          showDatePicker(
+                            context: context,
+                            initialDate: _dataNascimento ?? DateTime(1990),
+                            firstDate: DateTime(1900),
+                            lastDate: DateTime.now(),
+                            locale: const Locale('pt', 'BR'),
+                          ).then((data) {
+                            if (data != null) {
+                              setState(() => _dataNascimento = data);
+                            }
+                          });
+                        },
+                        child: InputDecorator(
+                          decoration: const InputDecoration(
+                            labelText: 'Data de Nascimento',
+                            prefixIcon: Icon(Icons.cake_outlined),
+                          ),
+                          child: Text(
+                            _dataNascimento != null
+                                ? '${_dataNascimento!.day.toString().padLeft(2, '0')}/${_dataNascimento!.month.toString().padLeft(2, '0')}/${_dataNascimento!.year}'
+                                : 'Selecionar data',
+                            style: TextStyle(
+                              color: _dataNascimento != null
+                                  ? Colors.black87
+                                  : Colors.grey,
+                            ),
                           ),
                         ),
                       ),
-                    ),
-                    const SizedBox(height: 12),
+                      const SizedBox(height: 12),
 
-                    InkWell(
-                      borderRadius: BorderRadius.circular(12),
-                      onTap: () => _mostrarModalEndereco(),
-                      child: InputDecorator(
-                        decoration: InputDecoration(
-                          labelText: 'Endereço *',
-                          prefixIcon: const Icon(Icons.location_on_outlined),
-                          suffixIcon: const Icon(
-                            Icons.edit_location_alt_rounded,
+                      InkWell(
+                        key: const Key('campo_endereco'),
+                        borderRadius: BorderRadius.circular(12),
+                        onTap: () => _mostrarModalEndereco(),
+                        child: InputDecorator(
+                          decoration: InputDecoration(
+                            labelText: 'Endereço *',
+                            prefixIcon: const Icon(Icons.location_on_outlined),
+                            suffixIcon: const Icon(
+                              Icons.edit_location_alt_rounded,
+                            ),
+                          ),
+                          child: Text(
+                            _enderecoCompleto.isEmpty
+                                ? 'Toque para preencher endereço'
+                                : _enderecoCompleto,
+                            style: TextStyle(
+                              color: _enderecoCompleto.isNotEmpty
+                                  ? Colors.black87
+                                  : Colors.grey,
+                            ),
                           ),
                         ),
-                        child: Text(
-                          _enderecoCompleto.isEmpty
-                              ? 'Toque para preencher endereço'
-                              : _enderecoCompleto,
-                          style: TextStyle(
-                            color: _enderecoCompleto.isNotEmpty
-                                ? Colors.black87
-                                : Colors.grey,
+                      ),
+
+                      const SizedBox(height: 28),
+
+                      // Seção: Anamnese Clínica
+                      _construirTituloSecao(
+                        'Anamnese Clínica',
+                        Icons.medical_information_outlined,
+                      ),
+                      const SizedBox(height: 12),
+
+                      // Subseção: Sintomas e Queixas
+                      _construirSubtituloSecao('Sintomas e Queixas'),
+                      const SizedBox(height: 8),
+
+                      TextFormField(
+                        key: const Key('campo_queixa'),
+                        controller: _queixaController,
+                        decoration: const InputDecoration(
+                          labelText: 'Queixa Principal (QP)',
+                        ),
+                        maxLines: 3,
+                        textCapitalization: TextCapitalization.sentences,
+                      ),
+                      const SizedBox(height: 12),
+
+                      TextFormField(
+                        key: const Key('campo_hda'),
+                        controller: _historicoController,
+                        decoration: const InputDecoration(
+                          labelText: 'Histórico da Doença Atual (HDA)',
+                          hintText: 'EVA, fatores de piora/melhora...',
+                        ),
+                        maxLines: 3,
+                        textCapitalization: TextCapitalization.sentences,
+                      ),
+                      const SizedBox(height: 12),
+
+                      TextFormField(
+                        key: const Key('campo_hp'),
+                        controller: _histPregressoController,
+                        decoration: const InputDecoration(
+                          labelText: 'História Pregressa (HP)',
+                          hintText: 'Antecedentes, comorbidades prévias...',
+                        ),
+                        maxLines: 3,
+                        textCapitalization: TextCapitalization.sentences,
+                      ),
+                      const SizedBox(height: 12),
+
+                      TextFormField(
+                        key: const Key('campo_ocupacao'),
+                        controller: _ocupacaoController,
+                        decoration: const InputDecoration(
+                          labelText: 'Ocupação / Profissão',
+                          prefixIcon: Icon(Icons.work_outline),
+                          hintText: 'Ex: Professor, Motorista, Aposentado...',
+                        ),
+                        textCapitalization: TextCapitalization.sentences,
+                      ),
+                      const SizedBox(height: 12),
+
+                      DropdownButtonFormField<String>(
+                        key: const Key('dropdown_genero'),
+                        initialValue: _genero,
+                        decoration: const InputDecoration(
+                          labelText: 'Gênero',
+                          prefixIcon: Icon(Icons.transgender),
+                        ),
+                        items: ['Masculino', 'Feminino', 'Outro'].map((
+                          String value,
+                        ) {
+                          return DropdownMenuItem<String>(
+                            value: value,
+                            child: Text(value),
+                          );
+                        }).toList(),
+                        onChanged: (String? value) {
+                          setState(() {
+                            _genero = value!;
+                          });
+                        },
+                        validator: (value) {
+                          if (value == null) {
+                            return 'Selecione o gênero';
+                          }
+                          return null;
+                        },
+                      ),
+                      const SizedBox(height: 12),
+
+                      TextFormField(
+                        key: const Key('campo_escala_dor'),
+                        controller: _dorController,
+                        decoration: const InputDecoration(
+                          labelText: 'Escala de dor (0-10)',
+                          hintText: '0 a 10',
+                        ),
+                        keyboardType: TextInputType.number,
+                        inputFormatters: [
+                          FilteringTextInputFormatter.digitsOnly,
+                          FormatterEscalaDor(),
+                        ],
+                      ),
+                      const SizedBox(height: 20),
+
+                      // Subseção: Histórico Clínico
+                      _construirSubtituloSecao('Histórico Clínico'),
+                      const SizedBox(height: 8),
+
+                      TextFormField(
+                        key: const Key('campo_comorbidades'),
+                        controller: _comorbidadesController,
+                        decoration: const InputDecoration(
+                          labelText: 'Comorbidades/Doenças Prévias',
+                          hintText:
+                              'Ex: Hipertensão, Diabetes, Cardiopatias...',
+                        ),
+                        maxLines: 2,
+                        textCapitalization: TextCapitalization.sentences,
+                      ),
+                      const SizedBox(height: 12),
+
+                      TextFormField(
+                        key: const Key('campo_medicamentos'),
+                        controller: _medicamentosController,
+                        decoration: const InputDecoration(
+                          labelText: 'Medicamentos em Uso',
+                          hintText: 'Liste os medicamentos atuais...',
+                        ),
+                        maxLines: 2,
+                        textCapitalization: TextCapitalization.sentences,
+                      ),
+                      const SizedBox(height: 12),
+
+                      TextFormField(
+                        key: const Key('campo_alergias'),
+                        controller: _alergiasController,
+                        decoration: const InputDecoration(
+                          labelText: 'Alergias',
+                          hintText: 'Ex: Dipirona, Látex, Iodo...',
+                        ),
+                        maxLines: 2,
+                        textCapitalization: TextCapitalization.sentences,
+                      ),
+                      const SizedBox(height: 12),
+
+                      TextFormField(
+                        key: const Key('campo_cirurgias'),
+                        controller: _cirurgiasController,
+                        decoration: const InputDecoration(
+                          labelText: 'Cirurgias/Traumas Prévios',
+                          hintText:
+                              'Ex: Fraturas, implantes metálicos, cirurgias...',
+                        ),
+                        maxLines: 2,
+                        textCapitalization: TextCapitalization.sentences,
+                      ),
+                      const SizedBox(height: 20),
+
+                      // Subseção: Estilo de Vida
+                      _construirSubtituloSecao('Estilo de Vida'),
+                      const SizedBox(height: 8),
+
+                      TextFormField(
+                        key: const Key('campo_habitos'),
+                        controller: _habitosVidaController,
+                        decoration: const InputDecoration(
+                          labelText: 'Hábitos de Vida / Atividade Física',
+                          hintText:
+                              'Sedentarismo, frequência de exercícios, profissão...',
+                        ),
+                        maxLines: 2,
+                        textCapitalization: TextCapitalization.sentences,
+                      ),
+                      const SizedBox(height: 32),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+          // Botão Salvar fixo no final da tela
+          SafeArea(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(20, 8, 20, 8),
+              child: SizedBox(
+                width: double.infinity,
+                height: 56,
+                child: ElevatedButton.icon(
+                  key: const Key('btn_salvar_paciente'),
+                  onPressed: _salvando ? null : _salvarPaciente,
+                  icon: _salvando
+                      ? const SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: Colors.white,
                           ),
-                        ),
-                      ),
-                    ),
-
-                    const SizedBox(height: 28),
-
-                    // Seção: Anamnese Clínica
-                    _construirTituloSecao(
-                      'Anamnese Clínica',
-                      Icons.medical_information_outlined,
-                    ),
-                    const SizedBox(height: 12),
-
-                    // Subseção: Sintomas e Queixas
-                    _construirSubtituloSecao('Sintomas e Queixas'),
-                    const SizedBox(height: 8),
-
-                    TextFormField(
-                      controller: _queixaController,
-                      decoration: const InputDecoration(
-                        labelText: 'Queixa Principal (QP)',
-                      ),
-                      maxLines: 3,
-                      textCapitalization: TextCapitalization.sentences,
-                    ),
-                    const SizedBox(height: 12),
-
-                    TextFormField(
-                      controller: _historicoController,
-                      decoration: const InputDecoration(
-                        labelText: 'Histórico da Doença Atual (HDA)',
-                        hintText: 'EVA, fatores de piora/melhora...',
-                      ),
-                      maxLines: 3,
-                      textCapitalization: TextCapitalization.sentences,
-                    ),
-                    const SizedBox(height: 12),
-
-                    DropdownButtonFormField<String>(
-                      initialValue: _genero,
-                      decoration: const InputDecoration(
-                        labelText: 'Gênero',
-                        prefixIcon: Icon(Icons.transgender),
-                      ),
-                      items: ['Masculino', 'Feminino', 'Outro'].map((
-                        String value,
-                      ) {
-                        return DropdownMenuItem<String>(
-                          value: value,
-                          child: Text(value),
-                        );
-                      }).toList(),
-                      onChanged: (String? value) {
-                        setState(() {
-                          _genero = value!;
-                        });
-                      },
-                      validator: (value) {
-                        if (value == null) {
-                          return 'Selecione o gênero';
-                        }
-                        return null;
-                      },
-                    ),
-                    const SizedBox(height: 12),
-
-                    TextFormField(
-                      controller: _dorController,
-                      decoration: const InputDecoration(
-                        labelText: 'Escala de dor (0-10)',
-                        hintText: '0 a 10',
-                      ),
-                      keyboardType: TextInputType.number,
-                      inputFormatters: [
-                        FilteringTextInputFormatter.digitsOnly,
-                        FormatterEscalaDor(),
-                      ],
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Informe a intensidade da dor';
-                        }
-                        final dor = int.tryParse(value);
-                        if (dor == null || dor < 0 || dor > 10) {
-                          return 'A dor deve ser entre 0 e 10';
-                        }
-                        return null;
-                      },
-                    ),
-                    const SizedBox(height: 20),
-
-                    // Subseção: Histórico Clínico
-                    _construirSubtituloSecao('Histórico Clínico'),
-                    const SizedBox(height: 8),
-
-                    TextFormField(
-                      controller: _comorbidadesController,
-                      decoration: const InputDecoration(
-                        labelText: 'Comorbidades/Doenças Prévias',
-                        hintText: 'Ex: Hipertensão, Diabetes, Cardiopatias...',
-                      ),
-                      maxLines: 2,
-                      textCapitalization: TextCapitalization.sentences,
-                    ),
-                    const SizedBox(height: 12),
-
-                    TextFormField(
-                      controller: _medicamentosController,
-                      decoration: const InputDecoration(
-                        labelText: 'Medicamentos em Uso',
-                        hintText: 'Liste os medicamentos atuais...',
-                      ),
-                      maxLines: 2,
-                      textCapitalization: TextCapitalization.sentences,
-                    ),
-                    const SizedBox(height: 12),
-
-                    TextFormField(
-                      controller: _alergiasController,
-                      decoration: const InputDecoration(
-                        labelText: 'Alergias',
-                        hintText: 'Ex: Dipirona, Látex, Iodo...',
-                      ),
-                      maxLines: 2,
-                      textCapitalization: TextCapitalization.sentences,
-                    ),
-                    const SizedBox(height: 12),
-
-                    TextFormField(
-                      controller: _cirurgiasController,
-                      decoration: const InputDecoration(
-                        labelText: 'Cirurgias/Traumas Prévios',
-                        hintText:
-                            'Ex: Fraturas, implantes metálicos, cirurgias...',
-                      ),
-                      maxLines: 2,
-                      textCapitalization: TextCapitalization.sentences,
-                    ),
-                    const SizedBox(height: 20),
-
-                    // Subseção: Estilo de Vida
-                    _construirSubtituloSecao('Estilo de Vida'),
-                    const SizedBox(height: 8),
-
-                    TextFormField(
-                      controller: _habitosVidaController,
-                      decoration: const InputDecoration(
-                        labelText: 'Hábitos de Vida / Atividade Física',
-                        hintText:
-                            'Sedentarismo, frequência de exercícios, profissão...',
-                      ),
-                      maxLines: 2,
-                      textCapitalization: TextCapitalization.sentences,
-                    ),
-                    const SizedBox(height: 32),
-
-                    // Botão Salvar
-                    SizedBox(
-                      height: 56,
-                      child: ElevatedButton.icon(
-                        onPressed: _salvando ? null : _salvarPaciente,
-                        icon: _salvando
-                            ? const SizedBox(
-                                width: 20,
-                                height: 20,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                  color: Colors.white,
-                                ),
-                              )
-                            : const Icon(Icons.save_rounded),
-                        label: Text(
-                          _salvando ? 'Salvando...' : 'Salvar Paciente',
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 24),
-                  ],
+                        )
+                      : const Icon(Icons.save_rounded),
+                  label: Text(_salvando ? 'Salvando...' : 'Salvar Paciente'),
                 ),
               ),
             ),
@@ -434,26 +460,105 @@ class _TelaCadastroPacienteState extends ConsumerState<TelaCadastroPaciente> {
     }
   }
 
+  List<String> _listarCamposFaltando() {
+    final faltando = <String>[];
+    if (_nomeController.text.trim().isEmpty) faltando.add('Nome Completo');
+    if (_cpfController.text.trim().isEmpty) faltando.add('CPF');
+    if (_telefoneController.text.trim().isEmpty) faltando.add('Telefone');
+    if (_dataNascimento == null) faltando.add('Data de Nascimento');
+    if (_enderecoCompleto.isEmpty) faltando.add('Endereço');
+    return faltando;
+  }
+
+  void _mostrarDialogCamposFaltando(List<String> campos) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Campos obrigatórios'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text('Preencha os seguintes campos:'),
+            const SizedBox(height: 12),
+            ...campos.map(
+              (c) => Padding(
+                padding: const EdgeInsets.only(bottom: 4),
+                child: Row(
+                  children: [
+                    const Icon(
+                      Icons.error_outline,
+                      color: Colors.red,
+                      size: 18,
+                    ),
+                    const SizedBox(width: 8),
+                    Text(c),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('OK'),
+          ),
+        ],
+      ),
+    );
+  }
+
   Future<void> _salvarPaciente() async {
-    if (!_chaveFormulario.currentState!.validate()) return;
-    if (_dataNascimento == null) {
+    final faltando = _listarCamposFaltando();
+    if (faltando.isNotEmpty) {
+      _mostrarDialogCamposFaltando(faltando);
+      return;
+    }
+
+    if (_dorController.text.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Selecione a data de nascimento.')),
+        const SnackBar(
+          content: Text('Informe a intensidade da dor'),
+          backgroundColor: Colors.red,
+        ),
       );
       return;
     }
-    if (_enderecoCompleto.isEmpty) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Preencha o endereço.')));
+
+    final cpf = _cpfController.text.trim();
+    final cpfLimpo = cpf.replaceAll(RegExp(r'[^\d]'), '');
+    if (!ValidadorCpf.validar(cpfLimpo)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('CPF inválido.'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+
+    final digitosTel = _telefoneController.text.trim().replaceAll(
+      RegExp(r'[^\d]'),
+      '',
+    );
+    if (digitosTel.length < 10) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Telefone deve ter pelo menos 10 dígitos.'),
+          backgroundColor: Colors.red,
+        ),
+      );
       return;
     }
 
     setState(() => _salvando = true);
 
     final pacientes = ref.read(provedorListaPacientes);
-    final cpf = _cpfController.text.trim();
-    final cpfJaCadastrado = pacientes.any((paciente) => paciente.cpf == cpf);
+    final cpfJaCadastrado = pacientes.any(
+      (p) => p.cpf.replaceAll(RegExp(r'[^\d]'), '') == cpfLimpo,
+    );
 
     if (cpfJaCadastrado) {
       setState(() => _salvando = false);
@@ -467,7 +572,16 @@ class _TelaCadastroPacienteState extends ConsumerState<TelaCadastroPaciente> {
     }
 
     final novoPaciente = Paciente(
-      idPaciente: 'P${(pacientes.length + 1).toString().padLeft(3, '0')}',
+      idPaciente: () {
+        final maxId = pacientes.isEmpty
+            ? 0
+            : pacientes
+                  .map(
+                    (p) => int.tryParse(p.idPaciente.replaceAll('P', '')) ?? 0,
+                  )
+                  .reduce((a, b) => a > b ? a : b);
+        return 'P${(maxId + 1).toString().padLeft(3, '0')}';
+      }(),
       nome: _nomeController.text.trim(),
       telefone: _telefoneController.text.trim(),
       dataNascimento: _dataNascimento!,
@@ -479,6 +593,12 @@ class _TelaCadastroPacienteState extends ConsumerState<TelaCadastroPaciente> {
       histDoencaAtual: _historicoController.text.trim().isEmpty
           ? null
           : _historicoController.text.trim(),
+      histPregresso: _histPregressoController.text.trim().isEmpty
+          ? null
+          : _histPregressoController.text.trim(),
+      ocupacao: _ocupacaoController.text.trim().isEmpty
+          ? null
+          : _ocupacaoController.text.trim(),
       comorbidades: _comorbidadesController.text.trim().isEmpty
           ? null
           : _comorbidadesController.text.trim(),
@@ -603,6 +723,7 @@ class _ModalEnderecoState extends State<_ModalEndereco> {
             mainAxisSize: MainAxisSize.min,
             children: [
               TextFormField(
+                key: const Key('campo_rua'),
                 controller: _ruaController,
                 decoration: const InputDecoration(labelText: 'Rua/Avenida *'),
                 textCapitalization: TextCapitalization.words,
@@ -612,12 +733,14 @@ class _ModalEnderecoState extends State<_ModalEndereco> {
               ),
               const SizedBox(height: 12),
               TextFormField(
+                key: const Key('campo_numero'),
                 controller: _numeroController,
                 decoration: const InputDecoration(labelText: 'Número'),
                 keyboardType: TextInputType.text,
               ),
               const SizedBox(height: 12),
               TextFormField(
+                key: const Key('campo_bairro'),
                 controller: _bairroController,
                 decoration: const InputDecoration(labelText: 'Bairro *'),
                 textCapitalization: TextCapitalization.words,
@@ -627,6 +750,7 @@ class _ModalEnderecoState extends State<_ModalEndereco> {
               ),
               const SizedBox(height: 12),
               TextFormField(
+                key: const Key('campo_cidade'),
                 controller: _cidadeController,
                 decoration: const InputDecoration(labelText: 'Cidade *'),
                 textCapitalization: TextCapitalization.words,
@@ -640,10 +764,12 @@ class _ModalEnderecoState extends State<_ModalEndereco> {
       ),
       actions: [
         TextButton(
+          key: const Key('btn_cancelar_endereco'),
           onPressed: () => Navigator.pop(context),
           child: const Text('Cancelar'),
         ),
         FilledButton.icon(
+          key: const Key('btn_confirmar_endereco'),
           onPressed: () {
             if (!_formKey.currentState!.validate()) return;
             Navigator.pop(

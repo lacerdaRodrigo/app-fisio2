@@ -22,7 +22,19 @@ linter:
   # producing the lint.
   rules:
     avoid_print: true
-    # prefer_single_quotes: true  # Uncomment to enable the `prefer_single_quotes` rule
+    cancel_subscriptions: true
+    close_sinks: true
+    prefer_const_constructors: true
+    prefer_final_fields: true
+    unawaited_futures: true
+
+analyzer:
+  errors:
+    missing_required_param: error
+    missing_return: error
+  exclude:
+    - "**/*.g.dart"
+    - "**/*.mocks.dart"
 
 # Additional information about this file can be found at
 # https://dart.dev/guides/language/analysis-options

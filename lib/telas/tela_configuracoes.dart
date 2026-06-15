@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -314,9 +316,11 @@ class _TelaConfiguracoesState extends ConsumerState<TelaConfiguracoes> {
     limparDados(ref);
 
     if (!context.mounted) return;
-    Navigator.of(context).pushAndRemoveUntil(
-      MaterialPageRoute(builder: (_) => const TelaLogin()),
-      (_) => false,
+    unawaited(
+      Navigator.of(context).pushAndRemoveUntil(
+        MaterialPageRoute(builder: (_) => const TelaLogin()),
+        (_) => false,
+      ),
     );
   }
 }

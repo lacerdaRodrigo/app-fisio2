@@ -7,16 +7,6 @@ import 'package:fisio_home_care/telas/tela_cadastro_paciente.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:fisio_home_care/servicos/servico_repositorio_dados.dart';
 
-class MockListaPacientesNotifier extends ListaPacientesNotifier {
- @override
- List<Paciente> pacientes = [];
-
- @override
- Future<void> adicionarPaciente(Paciente paciente) async {
- pacientes.add(paciente);
- }
-}
-
 class FakeRepositorioDadosGoogle extends Fake implements RepositorioDadosGoogle {
   @override
   Future<void> salvarPaciente(Paciente paciente) async {}
@@ -193,16 +183,17 @@ group('TelaCadastroPaciente - Anamnese Clínica', () {
 testWidgets('deve permitir salvar paciente sem preencher campos de anamnese', (
   tester,
 ) async {
-  // Use the mock notifier from the start to avoid rebuilding the widget
-  final mockNotifier = MockListaPacientesNotifier();
-  mockNotifier.pacientes = [];
+  final container = ProviderContainer(
+    overrides: [
+      provedorListaPacientes.overrideWith(() => ListaPacientesNotifier()),
+      provedorRepositorioDados.overrideWith((ref) => FakeRepositorioDadosGoogle()),
+    ],
+  );
+  addTearDown(container.dispose);
 
   await tester.pumpWidget(
-    ProviderScope(
-      overrides: [
-        provedorListaPacientes.overrideWith(() => mockNotifier),
-        provedorRepositorioDados.overrideWith((ref) => FakeRepositorioDadosGoogle()),
-      ],
+    UncontrolledProviderScope(
+      container: container,
       child: MaterialApp(
         localizationsDelegates: [
           GlobalMaterialLocalizations.delegate,
@@ -263,8 +254,9 @@ testWidgets('deve permitir salvar paciente sem preencher campos de anamnese', (
   await tester.pumpAndSettle();
 
   // Verificar se os dados básicos foram salvos
-  expect(mockNotifier.state, isNotEmpty);
-  final pacienteSalvo = mockNotifier.state.first;
+  final pacientes = container.read(provedorListaPacientes);
+  expect(pacientes, isNotEmpty);
+  final pacienteSalvo = pacientes.first;
   expect(pacienteSalvo.nome, 'João Souza');
   expect(pacienteSalvo.queixaPrincipal, isNull);
   expect(pacienteSalvo.histDoencaAtual, isNull);
@@ -308,5 +300,187 @@ testWidgets('deve bloquear digitação de valor acima de 10 na escala de dor', (
   await tester.pumpAndSettle();
   expect(dorWidget.controller?.text, equals('5'));
 });
+});
+
+group('TelaCadastroPaciente - Campos obrigatorios', () {
+  testWidgets('CT-F1: todos os 5 campos vazios mostra dialog com 5 itens', (
+    tester,
+  ) async {
+    await tester.pumpWidget(criarAppTeste());
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Salvar Paciente'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Campos obrigatórios'), findsOneWidget);
+    expect(find.text('Nome Completo'), findsOneWidget);
+    expect(find.text('CPF'), findsOneWidget);
+    expect(find.text('Telefone'), findsOneWidget);
+    expect(find.text('Data de Nascimento'), findsWidgets);
+    expect(find.text('Endereço'), findsWidgets);
+
+    // Fecha o dialog
+    await tester.tap(find.text('OK'));
+    await tester.pumpAndSettle();
+    expect(find.text('Campos obrigatórios'), findsNothing);
+  });
+
+  testWidgets('CT-F2: apenas Nome preenchido mostra dialog com 4 itens', (
+    tester,
+  ) async {
+    await tester.pumpWidget(criarAppTeste());
+    await tester.pumpAndSettle();
+
+    await tester.enterText(find.widgetWithText(TextFormField, 'Nome Completo *'), 'João');
+
+    await tester.tap(find.text('Salvar Paciente'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Campos obrigatórios'), findsOneWidget);
+    expect(find.text('Nome Completo'), findsNothing);
+    expect(find.text('CPF'), findsOneWidget);
+    expect(find.text('Telefone'), findsOneWidget);
+    expect(find.text('Data de Nascimento'), findsWidgets);
+    expect(find.text('Endereço'), findsWidgets);
+
+    await tester.tap(find.text('OK'));
+    await tester.pumpAndSettle();
+  });
+
+  testWidgets('CT-F3: apenas CPF preenchido mostra dialog com 4 itens', (
+    tester,
+  ) async {
+    await tester.pumpWidget(criarAppTeste());
+    await tester.pumpAndSettle();
+
+    await tester.enterText(find.widgetWithText(TextFormField, 'CPF *'), '529.982.247-25');
+
+    await tester.tap(find.text('Salvar Paciente'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Campos obrigatórios'), findsOneWidget);
+    expect(find.text('CPF'), findsNothing);
+    expect(find.text('Nome Completo'), findsOneWidget);
+    expect(find.text('Telefone'), findsOneWidget);
+    expect(find.text('Data de Nascimento'), findsWidgets);
+    expect(find.text('Endereço'), findsWidgets);
+
+    await tester.tap(find.text('OK'));
+    await tester.pumpAndSettle();
+  });
+
+  testWidgets('CT-F4: Nome+CPF+Telefone preenchidos mostra dialog com 2 itens', (
+    tester,
+  ) async {
+    await tester.pumpWidget(criarAppTeste());
+    await tester.pumpAndSettle();
+
+    await tester.enterText(find.widgetWithText(TextFormField, 'Nome Completo *'), 'Maria');
+    await tester.enterText(find.widgetWithText(TextFormField, 'CPF *'), '529.982.247-25');
+    await tester.enterText(find.widgetWithText(TextFormField, 'Telefone *'), '(11) 91234-5678');
+
+    await tester.tap(find.text('Salvar Paciente'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Campos obrigatórios'), findsOneWidget);
+    expect(find.text('Nome Completo'), findsNothing);
+    expect(find.text('CPF'), findsNothing);
+    expect(find.text('Telefone'), findsNothing);
+    expect(find.text('Data de Nascimento'), findsWidgets);
+    expect(find.text('Endereço'), findsWidgets);
+
+    await tester.tap(find.text('OK'));
+    await tester.pumpAndSettle();
+  });
+
+  testWidgets('CT-F5: todos preenchidos salva sem dialog', (tester) async {
+    final container = ProviderContainer(
+      overrides: [
+        provedorListaPacientes.overrideWith(() => ListaPacientesNotifier()),
+        provedorRepositorioDados.overrideWith((ref) => FakeRepositorioDadosGoogle()),
+      ],
+    );
+    addTearDown(container.dispose);
+
+    await tester.pumpWidget(
+      UncontrolledProviderScope(
+        container: container,
+        child: MaterialApp(
+          localizationsDelegates: [
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+          ],
+          home: TelaCadastroPaciente(),
+          supportedLocales: const [Locale('en', 'US')],
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    // Preencher todos os campos obrigatórios
+    await tester.enterText(find.widgetWithText(TextFormField, 'Nome Completo *'), 'João Teste');
+    await tester.enterText(find.widgetWithText(TextFormField, 'CPF *'), '52998224725');
+    await tester.enterText(find.widgetWithText(TextFormField, 'Telefone *'), '31987654321');
+
+    // Data de nascimento
+    await tester.tap(find.text('Selecionar data'));
+    await tester.pumpAndSettle();
+    final okButton = find.widgetWithText(TextButton, 'OK');
+    if (okButton.evaluate().isNotEmpty) {
+      await tester.tap(okButton);
+    }
+    await tester.pumpAndSettle();
+
+    // Endereço
+    await tester.tap(find.text('Toque para preencher endereço'));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.widgetWithText(TextFormField, 'Rua/Avenida *'), 'Rua A');
+    await tester.enterText(find.widgetWithText(TextFormField, 'Bairro *'), 'Bairro B');
+    await tester.enterText(find.widgetWithText(TextFormField, 'Cidade *'), 'Cidade C');
+    await tester.tap(find.text('Confirmar'));
+    await tester.pumpAndSettle();
+
+    // Escala de dor
+    await tester.scrollUntilVisible(
+      find.widgetWithText(TextFormField, 'Escala de dor (0-10)'),
+      200,
+      scrollable: find.byType(Scrollable).first,
+    );
+    await tester.pumpAndSettle();
+    await tester.enterText(find.widgetWithText(TextFormField, 'Escala de dor (0-10)'), '5');
+    await tester.pumpAndSettle();
+
+    // Salvar
+    await tester.scrollUntilVisible(
+      find.text('Salvar Paciente'),
+      200,
+      scrollable: find.byType(Scrollable).first,
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Salvar Paciente'));
+    await tester.pumpAndSettle();
+
+    // Dialog NÃO deve aparecer
+    expect(find.text('Campos obrigatórios'), findsNothing);
+    final pacientes = container.read(provedorListaPacientes);
+    expect(pacientes, isNotEmpty);
+    final pacienteSalvo = pacientes.first;
+    expect(pacienteSalvo.nome, 'João Teste');
+  });
+
+  testWidgets('CT-F6: dialog fecha ao clicar OK', (tester) async {
+    await tester.pumpWidget(criarAppTeste());
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Salvar Paciente'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Campos obrigatórios'), findsOneWidget);
+
+    await tester.tap(find.text('OK'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Campos obrigatórios'), findsNothing);
+  });
 });
 }

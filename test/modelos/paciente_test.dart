@@ -96,7 +96,7 @@ test(
     'Ana Paula',
     '(21) 98888-8888',
     '15/03/1996',
-    '222.222.222-22',
+    '529.982.247-25',
     'Rua B, 456',
     'Dor no ombro direito', // Queixa Principal
     'Dor há 1 mês, piora com movimento', // HDA
@@ -133,7 +133,7 @@ test('Paciente criado sem campos de anamnese deve ter valores nulos no mapa', ()
     nome: 'João Silva',
     telefone: '(31) 98765-4321',
     dataNascimento: DateTime(1990, 1, 1),
-    cpf: '111.111.111-11',
+    cpf: '529.982.247-25',
     endereco: 'Rua C, 789',
     situacao: 'Ativo',
   );

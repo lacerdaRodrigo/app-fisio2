@@ -1,38 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fisio_home_care/provedores/provedor_autenticacao.dart';
-import 'package:fisio_home_care/servicos/servico_autenticacao_google.dart';
-
-class ServicoAutenticacaoGoogleFake implements ServicoAutenticacaoGoogle {
-  @override
-  Stream<ContaGoogleConectada> get contasConectadas => const Stream.empty();
-
-  @override
-  Stream<SessaoGoogle> get sessoesConectadas => const Stream.empty();
-
-  @override
-  Future<void> inicializar() async {}
-
-  @override
-  Future<SessaoGoogle?> tentarRestaurarSessao() async => null;
-
-  @override
-  Future<SessaoGoogle> entrar() async {
-    await Future<void>.delayed(const Duration(milliseconds: 10));
-    return _sessao();
-  }
-
-  SessaoGoogle _sessao() {
-    return SessaoGoogle(
-      nomeUsuario: 'Dr. Teste',
-      email: 'teste@example.com',
-      obterHeaders: () async => {'Authorization': 'Bearer fake-token'},
-    );
-  }
-
-  @override
-  Future<void> sair() async {}
-}
+import '../helpers/fakes.dart';
 
 void main() {
   group('AutenticacaoNotificador', () {

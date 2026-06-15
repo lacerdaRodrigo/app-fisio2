@@ -1,6 +1,19 @@
 /// Modelo de dados representando um agendamento de sessão.
 /// Espelha a aba `Agenda` da planilha `__saas_fisio_db__`.
 class Agendamento {
+  /// Mapa de nomes de coluna para índices (0-based) na aba Agenda.
+  static const indicesColunas = {
+    'idAgendamento': 0,
+    'idPaciente': 1,
+    'data': 2,
+    'horaInicio': 3,
+    'horaFim': 4,
+    'valorSessao': 5,
+    'observacoes': 6,
+    'situacao': 7,
+    'dataCriacao': 8,
+  };
+
   static const situacaoAgendado = 'Agendado';
   static const situacaoRealizado = 'Realizado';
   static const situacaoCancelado = 'Cancelado';

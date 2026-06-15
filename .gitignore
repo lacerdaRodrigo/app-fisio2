@@ -68,6 +68,18 @@ GoogleService-Info.local.plist
 
 # Project local secret notes
 /documentacao/chaves.local.md
+/documentacao/chaves.md
+
+# Android Firebase config (contém credenciais)
+android/app/google-services.json
+
+# npm / Mobilewright artifacts
+node_modules/
+test-results/
+screenshot.png
+window_dump.xml
+1.html
+fisio-web.html
 
 # Local editor/session files
 .cursor/*

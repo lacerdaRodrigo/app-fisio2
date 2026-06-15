@@ -86,6 +86,13 @@ class AutenticacaoNotificador extends Notifier<EstadoAutenticacao> {
         if (sessao != null) {
           _autenticarComSessao(sessao);
         }
+      }).catchError((Object e, StackTrace st) {
+        developer.log(
+          'Falha ao restaurar sessão anterior',
+          error: e,
+          stackTrace: st,
+          name: 'Autenticacao',
+        );
       }),
     );
 

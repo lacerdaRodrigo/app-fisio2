@@ -45,19 +45,18 @@ class RepositorioDadosGoogle {
 
   Future<String> obterPlanilhaId() async {
     if (_planilhaId != null) {
-      // Planilha já em cache, mas ainda validar versão
       try {
         await _sheets.validarVersao(_planilhaId!);
+        return _planilhaId!;
       } catch (e) {
         developer.log(
-          'Erro ao validar versão da planilha em cache',
+          'Versão da planilha em cache incompatível, descartando cache',
           error: e,
           name: 'RepositorioDadosGoogle',
         );
-        // Tentar recuperar - limpar cache e carregar novamente
         limparCache();
+        // Continua o fluxo abaixo para buscar/criar nova planilha
       }
-      return _planilhaId!;
     }
 
     _planilhaId = await Preferencias.lerPlanilhaId();
@@ -195,21 +194,49 @@ class RepositorioDadosGoogle {
   }
 
   Future<void> salvarAgendamento(Agendamento agendamento) async {
-    final id = await obterPlanilhaId();
-    await _sheets.inserirLinha(id, 'Agenda', _valoresAgendamento(agendamento));
-    await registrarAuditoria(
-      'AGENDAMENTO_SESSAO',
-      'Sessão ${agendamento.idAgendamento} agendada.',
-    );
+    try {
+      final id = await obterPlanilhaId();
+      await _sheets.inserirLinha(id, 'Agenda', _valoresAgendamento(agendamento));
+      await registrarAuditoria(
+        'AGENDAMENTO_SESSAO',
+        'Sessão ${agendamento.idAgendamento} agendada.',
+      );
+      developer.log(
+        'Agendamento salvo: ${agendamento.idAgendamento}',
+        name: 'RepositorioDadosGoogle',
+      );
+    } catch (e, st) {
+      developer.log(
+        'Erro ao salvar agendamento: ${agendamento.idAgendamento}',
+        error: e,
+        stackTrace: st,
+        name: 'RepositorioDadosGoogle',
+      );
+      rethrow;
+    }
   }
 
   Future<void> salvarEvolucao(Evolucao evolucao) async {
-    final id = await obterPlanilhaId();
-    await _sheets.inserirLinha(id, 'Evolucoes', _valoresEvolucao(evolucao));
-    await registrarAuditoria(
-      'REGISTRO_EVOLUCAO',
-      'Evolução ${evolucao.idEvolucao} criada.',
-    );
+    try {
+      final id = await obterPlanilhaId();
+      await _sheets.inserirLinha(id, 'Evolucoes', _valoresEvolucao(evolucao));
+      await registrarAuditoria(
+        'REGISTRO_EVOLUCAO',
+        'Evolução ${evolucao.idEvolucao} criada.',
+      );
+      developer.log(
+        'Evolução salva: ${evolucao.idEvolucao}',
+        name: 'RepositorioDadosGoogle',
+      );
+    } catch (e, st) {
+      developer.log(
+        'Erro ao salvar evolução: ${evolucao.idEvolucao}',
+        error: e,
+        stackTrace: st,
+        name: 'RepositorioDadosGoogle',
+      );
+      rethrow;
+    }
   }
 
   Future<void> atualizarEvolucao(Evolucao evolucao) async {
@@ -239,8 +266,9 @@ class RepositorioDadosGoogle {
     );
     if (indice == -1) return;
 
+    final colSituacao = Paciente.indicesColunas['situacao']!;
     final linha = _preencher(linhas[indice], 19);
-    linha[10] = 'Arquivado';
+    linha[colSituacao] = 'Arquivado';
     await _sheets.atualizarLinha(
       id,
       'Pacientes!A${indice + 2}:S${indice + 2}',
@@ -260,8 +288,9 @@ class RepositorioDadosGoogle {
     );
     if (indice == -1) return;
 
+    final colSituacao = Paciente.indicesColunas['situacao']!;
     final linha = _preencher(linhas[indice], 19);
-    linha[10] = 'Ativo';
+    linha[colSituacao] = 'Ativo';
     await _sheets.atualizarLinha(
       id,
       'Pacientes!A${indice + 2}:S${indice + 2}',
@@ -291,8 +320,9 @@ class RepositorioDadosGoogle {
     );
     if (indice == -1) return;
 
+    final colSituacao = Agendamento.indicesColunas['situacao']!;
     final linha = _preencher(linhas[indice], 9);
-    linha[7] = situacao;
+    linha[colSituacao] = situacao;
     await _sheets.atualizarLinha(
       id,
       'Agenda!A${indice + 2}:I${indice + 2}',

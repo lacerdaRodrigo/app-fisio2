@@ -37,8 +37,10 @@ class _TelaPacientesState extends ConsumerState<TelaPacientes> {
   Widget build(BuildContext context) {
     final pacientes = ref.watch(provedorListaPacientes);
     final termoBusca = ref.watch(provedorBusca);
+    final estadoCarregamento = ref.watch(provedorCarregamentoDados);
     final theme = Theme.of(context);
     final qtdeAtivos = pacientes.where((p) => p.estaAtivo).length;
+    final qtdeArquivados = pacientes.where((p) => !p.estaAtivo).length;
 
     final pacientesFiltrados = pacientes.where((p) {
       switch (_filtro) {
@@ -103,9 +105,16 @@ class _TelaPacientesState extends ConsumerState<TelaPacientes> {
                           ),
                         ),
                         child: Text(
-                          _filtro == FiltroPacientes.todos
-                              ? '${pacientes.length} total'
-                              : '$qtdeAtivos ativos',
+                          () {
+                            switch (_filtro) {
+                              case FiltroPacientes.todos:
+                                return '${pacientes.length} total';
+                              case FiltroPacientes.ativos:
+                                return '$qtdeAtivos ativos';
+                              case FiltroPacientes.arquivados:
+                                return '$qtdeArquivados arquivados';
+                            }
+                          }(),
                           style: const TextStyle(
                             color: Color(0xFF0D9488),
                             fontWeight: FontWeight.bold,
@@ -163,11 +172,13 @@ class _TelaPacientesState extends ConsumerState<TelaPacientes> {
 
             // Lista de Pacientes
             Expanded(
-              child: pacientesFiltrados.isEmpty
-                  ? _construirEstadoVazio(theme)
-                  : FisioResponsiveCenter(
-                      maxWidth: 620,
-                      child: ListView.builder(
+              child: estadoCarregamento.status == StatusCarregamentoDados.carregando
+                  ? const Center(child: CircularProgressIndicator())
+                  : pacientesFiltrados.isEmpty
+                      ? _construirEstadoVazio(theme)
+                      : FisioResponsiveCenter(
+                          maxWidth: 620,
+                          child: ListView.builder(
                         padding: const EdgeInsets.fromLTRB(20, 20, 20, 96),
                         itemCount: pacientesFiltrados.length,
                         itemBuilder: (context, index) {

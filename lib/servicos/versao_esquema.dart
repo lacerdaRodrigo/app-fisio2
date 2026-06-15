@@ -117,8 +117,7 @@ class VersaoEsquema {
     if (versaoSheets < VERSAO_ATUAL) {
       return 'A planilha usa versão $versaoSheets, '
           'mas este app requer versão $VERSAO_ATUAL. '
-          'Você precisa migrar a planilha. '
-          'Consulte: https://fisio-home-care.local/migration-guide';
+          'Entre em contato com o suporte para migrar sua planilha.';
     }
 
     return null; // Compatível

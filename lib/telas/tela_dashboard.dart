@@ -12,6 +12,7 @@ import 'tela_pacientes.dart';
 import 'tela_nova_sessao.dart';
 import 'tela_registro_evolucao.dart';
 import 'tela_sessoes.dart';
+import 'tela_configuracoes.dart';
 
 class TelaDashboard extends ConsumerStatefulWidget {
   final String nomeUsuario;
@@ -148,28 +149,14 @@ class _TelaDashboardState extends ConsumerState<TelaDashboard> {
                 ),
               ),
             ),
-            GestureDetector(
-              onTap: _acaoFabCentral(context, pacientes, carregamento),
-              child: Container(
-                width: 54,
-                height: 54,
-                decoration: BoxDecoration(
-                  color: FisioCores.primary,
-                  shape: BoxShape.circle,
-                  boxShadow: [
-                    BoxShadow(
-                      color: FisioCores.primary.withValues(alpha: 0.36),
-                      blurRadius: 18,
-                      offset: const Offset(0, 8),
-                    ),
-                  ],
-                ),
-                child: const Icon(
-                  Icons.add_rounded,
-                  color: Colors.white,
-                  size: 30,
-                ),
-              ),
+            FloatingActionButton.extended(
+              heroTag: 'fab_novo_paciente',
+              onPressed: _acaoFabCentral(context, pacientes, carregamento),
+              icon: const Icon(Icons.person_add_alt_1_rounded),
+              label: const Text('Novo Paciente'),
+              backgroundColor: FisioCores.primary,
+              foregroundColor: Colors.white,
+              elevation: 6,
             ),
           ],
         ),
@@ -243,25 +230,33 @@ class _TelaDashboardState extends ConsumerState<TelaDashboard> {
                         ),
                       ],
                     ),
-                    Container(
-                      width: 48,
-                      height: 48,
-                      decoration: BoxDecoration(
-                        color: Colors.white.withValues(alpha: 0.15),
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(
-                          color: Colors.white.withValues(alpha: 0.3),
+                    GestureDetector(
+                      onTap: () => Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => const TelaConfiguracoes(),
                         ),
                       ),
-                      child: Center(
-                        child: Text(
-                          widget.nomeUsuario.isNotEmpty
-                              ? widget.nomeUsuario[0].toUpperCase()
-                              : '?',
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 20,
-                            fontWeight: FontWeight.bold,
+                      child: Container(
+                        width: 48,
+                        height: 48,
+                        decoration: BoxDecoration(
+                          color: Colors.white.withValues(alpha: 0.15),
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(
+                            color: Colors.white.withValues(alpha: 0.3),
+                          ),
+                        ),
+                        child: Center(
+                          child: Text(
+                            widget.nomeUsuario.isNotEmpty
+                                ? widget.nomeUsuario[0].toUpperCase()
+                                : '?',
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
                         ),
                       ),

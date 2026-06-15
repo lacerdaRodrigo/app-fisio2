@@ -1,3 +1,6 @@
+import 'utilitarios_data.dart';
+import 'validador_cpf.dart';
+
 /// Validadores de entrada de dados para o aplicativo Fisio Home Care.
 ///
 /// Esta classe fornece métodos estáticos para validar dados de pacientes
@@ -23,52 +26,10 @@
 class Validadores {
   /// Valida um CPF brasileiro.
   ///
-  /// Remove formatação (pontos e hífens) e verifica os dígitos verificadores
-  /// usando o algoritmo oficial do governo brasileiro.
-  ///
-  /// **Aceita:**
-  /// - `111.444.777-35` (com formatação)
-  /// - `11144477735` (sem formatação)
-  ///
-  /// **Rejeita:**
-  /// - `111.111.111-11` (dígitos repetidos)
-  /// - `123.456.789-00` (dígitos verificadores inválidos)
-  /// - `123.456` (menos de 11 dígitos)
-  /// - String vazia
-  ///
-  /// **Parâmetros:**
-  /// - `cpf`: CPF a validar (com ou sem formatação)
+  /// Remove formatação e verifica os dígitos verificadores via [ValidadorCpf].
   ///
   /// **Retorna:** `true` se válido, `false` caso contrário
-  static bool validarCPF(String cpf) {
-    cpf = cpf.replaceAll(RegExp(r'\D'), '');
-
-    // CPF deve ter 11 dígitos
-    if (cpf.length != 11) return false;
-
-    // Números repetidos são inválidos
-    if (RegExp(r'^(\d)\1{10}$').hasMatch(cpf)) return false;
-
-    // Validar primeiro dígito verificador
-    int soma = 0;
-    for (int i = 0; i < 9; i++) {
-      soma += int.parse(cpf[i]) * (10 - i);
-    }
-    int resto = soma % 11;
-    int digito1 = resto < 2 ? 0 : 11 - resto;
-
-    if (int.parse(cpf[9]) != digito1) return false;
-
-    // Validar segundo dígito verificador
-    soma = 0;
-    for (int i = 0; i < 10; i++) {
-      soma += int.parse(cpf[i]) * (11 - i);
-    }
-    resto = soma % 11;
-    int digito2 = resto < 2 ? 0 : 11 - resto;
-
-    return int.parse(cpf[10]) == digito2;
-  }
+  static bool validarCPF(String cpf) => ValidadorCpf.validar(cpf);
 
   /// Valida um telefone brasileiro.
   ///
@@ -126,19 +87,8 @@ class Validadores {
   ///
   /// **Retorna:** `true` se válida, `false` caso contrário
   static bool validarDataNascimento(DateTime data) {
-    final hoje = DateTime.now();
-
-    // Data não pode ser no futuro
-    if (data.isAfter(hoje)) return false;
-
-    // Pessoa deve ter pelo menos 0 anos (pode ser 0 na criação)
-    int idade = hoje.year - data.year;
-    if (hoje.month < data.month ||
-        (hoje.month == data.month && hoje.day < data.day)) {
-      idade--;
-    }
-
-    return idade >= 0;
+    if (data.isAfter(DateTime.now())) return false;
+    return UtilitariosData.calcularIdade(data) >= 0;
   }
 
   /// Valida um endereço de residência.

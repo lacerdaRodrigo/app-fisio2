@@ -1,11 +1,12 @@
+import '../utilitarios/utilitarios_data.dart';
 import '../utilitarios/validadores.dart';
 
 /// Modelo de dados representando um paciente cadastrado.
 /// Espelha a aba `Pacientes` da planilha `__saas_fisio_db__`.
 class Paciente {
-  /// Mapa de nomes de coluna para índices
-  /// Atualizar quando a estrutura da planilha muda
-  static const _indicesColunas = {
+  /// Mapa de nomes de coluna para índices (0-based).
+  /// Atualizar aqui quando a estrutura da planilha mudar.
+  static const indicesColunas = {
     'idPaciente': 0,
     'nome': 1,
     'telefone': 2,
@@ -69,15 +70,8 @@ class Paciente {
   }) : dataCadastro = dataCadastro ?? DateTime.now();
 
   /// Calcula a idade do paciente com base na data atual.
-  int calcularIdade({DateTime? dataReferencia}) {
-    final hoje = dataReferencia ?? DateTime.now();
-    int idade = hoje.year - dataNascimento.year;
-    if (hoje.month < dataNascimento.month ||
-        (hoje.month == dataNascimento.month && hoje.day < dataNascimento.day)) {
-      idade--;
-    }
-    return idade;
-  }
+  int calcularIdade({DateTime? dataReferencia}) =>
+      UtilitariosData.calcularIdade(dataNascimento, dataReferencia: dataReferencia);
 
   bool get estaAtivo => situacao == 'Ativo';
 
@@ -113,37 +107,17 @@ class Paciente {
       throw FormatException('Linha de paciente vazia');
     }
 
-    /// Helper para obter valor pelo nome da coluna
-    String obterValor(String nomeColunaOrIdx, {String padrao = ''}) {
-      late int idx;
-
-      // Aceita tanto nome da coluna quanto índice
-      if (nomeColunaOrIdx is int) {
-        idx = nomeColunaOrIdx as int;
-      } else {
-        idx = _indicesColunas[nomeColunaOrIdx] ?? -1;
-        if (idx == -1) {
-          throw FormatException('Coluna desconhecida: $nomeColunaOrIdx');
-        }
-      }
-
+    String obterValor(String nomeColuna, {String padrao = ''}) {
+      final idx = indicesColunas[nomeColuna] ?? -1;
+      if (idx == -1) throw FormatException('Coluna desconhecida: $nomeColuna');
       if (idx >= linha.length) return padrao;
       final valor = linha[idx].trim();
       return valor.isEmpty ? padrao : valor;
     }
 
-    /// Helper para obter valor nullable pelo nome da coluna
-    String? obterValorOuNull(String nomeColunaOrIdx) {
-      late int idx;
-
-      if (nomeColunaOrIdx is int) {
-        idx = nomeColunaOrIdx as int;
-      } else {
-        idx = _indicesColunas[nomeColunaOrIdx] ?? -1;
-        if (idx == -1) return null;
-      }
-
-      if (idx >= linha.length) return null;
+    String? obterValorOuNull(String nomeColuna) {
+      final idx = indicesColunas[nomeColuna] ?? -1;
+      if (idx == -1 || idx >= linha.length) return null;
       final valor = linha[idx].trim();
       return valor.isEmpty ? null : valor;
     }
@@ -270,6 +244,7 @@ class Paciente {
       cirurgias: cirurgias ?? this.cirurgias,
       habitosVida: habitosVida ?? this.habitosVida,
       situacao: situacao ?? this.situacao,
+      dataCadastro: dataCadastro, // preserva data original
     );
   }
 }

@@ -168,6 +168,7 @@ class FisioPageHeader extends StatelessWidget {
         children: [
           if (onBack != null) ...[
             IconButton(
+              key: const Key('btn_fechar'),
               icon: Icon(
                 closeIcon ? Icons.close_rounded : Icons.arrow_back_rounded,
               ),

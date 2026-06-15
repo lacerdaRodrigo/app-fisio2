@@ -2,13 +2,13 @@
 export
 
 FIREBASE_PROJECT_ID ?= app-fisio-care-2
-GOOGLE_OAUTH_CLIENT_ID_WEB ?= 1034972209864-22ivlkbu9eu206fv6tvot90mup62stic.apps.googleusercontent.com
+GOOGLE_OAUTH_CLIENT_ID_WEB ?=
 GOOGLE_OAUTH_CLIENT_ID_ANDROID ?=
 APP_VERSION := $(shell grep '^version: ' pubspec.yaml | sed 's/version: //')
 
 .DEFAULT_GOAL := help
 
-.PHONY: help dev dev-android dev-web prod-web prod-android check-android-oauth maestro-test maestro-check
+.PHONY: help dev dev-android dev-web prod-web prod-android check-android-oauth maestro-test maestro-check test lint
 
 help: ## Lista os comandos disponíveis
 	@echo "Comandos disponíveis:"
@@ -20,6 +20,12 @@ maestro-check: ## Verifica se Maestro CLI está instalado
 	@command -v maestro >/dev/null 2>&1 || command -v $(HOME)/.maestro/bin/maestro >/dev/null 2>&1 || \
 		(echo "Maestro não encontrado. Instale: curl -Ls https://get.maestro.mobile.dev | bash" && exit 1)
 	@maestro --version 2>/dev/null || $(HOME)/.maestro/bin/maestro --version
+
+test: ## Roda todos os testes Flutter
+	flutter test
+
+lint: ## Roda análise estática (flutter analyze)
+	flutter analyze
 
 maestro-test: maestro-check ## Roda smoke E2E Maestro (.maestro/flows/smoke_app_abre.yaml)
 	maestro test .maestro/flows/smoke_app_abre.yaml

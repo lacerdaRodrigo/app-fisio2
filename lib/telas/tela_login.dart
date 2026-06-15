@@ -26,7 +26,7 @@ class TelaLogin extends ConsumerWidget {
         return;
       }
 
-      WidgetsBinding.instance.addPostFrameCallback((_) async {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
         if (!context.mounted) {
           return;
         }
