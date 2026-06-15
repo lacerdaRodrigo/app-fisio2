@@ -1,7 +1,44 @@
 # Plano de Implementação — Fisio Home Care
 
-Status atual do projeto: **MVP funcional completo**
+Status atual do projeto: **MVP funcional completo + Revisão de Qualidade Implementada** (commit 3ea292c, 2026-06-14)  
 Base: Flutter + Riverpod + Google Sheets API + Google Sign-In
+
+---
+
+## 📊 Avaliação de Qualidade (2026-06-14)
+
+**Nota Geral: 7.8/10** ⭐⭐⭐⭐
+
+| Dimensão | Nota | Status |
+|---|---|---|
+| **Segurança** | 8.5/10 | ✅ Credenciais fora do git, validação de entrada, logging estruturado. Falta: validação de API endpoints Sheets; BYODB depende da conta Google |
+| **Documentação** | 8/10 | ✅ `CLAUDE.md`, `CHANGELOG.md` unificado, `README.md` claro. Falta: LGPD/Privacidade formal, fluxos de erro |
+| **Funcionalidades** | 7.5/10 | ✅ Pacientes, agendamentos, evoluções, login funcionando. Falta: edição de paciente/sessão, relatórios, backup automático |
+| **Arquitetura** | 8/10 | ✅ Riverpod bem estruturado, schema versioning, separação clara. Falta: algumas duplicações residuais em seletores |
+| **Qualidade de Código** | 8.5/10 | ✅ Lint rigoroso, 0 erros, 165 testes, sem código morto. Falta: documentação de métodos complexos |
+| **Testes** | 7.5/10 | ✅ 165 unitários (validadores, modelos, provedores, widgets). Falta: integração Sheets, performance/carga |
+| **DevOps/Deploy** | 6/10 | ✅ Makefile com targets (`test`, `lint`, `prod-web`, `prod-android`). Falta: CI/CD, automação E2E |
+
+### O que foi corrigido nesta sessão (2026-06-14)
+
+**Commit 307d40a — Revisão Completa:**
+- Removidas credenciais do git (`google-services.json`, `chaves.md`)
+- Bugs críticos: null dereference em `obterPlanilhaId`, corrupção de `dataCadastro`
+- Documentação: removidos 7 arquivos redundantes, criado `CLAUDE.md` e `CHANGELOG.md` unificado
+- Testes: removidos mocks inúteis, CPFs inválidos corrigidos
+
+**Commit 3ea292c — 4 Pendências Finais:**
+- SnackBars: 8 locais com `$e` bruto → mensagem genérica + logging
+- `Evolucao.deLinhaPlanilha`: refatorada para usar `indicesColunas` + proteção RangeError
+- `FisioCores.secondary`: removida (nunca usada)
+- Duplicação de popup: centralizado em `lib/utilitarios/acoes_agendamento.dart`
+
+### Para atingir 9/10
+- [ ] Documentação formal de LGPD/Privacidade
+- [ ] CI/CD pipeline (GitHub Actions)
+- [ ] Testes E2E nightly no Android
+- [ ] Validação end-to-end Sheets API com fallbacks
+- [ ] Backup automático para Google Drive
 
 ---
 
