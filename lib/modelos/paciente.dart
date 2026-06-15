@@ -3,6 +3,29 @@ import '../utilitarios/validadores.dart';
 /// Modelo de dados representando um paciente cadastrado.
 /// Espelha a aba `Pacientes` da planilha `__saas_fisio_db__`.
 class Paciente {
+  /// Mapa de nomes de coluna para índices
+  /// Atualizar quando a estrutura da planilha muda
+  static const _indicesColunas = {
+    'idPaciente': 0,
+    'nome': 1,
+    'telefone': 2,
+    'dataNascimento': 3,
+    'cpf': 4,
+    'endereco': 5,
+    'queixaPrincipal': 6,
+    'histDoencaAtual': 7,
+    'histPregresso': 8,
+    'ocupacao': 9,
+    'situacao': 10,
+    'dataCadastro': 11,
+    'genero': 12,
+    'dor': 13,
+    'comorbidades': 14,
+    'medicamentos': 15,
+    'alergias': 16,
+    'cirurgias': 17,
+    'habitosVida': 18,
+  };
   final String idPaciente;
   final String nome;
   final String telefone;
@@ -90,85 +113,122 @@ class Paciente {
       throw FormatException('Linha de paciente vazia');
     }
 
-    // Helper para obter valor seguro
-    String obterValor(int idx, {String padrao = ''}) {
+    /// Helper para obter valor pelo nome da coluna
+    String obterValor(String nomeColunaOrIdx, {String padrao = ''}) {
+      late int idx;
+
+      // Aceita tanto nome da coluna quanto índice
+      if (nomeColunaOrIdx is int) {
+        idx = nomeColunaOrIdx as int;
+      } else {
+        idx = _indicesColunas[nomeColunaOrIdx] ?? -1;
+        if (idx == -1) {
+          throw FormatException('Coluna desconhecida: $nomeColunaOrIdx');
+        }
+      }
+
       if (idx >= linha.length) return padrao;
       final valor = linha[idx].trim();
       return valor.isEmpty ? padrao : valor;
     }
 
-    // Helper para obter valor nullable
-    String? obterValorOuNull(int idx) {
+    /// Helper para obter valor nullable pelo nome da coluna
+    String? obterValorOuNull(String nomeColunaOrIdx) {
+      late int idx;
+
+      if (nomeColunaOrIdx is int) {
+        idx = nomeColunaOrIdx as int;
+      } else {
+        idx = _indicesColunas[nomeColunaOrIdx] ?? -1;
+        if (idx == -1) return null;
+      }
+
       if (idx >= linha.length) return null;
       final valor = linha[idx].trim();
       return valor.isEmpty ? null : valor;
     }
 
+    /// Helper para obter data pelo nome da coluna
+    DateTime obterData(String nomeColuna, {DateTime? padrao}) {
+      final valor = obterValor(nomeColuna);
+      if (valor.isEmpty) return padrao ?? DateTime.now();
+
+      // Tentar parser formato DD/MM/YYYY
+      final partes = valor.split('/');
+      if (partes.length == 3) {
+        try {
+          return DateTime.parse(
+            '${partes[2]}-${partes[1].padLeft(2, '0')}-${partes[0].padLeft(2, '0')}',
+          );
+        } catch (_) {
+          // Ignorar erro e tentar ISO format
+        }
+      }
+
+      // Tentar parser ISO format
+      return DateTime.tryParse(valor) ?? (padrao ?? DateTime.now());
+    }
+
+    // Obter dados básicos
+    final idPaciente = obterValor('idPaciente');
+    final nome = obterValor('nome');
+    final telefone = obterValor('telefone');
+    final cpf = obterValor('cpf');
+    final endereco = obterValor('endereco');
+
     // Validar nome
-    final nome = obterValor(1);
     if (!Validadores.validarNome(nome)) {
       throw FormatException('Nome inválido: "$nome"');
     }
 
     // Validar telefone
-    final telefone = obterValor(2);
     if (!Validadores.validarTelefone(telefone)) {
       throw FormatException('Telefone inválido: "$telefone"');
     }
 
     // Validar CPF
-    final cpf = obterValor(4);
     if (!Validadores.validarCPF(cpf)) {
       throw FormatException('CPF inválido: "$cpf"');
     }
 
     // Validar endereço
-    final endereco = obterValor(5);
     if (!Validadores.validarEndereco(endereco)) {
       throw FormatException('Endereço inválido: "$endereco"');
     }
 
     // Processar data de nascimento
-    DateTime? dataNasc;
-    if (linha.length > 3) {
-      final partesData = linha[3].split('/');
-      if (partesData.length == 3) {
-        dataNasc = DateTime.tryParse(
-          '${partesData[2]}-${partesData[1].padLeft(2, '0')}-${partesData[0].padLeft(2, '0')}',
-        );
-      }
-    }
-    dataNasc ??= DateTime.now();
+    final dataNasc = obterData('dataNascimento');
 
     // Validar data de nascimento
     if (!Validadores.validarDataNascimento(dataNasc)) {
       throw FormatException(
-        'Data de nascimento inválida: ${linha.length > 3 ? linha[3] : ""}',
+        'Data de nascimento inválida: ${obterValor('dataNascimento')}',
       );
     }
 
+    // Processar data de cadastro
+    final dataCadastro = obterData('dataCadastro', padrao: DateTime.now());
+
     return Paciente(
-      idPaciente: obterValor(0),
+      idPaciente: idPaciente,
       nome: nome,
       telefone: telefone,
       dataNascimento: dataNasc,
       cpf: cpf,
       endereco: endereco,
-      queixaPrincipal: obterValorOuNull(6),
-      histDoencaAtual: obterValorOuNull(7),
-      histPregresso: obterValorOuNull(8),
-      ocupacao: obterValorOuNull(9),
-      situacao: obterValor(10, padrao: 'Ativo'),
-      dataCadastro: linha.length > 11
-          ? DateTime.tryParse(linha[11]) ?? DateTime.now()
-          : DateTime.now(),
-      genero: obterValorOuNull(12),
-      dor: obterValorOuNull(13),
-      comorbidades: obterValorOuNull(14),
-      medicamentos: obterValorOuNull(15),
-      alergias: obterValorOuNull(16),
-      cirurgias: obterValorOuNull(17),
-      habitosVida: obterValorOuNull(18),
+      queixaPrincipal: obterValorOuNull('queixaPrincipal'),
+      histDoencaAtual: obterValorOuNull('histDoencaAtual'),
+      histPregresso: obterValorOuNull('histPregresso'),
+      ocupacao: obterValorOuNull('ocupacao'),
+      situacao: obterValor('situacao', padrao: 'Ativo'),
+      dataCadastro: dataCadastro,
+      genero: obterValorOuNull('genero'),
+      dor: obterValorOuNull('dor'),
+      comorbidades: obterValorOuNull('comorbidades'),
+      medicamentos: obterValorOuNull('medicamentos'),
+      alergias: obterValorOuNull('alergias'),
+      cirurgias: obterValorOuNull('cirurgias'),
+      habitosVida: obterValorOuNull('habitosVida'),
     );
   }
 
