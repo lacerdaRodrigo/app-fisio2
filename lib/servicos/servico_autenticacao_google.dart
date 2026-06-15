@@ -7,8 +7,7 @@ import 'cliente_google_autenticado.dart';
 
 const googleOAuthClientIdWeb = String.fromEnvironment(
   'GOOGLE_OAUTH_CLIENT_ID_WEB',
-  defaultValue:
-      '1034972209864-22ivlkbu9eu206fv6tvot90mup62stic.apps.googleusercontent.com',
+  defaultValue: '',
 );
 
 const escoposGoogleFisio = <String>[
@@ -49,6 +48,14 @@ abstract class ServicoAutenticacaoGoogle {
 }
 
 GoogleSignIn _criarGoogleSignIn() {
+  if (googleOAuthClientIdWeb.isEmpty) {
+    throw StateError(
+      'GOOGLE_OAUTH_CLIENT_ID_WEB não foi definido. '
+      'Configure a variável de ambiente ou execute:\n'
+      'flutter run --dart-define=GOOGLE_OAUTH_CLIENT_ID_WEB=SEU_CLIENT_ID'
+    );
+  }
+
   if (kIsWeb) {
     return GoogleSignIn(
       clientId: googleOAuthClientIdWeb,
