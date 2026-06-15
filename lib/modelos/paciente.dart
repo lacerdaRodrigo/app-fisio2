@@ -1,3 +1,5 @@
+import '../utilitarios/validadores.dart';
+
 /// Modelo de dados representando um paciente cadastrado.
 /// Espelha a aba `Pacientes` da planilha `__saas_fisio_db__`.
 class Paciente {
@@ -83,33 +85,90 @@ class Paciente {
   }
 
   factory Paciente.deLinhaPlanilha(List<String> linha) {
-    final partesData = linha[3].split('/');
+    // Validar dados básicos antes de processar
+    if (linha.isEmpty) {
+      throw FormatException('Linha de paciente vazia');
+    }
+
+    // Helper para obter valor seguro
+    String obterValor(int idx, {String padrao = ''}) {
+      if (idx >= linha.length) return padrao;
+      final valor = linha[idx].trim();
+      return valor.isEmpty ? padrao : valor;
+    }
+
+    // Helper para obter valor nullable
+    String? obterValorOuNull(int idx) {
+      if (idx >= linha.length) return null;
+      final valor = linha[idx].trim();
+      return valor.isEmpty ? null : valor;
+    }
+
+    // Validar nome
+    final nome = obterValor(1);
+    if (!Validadores.validarNome(nome)) {
+      throw FormatException('Nome inválido: "$nome"');
+    }
+
+    // Validar telefone
+    final telefone = obterValor(2);
+    if (!Validadores.validarTelefone(telefone)) {
+      throw FormatException('Telefone inválido: "$telefone"');
+    }
+
+    // Validar CPF
+    final cpf = obterValor(4);
+    if (!Validadores.validarCPF(cpf)) {
+      throw FormatException('CPF inválido: "$cpf"');
+    }
+
+    // Validar endereço
+    final endereco = obterValor(5);
+    if (!Validadores.validarEndereco(endereco)) {
+      throw FormatException('Endereço inválido: "$endereco"');
+    }
+
+    // Processar data de nascimento
+    DateTime? dataNasc;
+    if (linha.length > 3) {
+      final partesData = linha[3].split('/');
+      if (partesData.length == 3) {
+        dataNasc = DateTime.tryParse(
+          '${partesData[2]}-${partesData[1].padLeft(2, '0')}-${partesData[0].padLeft(2, '0')}',
+        );
+      }
+    }
+    dataNasc ??= DateTime.now();
+
+    // Validar data de nascimento
+    if (!Validadores.validarDataNascimento(dataNasc)) {
+      throw FormatException(
+        'Data de nascimento inválida: ${linha.length > 3 ? linha[3] : ""}',
+      );
+    }
+
     return Paciente(
-      idPaciente: linha[0],
-      nome: linha[1],
-      telefone: linha[2],
-      dataNascimento: DateTime(
-        int.parse(partesData[2]),
-        int.parse(partesData[1]),
-        int.parse(partesData[0]),
-      ),
-      cpf: linha[4],
-      endereco: linha[5],
-      queixaPrincipal: linha.length > 6 ? linha[6] : null,
-      histDoencaAtual: linha.length > 7 ? linha[7] : null,
-      histPregresso: linha.length > 8 ? linha[8] : null,
-      ocupacao: linha.length > 9 ? linha[9] : null,
-      situacao: linha.length > 10 ? linha[10] : 'Ativo',
+      idPaciente: obterValor(0),
+      nome: nome,
+      telefone: telefone,
+      dataNascimento: dataNasc,
+      cpf: cpf,
+      endereco: endereco,
+      queixaPrincipal: obterValorOuNull(6),
+      histDoencaAtual: obterValorOuNull(7),
+      histPregresso: obterValorOuNull(8),
+      ocupacao: obterValorOuNull(9),
+      situacao: obterValor(10, padrao: 'Ativo'),
       dataCadastro: linha.length > 11
           ? DateTime.tryParse(linha[11]) ?? DateTime.now()
           : DateTime.now(),
-      genero: linha.length > 12 ? linha[12] : null,
-      dor: linha.length > 13 ? linha[13] : null,
-      comorbidades: linha.length > 14 ? linha[14] : null,
-      medicamentos: linha.length > 15 ? linha[15] : null,
-      alergias: linha.length > 16 ? linha[16] : null,
-      cirurgias: linha.length > 17 ? linha[17] : null,
-      habitosVida: linha.length > 18 ? linha[18] : null,
+      genero: obterValorOuNull(12),
+      dor: obterValorOuNull(13),
+      comorbidades: obterValorOuNull(14),
+      medicamentos: obterValorOuNull(15),
+      alergias: obterValorOuNull(16),
+      cirurgias: obterValorOuNull(17),
+      habitosVida: obterValorOuNull(18),
     );
   }
 
