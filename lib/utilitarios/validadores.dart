@@ -1,8 +1,45 @@
-/// Utilitários para validação de dados de entrada
-/// Todos os métodos retornam bool: true = válido, false = inválido
+/// Validadores de entrada de dados para o aplicativo Fisio Home Care.
+///
+/// Esta classe fornece métodos estáticos para validar dados de pacientes
+/// como CPF, telefone, data de nascimento, endereço e nome.
+///
+/// **Retorno dos métodos:**
+/// - `validarX()` retorna `bool`: true = válido, false = inválido
+/// - `mensagemErroX()` retorna `String?`: null = válido, mensagem de erro caso contrário
+///
+/// **Exemplo de uso:**
+/// ```dart
+/// import 'package:fisio_home_care/utilitarios/validadores.dart';
+///
+/// if (!Validadores.validarCPF('123.456.789-09')) {
+///   print('CPF inválido!');
+/// }
+///
+/// final erro = Validadores.mensagemErroCPF('123.456.789-00');
+/// if (erro != null) {
+///   showError(erro);
+/// }
+/// ```
 class Validadores {
-  /// Valida um CPF. Remove formatação e verifica dígitos verificadores.
-  /// Aceita: 123.456.789-09 ou 12345678909
+  /// Valida um CPF brasileiro.
+  ///
+  /// Remove formatação (pontos e hífens) e verifica os dígitos verificadores
+  /// usando o algoritmo oficial do governo brasileiro.
+  ///
+  /// **Aceita:**
+  /// - `111.444.777-35` (com formatação)
+  /// - `11144477735` (sem formatação)
+  ///
+  /// **Rejeita:**
+  /// - `111.111.111-11` (dígitos repetidos)
+  /// - `123.456.789-00` (dígitos verificadores inválidos)
+  /// - `123.456` (menos de 11 dígitos)
+  /// - String vazia
+  ///
+  /// **Parâmetros:**
+  /// - `cpf`: CPF a validar (com ou sem formatação)
+  ///
+  /// **Retorna:** `true` se válido, `false` caso contrário
   static bool validarCPF(String cpf) {
     cpf = cpf.replaceAll(RegExp(r'\D'), '');
 
@@ -33,8 +70,28 @@ class Validadores {
     return int.parse(cpf[10]) == digito2;
   }
 
-  /// Valida telefone brasileiro.
-  /// Aceita: (11) 9999-9999, (11) 99999-9999, 119999-9999, etc
+  /// Valida um telefone brasileiro.
+  ///
+  /// Aceita telefones com 10 ou 11 dígitos (com ou sem 9 na sequência).
+  /// Valida DDD (primeiros 2 dígitos) entre 11 e 99.
+  ///
+  /// **Aceita:**
+  /// - `(11) 3333-4444` (10 dígitos com formatação)
+  /// - `(11) 99999-9999` (11 dígitos com formatação)
+  /// - `1133334444` (10 dígitos sem formatação)
+  /// - `11999999999` (11 dígitos sem formatação)
+  /// - Variações com espaços e símbolos
+  ///
+  /// **Rejeita:**
+  /// - `1199` (menos de 10 dígitos)
+  /// - `119999999999` (mais de 11 dígitos)
+  /// - `0133334444` (começa com 0)
+  /// - `(10) 99999-9999` (DDD inválido)
+  ///
+  /// **Parâmetros:**
+  /// - `telefone`: Telefone a validar (com ou sem formatação)
+  ///
+  /// **Retorna:** `true` se válido, `false` caso contrário
   static bool validarTelefone(String telefone) {
     final apenas = telefone.replaceAll(RegExp(r'\D'), '');
 
@@ -51,8 +108,23 @@ class Validadores {
     return true;
   }
 
-  /// Valida data de nascimento.
-  /// Não pode ser futura e deve resultar em uma pessoa viva.
+  /// Valida uma data de nascimento.
+  ///
+  /// A data não pode ser no futuro. Aceita qualquer data no passado,
+  /// inclusive datas muito antigas.
+  ///
+  /// **Aceita:**
+  /// - `DateTime(1990, 5, 15)` (data no passado)
+  /// - `DateTime.now()` (hoje)
+  /// - Datas muito antigas (ex: 1900)
+  ///
+  /// **Rejeita:**
+  /// - Datas no futuro
+  ///
+  /// **Parâmetros:**
+  /// - `data`: Data de nascimento a validar
+  ///
+  /// **Retorna:** `true` se válida, `false` caso contrário
   static bool validarDataNascimento(DateTime data) {
     final hoje = DateTime.now();
 
@@ -69,16 +141,50 @@ class Validadores {
     return idade >= 0;
   }
 
-  /// Valida endereço.
-  /// Deve ter pelo menos 5 caracteres e não pode estar vazio.
+  /// Valida um endereço de residência.
+  ///
+  /// O endereço deve ter no mínimo 5 caracteres (após remover espaços).
+  ///
+  /// **Aceita:**
+  /// - `Rua das Flores, 123` (endereço completo)
+  /// - `Av. Brasil, 1000 Apt 42` (com complemento)
+  ///
+  /// **Rejeita:**
+  /// - `Rua` (menos de 5 caracteres)
+  /// - `` (vazio)
+  /// - `     ` (apenas espaços)
+  ///
+  /// **Parâmetros:**
+  /// - `endereco`: Endereço a validar
+  ///
+  /// **Retorna:** `true` se válido, `false` caso contrário
   static bool validarEndereco(String endereco) {
     final trimado = endereco.trim();
     return trimado.isNotEmpty && trimado.length >= 5;
   }
 
-  /// Valida nome completo.
-  /// Deve ter pelo menos 2 nomes (primeiro e último).
-  /// Cada nome deve ter pelo menos 2 caracteres.
+  /// Valida um nome completo.
+  ///
+  /// O nome deve conter pelo menos primeiro e último nome.
+  /// Cada parte do nome deve ter no mínimo 2 caracteres.
+  ///
+  /// **Aceita:**
+  /// - `João Silva` (primeiro e último nome)
+  /// - `Maria da Silva` (nome com preposição)
+  /// - `João Pedro da Silva Santos` (múltiplos nomes)
+  /// - `José Peçanha` (com acentuação)
+  ///
+  /// **Rejeita:**
+  /// - `João` (apenas primeiro nome)
+  /// - `J Silva` (primeira parte com 1 caractere)
+  /// - `João S` (última parte com 1 caractere)
+  /// - `` (vazio)
+  /// - `     ` (apenas espaços)
+  ///
+  /// **Parâmetros:**
+  /// - `nome`: Nome completo a validar
+  ///
+  /// **Retorna:** `true` se válido, `false` caso contrário
   static bool validarNome(String nome) {
     final partes = nome.trim().split(RegExp(r'\s+'));
 
@@ -90,6 +196,21 @@ class Validadores {
   }
 
   /// Retorna uma mensagem de erro específica para validação de CPF.
+  ///
+  /// Útil para exibir mensagens ao usuário em formulários.
+  /// Verifica múltiplos critérios de validação e retorna a mensagem apropriada.
+  ///
+  /// **Retorna:**
+  /// - `null` se o CPF for válido
+  /// - String descritiva do erro (ex: "CPF é obrigatório", "CPF é inválido")
+  ///
+  /// **Exemplo:**
+  /// ```dart
+  /// final erro = Validadores.mensagemErroCPF('123');
+  /// if (erro != null) {
+  ///   showErrorDialog(erro);
+  /// }
+  /// ```
   static String? mensagemErroCPF(String cpf) {
     if (cpf.isEmpty) return 'CPF é obrigatório';
     if (cpf.replaceAll(RegExp(r'\D'), '').length != 11) {

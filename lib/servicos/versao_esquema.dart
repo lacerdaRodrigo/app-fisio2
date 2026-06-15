@@ -1,16 +1,60 @@
-/// Gerenciamento de versão do esquema das planilhas
-/// Garante compatibilidade entre versões do app e estrutura da planilha
+/// Gerenciamento de versão do esquema das planilhas do Google Sheets.
+///
+/// Esta classe coordena as versões entre o aplicativo e a estrutura das
+/// planilhas armazenadas no Google Sheets. Detecta incompatibilidades e
+/// facilita migrações futuras entre versões.
+///
+/// **Fluxo de versionamento:**
+/// 1. App salva versão na aba "Versao" ao criar planilha nova
+/// 2. Ao carregar, verifica se versão é compatível
+/// 3. Se incompatível, exibe mensagem clara ao usuário
+/// 4. Se compatível, carrega dados normalmente
+///
+/// **Exemplo de uso:**
+/// ```dart
+/// import 'package:fisio_home_care/servicos/versao_esquema.dart';
+///
+/// // Validar versão
+/// final resultado = VersaoEsquema.validar(1);
+/// if (resultado != null) {
+///   print('Erro: $resultado');
+/// }
+///
+/// // Obter índices de colunas
+/// final indices = VersaoEsquema.obterIndicesColunas(1);
+/// final nomeIndex = indices['nome'];
+/// ```
 class VersaoEsquema {
-  /// Versão atual suportada pelo app
+  /// Versão atual suportada pelo aplicativo.
   static const int VERSAO_ATUAL = 1;
 
-  /// Descrição das mudanças por versão
+  /// Histórico de versões com descrição das mudanças.
+  ///
+  /// Cada entrada documenta as alterações de estrutura em cada versão.
+  /// Útil para rastrear evolution do schema e gerar migration guides.
   static const Map<int, String> HISTORICO = {
     1: 'Versão inicial com abas: Pacientes, Agenda, Evolucoes, Configuracoes, Auditoria',
   };
 
-  /// Retorna os índices das colunas para uma versão específica
-  /// Mapeia nome da coluna -> índice (0-based)
+  /// Obtém o mapa de índices de colunas para uma versão específica.
+  ///
+  /// Mapeia o nome da coluna para seu índice (0-based) na planilha.
+  /// Usado pelo parser de dados (ex: `Paciente.deLinhaPlanilha()`) para
+  /// buscar colunas por nome em vez de índice hardcoded.
+  ///
+  /// **Parâmetros:**
+  /// - `versao`: Versão do esquema (ex: 1)
+  ///
+  /// **Retorna:** `Map<String, int>` com mapeamento coluna -> índice
+  ///
+  /// **Lança:** [UnsupportedError] se versão não é suportada
+  ///
+  /// **Exemplo:**
+  /// ```dart
+  /// final indices = VersaoEsquema.obterIndicesColunas(1);
+  /// final nomeIndex = indices['nome']; // 1
+  /// final cpfIndex = indices['cpf'];   // 4
+  /// ```
   static Map<String, int> obterIndicesColunas(int versao) {
     switch (versao) {
       case 1:
@@ -44,8 +88,25 @@ class VersaoEsquema {
     }
   }
 
-  /// Valida se a versão é compatível
-  /// Retorna null se compatível, ou mensagem de erro se não
+  /// Valida se uma versão de planilha é compatível com este app.
+  ///
+  /// Compara a versão da planilha com a versão suportada pelo app e
+  /// retorna uma mensagem descritiva se houver incompatibilidade.
+  ///
+  /// **Parâmetros:**
+  /// - `versaoSheets`: Versão da planilha no Google Sheets
+  ///
+  /// **Retorna:**
+  /// - `null` se versão é compatível
+  /// - `String` com mensagem de erro se incompatível
+  ///
+  /// **Exemplo:**
+  /// ```dart
+  /// final erro = VersaoEsquema.validar(2);
+  /// if (erro != null) {
+  ///   print('Erro: $erro');
+  /// }
+  /// ```
   static String? validar(int versaoSheets) {
     if (versaoSheets > VERSAO_ATUAL) {
       return 'A planilha usa versão $versaoSheets, '
@@ -63,16 +124,37 @@ class VersaoEsquema {
     return null; // Compatível
   }
 
-  /// Retorna a descrição da versão
+  /// Obtém a descrição/changelog de uma versão.
+  ///
+  /// Procura no [HISTORICO] e retorna a descrição das mudanças naquela versão.
+  ///
+  /// **Parâmetros:**
+  /// - `versao`: Versão a consultar
+  ///
+  /// **Retorna:** Descrição das mudanças ou "Versão desconhecida"
   static String obterDescricao(int versao) {
     return HISTORICO[versao] ?? 'Versão desconhecida';
   }
 
-  /// Retorna verdadeiro se a versão é suportada
+  /// Verifica se uma versão é suportada pelo app.
+  ///
+  /// Retorna `true` para versões iguais ou menores que [VERSAO_ATUAL].
+  ///
+  /// **Parâmetros:**
+  /// - `versao`: Versão a verificar
+  ///
+  /// **Retorna:** `true` se suportada, `false` caso contrário
   static bool ehSuportada(int versao) {
     return versao <= VERSAO_ATUAL;
   }
 
-  /// Obtém a próxima versão esperada
+  /// Calcula a próxima versão após a fornecida.
+  ///
+  /// Útil para preparar migrations e planning de futuras versões.
+  ///
+  /// **Parâmetros:**
+  /// - `versaoAtual`: Versão base
+  ///
+  /// **Retorna:** Versão incrementada (versaoAtual + 1)
   static int obterProximaVersao(int versaoAtual) => versaoAtual + 1;
 }
