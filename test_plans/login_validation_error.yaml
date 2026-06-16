@@ -1,0 +1,42 @@
+name: Login — Erro ao não aceitar termos (CT-LG01)
+description: Validar que botão login desabilita sem aceitar LGPD
+tier: smoke
+
+setup:
+  - action: launch_app
+    clear_cache: true
+
+steps:
+  # Tela de login deve estar visível
+  - action: wait_for_element
+    selector: text:FisioCare
+    timeout: 5s
+
+  # Tenta clicar login SEM marcar checkbox
+  - action: tap_text
+    text: Entrar com Google
+    timeout: 2s
+
+  # Deve exibir mensagem de erro
+  - action: wait_for_element
+    selector: text:Você precisa aceitar os Termos
+    timeout: 3s
+
+  # Verifica que permanece na tela de login
+  - action: wait_for_element
+    selector: text:FisioCare
+    timeout: 2s
+
+assertions:
+  - element: text:Você precisa aceitar os Termos de Uso e LGPD
+    visible: true
+    reason: Mensagem de erro deve aparecer
+
+  - element: text:FisioCare
+    visible: true
+    reason: Deve permanecer na tela de login
+
+tags:
+  - critical
+  - validation
+  - lgpd

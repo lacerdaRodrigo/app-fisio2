@@ -8,7 +8,7 @@ APP_VERSION := $(shell grep '^version: ' pubspec.yaml | sed 's/version: //')
 
 .DEFAULT_GOAL := help
 
-.PHONY: help dev dev-android dev-web prod-web prod-android check-android-oauth maestro-test maestro-check test lint
+.PHONY: help dev dev-android dev-web prod-web prod-android check-android-oauth maestro-test maestro-check test lint test-e2e
 
 help: ## Lista os comandos disponíveis
 	@echo "Comandos disponíveis:"
@@ -29,6 +29,9 @@ lint: ## Roda análise estática (flutter analyze)
 
 maestro-test: maestro-check ## Roda smoke E2E Maestro (.maestro/flows/smoke_app_abre.yaml)
 	maestro test .maestro/flows/smoke_app_abre.yaml
+
+test-e2e: ## Roda testes E2E com Patrol (Android device necessário)
+	patrol test -d android
 
 check-android-oauth: ## Verifica se google-services.json tem cliente OAuth Android
 	@if grep -q '"client_type": 1' android/app/google-services.json; then \

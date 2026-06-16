@@ -1,0 +1,69 @@
+name: Login com Google — Fluxo Feliz (CT-LG04)
+description: Usuário faz login com sucesso e vê Dashboard
+tier: smoke
+
+setup:
+  - action: launch_app
+    clear_cache: true
+    timeout: 10s
+
+steps:
+  # Tela de login deve estar visível
+  - action: wait_for_element
+    selector: text:FisioCare
+    timeout: 5s
+
+  # Marca checkbox de aceito termos
+  - action: tap
+    selector: type:Checkbox
+    wait_after: 500ms
+
+  # Clica botão "Entrar com Google"
+  - action: tap_text
+    text: Entrar com Google
+    timeout: 2s
+    wait_after: 2s
+
+  # Aguarda tela de login do Google (serviço externo)
+  - action: wait_for_element
+    selector: text:Gmail
+    timeout: 8s
+    fail_if_not_found: false  # Google pode variar em UI
+
+  # Seleciona primeira conta disponível (automático)
+  - action: tap_text
+    text: Rodrigo Lacerda
+    timeout: 5s
+    wait_after: 3s
+
+  # Autoriza acesso (clica OK se aparecer)
+  - action: tap_text
+    text: OK
+    timeout: 3s
+    fail_if_not_found: false
+    wait_after: 1s
+
+  # Dashboard deve aparecer
+  - action: wait_for_element
+    selector: text:Boa noite
+    timeout: 15s
+
+  - action: wait_for_element
+    selector: text:Rodrigo Lacerda
+    timeout: 5s
+
+assertions:
+  - element: text:Boa noite
+    visible: true
+
+  - element: text:Rodrigo Lacerda
+    visible: true
+
+  - element: type:BottomNavigationBar
+    visible: true
+    reason: Navegação inferior deve estar visível
+
+tags:
+  - critical
+  - login
+  - oauth
