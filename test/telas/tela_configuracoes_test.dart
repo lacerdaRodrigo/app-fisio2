@@ -3,7 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fisio_home_care/telas/tela_configuracoes.dart';
 import 'package:fisio_home_care/provedores/provedor_autenticacao.dart';
-import '../helpers/fakes.dart';
+import '../auxiliares/fakes.dart';
 
 Widget criarAppTeste() {
   return ProviderScope(
