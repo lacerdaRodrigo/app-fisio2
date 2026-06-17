@@ -12,6 +12,93 @@ class FakeRepositorioDadosGoogle extends Fake implements RepositorioDadosGoogle 
   Future<void> salvarPaciente(Paciente paciente) async {}
 }
 
+class RepositorioQueFalha extends Fake implements RepositorioDadosGoogle {
+  @override
+  Future<void> salvarPaciente(Paciente paciente) async {
+    throw Exception('falha simulada ao salvar');
+  }
+}
+
+class PacientesComDados extends ListaPacientesNotifier {
+  final List<Paciente> _dados;
+
+  PacientesComDados(this._dados);
+
+  @override
+  List<Paciente> build() => _dados;
+}
+
+Paciente _pacienteExistente({
+  String id = 'P005',
+  String cpf = '11144477735',
+}) {
+  return Paciente(
+    idPaciente: id,
+    nome: 'Paciente Existente',
+    telefone: '11999999999',
+    dataNascimento: DateTime(1980, 5, 10),
+    cpf: cpf,
+    endereco: 'Rua Velha',
+    situacao: 'Ativo',
+  );
+}
+
+/// Monta a tela numa superfície alta (todos os campos renderizados, sem
+/// scroll) e injeta lista de pacientes e repositório.
+Future<void> _montarTela(
+  WidgetTester tester, {
+  List<Paciente> pacientes = const [],
+  RepositorioDadosGoogle? repositorio,
+}) async {
+  await tester.binding.setSurfaceSize(const Size(1000, 4000));
+  addTearDown(() => tester.binding.setSurfaceSize(null));
+
+  await tester.pumpWidget(
+    ProviderScope(
+      overrides: [
+        provedorListaPacientes.overrideWith(() => PacientesComDados(pacientes)),
+        if (repositorio != null)
+          provedorRepositorioDados.overrideWith((ref) => repositorio),
+      ],
+      child: const MaterialApp(
+        localizationsDelegates: [
+          GlobalMaterialLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
+          GlobalCupertinoLocalizations.delegate,
+        ],
+        supportedLocales: [Locale('pt', 'BR'), Locale('en', 'US')],
+        home: TelaCadastroPaciente(),
+      ),
+    ),
+  );
+  await tester.pumpAndSettle();
+}
+
+/// Preenche os campos obrigatórios (nome, CPF, telefone, data, endereço, dor).
+Future<void> _preencherObrigatorios(
+  WidgetTester tester, {
+  String cpf = '52998224725',
+  String telefone = '11987654321',
+}) async {
+  await tester.enterText(find.byKey(const Key('campo_nome')), 'João Teste');
+  await tester.enterText(find.byKey(const Key('campo_cpf')), cpf);
+  await tester.enterText(find.byKey(const Key('campo_telefone')), telefone);
+  await tester.enterText(find.byKey(const Key('campo_escala_dor')), '5');
+
+  await tester.tap(find.byKey(const Key('campo_data_nascimento')));
+  await tester.pumpAndSettle();
+  await tester.tap(find.text('OK'));
+  await tester.pumpAndSettle();
+
+  await tester.tap(find.byKey(const Key('campo_endereco')));
+  await tester.pumpAndSettle();
+  await tester.enterText(find.byKey(const Key('campo_rua')), 'Rua A');
+  await tester.enterText(find.byKey(const Key('campo_bairro')), 'Centro');
+  await tester.enterText(find.byKey(const Key('campo_cidade')), 'São Paulo');
+  await tester.tap(find.byKey(const Key('btn_confirmar_endereco')));
+  await tester.pumpAndSettle();
+}
+
 Widget criarAppTeste() {
  return ProviderScope(
  overrides: [
@@ -481,6 +568,209 @@ group('TelaCadastroPaciente - Campos obrigatorios', () {
     await tester.pumpAndSettle();
 
     expect(find.text('Campos obrigatórios'), findsNothing);
+  });
+});
+
+group('TelaCadastroPaciente - Cobertura adicional', () {
+  testWidgets('botão fechar (X) aciona o retorno', (tester) async {
+    await tester.binding.setSurfaceSize(const Size(1000, 4000));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          provedorListaPacientes.overrideWith(() => ListaPacientesNotifier()),
+        ],
+        child: MaterialApp(
+          localizationsDelegates: const [
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+          ],
+          supportedLocales: const [Locale('pt', 'BR'), Locale('en', 'US')],
+          home: Scaffold(
+            body: Builder(
+              builder: (context) => ElevatedButton(
+                onPressed: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => const TelaCadastroPaciente(),
+                  ),
+                ),
+                child: const Text('abrir'),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('abrir'));
+    await tester.pumpAndSettle();
+    expect(find.text('Novo Paciente'), findsOneWidget);
+
+    await tester.tap(find.byKey(const Key('btn_fechar')));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Novo Paciente'), findsNothing);
+    expect(find.text('abrir'), findsOneWidget);
+  });
+
+  testWidgets('selecionar gênero no dropdown atualiza a seleção', (
+    tester,
+  ) async {
+    await _montarTela(tester);
+
+    await tester.tap(find.byKey(const Key('dropdown_genero')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Feminino').last);
+    await tester.pumpAndSettle();
+
+    final dropdown = tester.widget<DropdownButtonFormField<String>>(
+      find.byKey(const Key('dropdown_genero')),
+    );
+    expect(dropdown.initialValue, 'Feminino');
+  });
+
+  testWidgets('validação do formulário aceita o gênero selecionado', (
+    tester,
+  ) async {
+    await _montarTela(tester);
+
+    // O validador do dropdown só roda via Form.validate(); com um gênero
+    // selecionado (padrão "Masculino") a validação passa.
+    final form = tester.state<FormState>(find.byType(Form));
+    expect(form.validate(), isTrue);
+  });
+
+  testWidgets('telefone com menos de 10 dígitos é sinalizado', (tester) async {
+    await _montarTela(tester);
+
+    await tester.enterText(find.byKey(const Key('campo_telefone')), '119999');
+    await tester.tap(find.byKey(const Key('btn_salvar_paciente')));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Campos obrigatórios'), findsOneWidget);
+    expect(
+      find.text('Telefone inválido (mínimo 10 dígitos)'),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets('CPF já cadastrado exibe snackbar de erro', (tester) async {
+    await _montarTela(
+      tester,
+      pacientes: [_pacienteExistente(cpf: '52998224725')],
+      repositorio: FakeRepositorioDadosGoogle(),
+    );
+
+    await _preencherObrigatorios(tester, cpf: '52998224725');
+
+    await tester.tap(find.byKey(const Key('btn_salvar_paciente')));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Este CPF já está cadastrado.'), findsOneWidget);
+  });
+
+  testWidgets(
+    'salvar com todos os campos gera próximo ID e persiste a anamnese',
+    (tester) async {
+      final container = ProviderContainer(
+        overrides: [
+          provedorListaPacientes.overrideWith(
+            () => PacientesComDados([_pacienteExistente(id: 'P005')]),
+          ),
+          provedorRepositorioDados.overrideWith(
+            (ref) => FakeRepositorioDadosGoogle(),
+          ),
+        ],
+      );
+      addTearDown(container.dispose);
+      await tester.binding.setSurfaceSize(const Size(1000, 4000));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      await tester.pumpWidget(
+        UncontrolledProviderScope(
+          container: container,
+          child: const MaterialApp(
+            localizationsDelegates: [
+              GlobalMaterialLocalizations.delegate,
+              GlobalWidgetsLocalizations.delegate,
+              GlobalCupertinoLocalizations.delegate,
+            ],
+            supportedLocales: [Locale('pt', 'BR'), Locale('en', 'US')],
+            home: TelaCadastroPaciente(),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await _preencherObrigatorios(tester);
+
+      // Preencher todos os campos opcionais de anamnese.
+      await tester.enterText(
+        find.byKey(const Key('campo_queixa')),
+        'Dor lombar',
+      );
+      await tester.enterText(find.byKey(const Key('campo_hda')), 'HDA texto');
+      await tester.enterText(find.byKey(const Key('campo_hp')), 'HP texto');
+      await tester.enterText(
+        find.byKey(const Key('campo_ocupacao')),
+        'Professor',
+      );
+      await tester.enterText(
+        find.byKey(const Key('campo_comorbidades')),
+        'Hipertensão',
+      );
+      await tester.enterText(
+        find.byKey(const Key('campo_medicamentos')),
+        'Losartana',
+      );
+      await tester.enterText(
+        find.byKey(const Key('campo_alergias')),
+        'Dipirona',
+      );
+      await tester.enterText(
+        find.byKey(const Key('campo_cirurgias')),
+        'Apendicectomia',
+      );
+      await tester.enterText(
+        find.byKey(const Key('campo_habitos')),
+        'Sedentário',
+      );
+
+      await tester.tap(find.byKey(const Key('btn_salvar_paciente')));
+      await tester.pumpAndSettle();
+
+      final pacientes = container.read(provedorListaPacientes);
+      expect(pacientes, hasLength(2));
+      final novo = pacientes.last;
+      expect(novo.idPaciente, 'P006'); // próximo ID após P005
+      expect(novo.queixaPrincipal, 'Dor lombar');
+      expect(novo.histDoencaAtual, 'HDA texto');
+      expect(novo.histPregresso, 'HP texto');
+      expect(novo.ocupacao, 'Professor');
+      expect(novo.comorbidades, 'Hipertensão');
+      expect(novo.medicamentos, 'Losartana');
+      expect(novo.alergias, 'Dipirona');
+      expect(novo.cirurgias, 'Apendicectomia');
+      expect(novo.habitosVida, 'Sedentário');
+    },
+  );
+
+  testWidgets('falha ao salvar exibe snackbar de erro', (tester) async {
+    await _montarTela(tester, repositorio: RepositorioQueFalha());
+
+    await _preencherObrigatorios(tester);
+
+    await tester.tap(find.byKey(const Key('btn_salvar_paciente')));
+    await tester.pumpAndSettle();
+
+    expect(
+      find.text('Ocorreu um erro inesperado. Tente novamente.'),
+      findsOneWidget,
+    );
   });
 });
 }

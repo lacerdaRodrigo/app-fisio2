@@ -1,16 +1,104 @@
-# 🎨 Testes de Widget (40 testes)
+# 🎨 Testes de Widget (118 testes)
 
 Testes de componentes visuais: telas, interação do usuário, estados UI.
 
 ---
 
-## test/widgets/telas/ (40 testes | 6 arquivos)
+## test/widgets/telas/ (118 testes | 9 arquivos)
 
 Cada arquivo de teste representa uma tela da aplicação.
 
 ---
 
-### tela_cadastro_paciente_test.dart (6 testes)
+### tela_dashboard_test.dart (16 testes — 100% de cobertura)
+
+**Tela:** Início (home após login) — cabeçalho, cards de resumo, agenda do dia,
+pendências, navegação inferior e FABs.
+
+```dart
+// Estados de carregamento
+✓ Estado carregando exibe indicador de progresso
+✓ Estado erro exibe mensagem e botão "Tentar novamente" (reexecuta carga)
+
+// Cabeçalho e cards
+✓ Cabeçalho mostra nome e inicial do usuário
+✓ Tocar no avatar abre as Configurações
+✓ Cards de resumo exibem títulos e contagens (cadastrados, ativos)
+✓ Agenda vazia exibe estado "Tudo limpo!"
+
+// Interação com cards
+✓ Card "Pacientes Cadastrados" abre a aba Pacientes
+✓ Card "Pacientes Ativos" abre a aba Pacientes
+✓ Card "Total de Evoluções" navega para o histórico
+✓ Card "Agenda do Dia" rola a lista sem erros
+
+// Navegação inferior e FAB
+✓ Barra inferior alterna abas (Início/Sessões/Pacientes) e mostra os FABs corretos
+✓ FAB "Novo Paciente" abre o cadastro de paciente
+✓ FAB "Nova Sessão" abre a tela de nova sessão
+
+// Agenda e pendências
+✓ Lista sessões de hoje com status Agendado e Atrasado
+✓ Pendências de dias anteriores aparecem (com paciente ausente → "Paciente não encontrado")
+✓ Menu de ações da sessão abre opções e diálogo de confirmação
+```
+
+> Usa notifiers de teste (`CarregamentoComEstado`, `PacientesComDados`,
+> `AgendamentosComDados`) para injetar o estado "carregado" e evitar a chamada
+> real ao Google Sheets disparada no `initState`.
+
+---
+
+### tela_nova_sessao_test.dart (9 testes — 100% de cobertura)
+
+**Tela:** Agendamento de nova sessão — seleção de paciente, data, horário,
+valor e observações.
+
+```dart
+// Renderização
+✓ Exibe título, campos e valor padrão preenchido (150,00)
+✓ Sem pacientes ativos exibe aviso de cadastro
+
+// Validação
+✓ Agendar sem selecionar paciente mostra erro de validação
+✓ Paciente selecionado sem data/hora não agenda (retorno silencioso)
+
+// Seletores e agendamento
+✓ Selecionar data preenche o campo de data
+✓ Data/horário retroativo exibe mensagem de erro
+✓ Agendamento válido salva e volta para a tela anterior
+✓ Falha ao salvar exibe snackbar de erro
+
+// Navegação
+✓ Botão fechar (X) aciona o retorno
+```
+
+> Usa `FakeRepositorioDadosGoogle` / `RepositorioQueFalha` para os caminhos de
+> sucesso e erro. O seletor de horário é acionado em modo de digitação, com o
+> finder escopado ao `Dialog` (evita capturar os campos da tela por trás);
+> `MediaQuery.alwaysUse24HourFormat` força o formato 24h.
+
+---
+
+### tela_login_test.dart (6 testes)
+
+**Tela:** Login com Google — checkbox LGPD, links legais, botão de entrada.
+
+```dart
+✓ Exibir título, subtítulo e botão "Entrar com Google"
+✓ Exibir checkbox de termos e os links legais (Termos de Uso, Política LGPD)
+✓ Checkbox começa desmarcado e sem mensagem de erro
+✓ Tocar no checkbox marca os termos como aceitos
+✓ Entrar sem aceitar os termos exibe erro e não chama o serviço
+✓ Aceitar termos e entrar chama o serviço e exibe indicador de carregamento
+```
+
+> Usa `ServicoAutenticacaoGoogleControlavel` (fake com `Completer`) para
+> inspecionar o estado de carregamento sem disparar a navegação ao dashboard.
+
+---
+
+### tela_cadastro_paciente_test.dart (22 testes — 100% de cobertura)
 
 **Tela:** Cadastro de novo paciente — formulário com validação de campos obrigatórios.
 
@@ -47,126 +135,179 @@ Cada arquivo de teste representa uma tela da aplicação.
 ✓ CT-F6: Dialog fecha ao clicar OK
 ```
 
+#### Cobertura adicional (7 testes)
+```dart
+✓ Botão fechar (X) aciona o retorno
+✓ Selecionar gênero no dropdown atualiza a seleção
+✓ Validação do formulário aceita o gênero selecionado
+✓ Telefone com menos de 10 dígitos é sinalizado
+✓ CPF já cadastrado exibe snackbar de erro
+✓ Salvar com todos os campos gera próximo ID (P005 → P006) e persiste a anamnese
+✓ Falha ao salvar exibe snackbar de erro
+```
+
+> Usa `FakeRepositorioDadosGoogle` / `RepositorioQueFalha` e `PacientesComDados`
+> para os caminhos de sucesso, erro e CPF duplicado. Os testes que preenchem
+> todos os campos montam a tela numa superfície alta (1000×4000) para evitar
+> scroll e usam as `Key`s dos campos.
+
 ---
 
-### tela_pacientes_test.dart (5 testes)
+### tela_pacientes_test.dart (12 testes — 100% de cobertura)
 
-**Tela:** Lista de pacientes com filtros e busca.
+**Tela:** Lista de pacientes com filtros (Todos/Ativos/Arquivados), busca e
+modal de detalhes.
 
 ```dart
+// Filtro de arquivados (originais)
 ✓ Exibir apenas pacientes ativos por padrão
-  • Pacientes com situacao = 'Ativo' visíveis
-  • Pacientes com situacao = 'Arquivado' ocultos
-
 ✓ Toggle "Arquivados" exibe inativos
-  • Clica no toggle
-  • Visualiza apenas pacientes arquivados
+✓ Desativar o toggle volta a ocultar arquivados
 
+// Badge e contagem
 ✓ Badge "Arquivado" exibido no card
-  • Card mostra indicador visual
+✓ Contagem correta de pacientes ativos ("2 ativos")
+✓ Filtro "Todos" exibe contagem total ("2 total")
 
-✓ Contagem correta de pacientes ativos
-  • Counter/badge atualiza
+// Busca
+✓ Busca filtra por nome
+✓ Busca filtra por CPF
+✓ Botão limpar restaura a lista completa
+✓ Lista vazia exibe estado vazio ("Nenhum paciente encontrado.")
 
-✓ Busca por nome/CPF funciona
-  • TextField de busca filtra resultados
+// Interação
+✓ Tocar no card abre o modal de detalhes (seções Telefone/Endereço)
+✓ Mudar filtroInicial atualiza o filtro (didUpdateWidget)
 ```
+
+> Usa `PacientesNotifierComDados` para injetar a lista. A busca por CPF usa um
+> paciente com CPF numérico (o filtro de CPF é case-sensitive).
 
 ---
 
-### tela_registro_evolucao_test.dart (6 testes)
+### tela_registro_evolucao_test.dart (23 testes — 100% de cobertura)
 
-**Tela:** Registro de evolução clínica — criar novo ou editar existente.
+**Tela:** Registro de evolução clínica — criar novo, editar existente, transcrição
+por voz. *(O arquivo também cobre a timeline `TelaHistoricoEvolucoes`.)*
 
 ```dart
-✓ Modo "Registrar Evolução" (novo)
-  • Título exibe "Registrar Evolução"
-  • Botão "Salvar Evolução"
+// Modos (originais)
+✓ Modo novo: título "Registrar Evolução" + botão "Salvar Evolução"
+✓ Modo edição (<24h): título "Editar Evolução" + botão "Atualizar Evolução"
+✓ Pré-preenche campos a partir da evolução existente
+✓ Sem banner de bloqueio quando <24h
+✓ Modo readonly (>24h): exibe banner de bloqueio e oculta o botão salvar
+✓ Timeline: botão "Editar" só aparece para evoluções <24h
 
-✓ Modo "Editar Evolução" (existente)
-  • Título exibe "Editar Evolução"
-  • Botão "Atualizar Evolução"
+// Inicialização com agendamento
+✓ Usa horários do agendamento e exibe o horário no cabeçalho
 
-✓ Pré-preenchimento ao editar
-  • Texto clínico carregado
-  • Protocolo selecionado
-  • Datas preenchidas
+// Interação de campos
+✓ Status "Ausente" exibe "Condição: Faltou"
+✓ Altera local de atendimento
+✓ Altera condição clínica
+✓ Seleciona horários reais pelo time picker (início e fim)
 
-✓ Banner de bloqueio (editar após 24h)
-  • Evolução com > 24h mostra banner
-  • Botão editar desabilitado
+// Validação e salvamento
+✓ Salvar sem evolução técnica mostra erro de validação
+✓ Salvar nova evolução com sucesso volta à tela anterior
+✓ Editar evolução existente atualiza com sucesso
+✓ Falha ao salvar exibe snackbar de erro
+✓ Salvar como Ausente grava condição "Faltou"
 
-✓ Botão editar/atualizar contexto-sensível
-  • Se < 24h: botão ativo
-  • Se > 24h: botão desabilitado
-
-✓ Reavaliação vs avaliação
-  • Dropdown com protocolos corretos
+// Navegação e microfone
+✓ Botão voltar aciona o retorno
+✓ Microfone indisponível exibe aviso
+✓ Microfone disponível transcreve (resultado final) e encerra
 ```
+
+> Microfone testado com um fake de `SpeechToTextPlatform` (dev-dependency
+> `speech_to_text_platform_interface`); o timer interno de "final timeout" (2s)
+> é drenado descartando a tela e avançando o relógio. Time picker em modo de
+> digitação com finder escopado ao `Dialog`.
 
 ---
 
-### tela_sessoes_test.dart (5 testes)
+### tela_sessoes_test.dart (12 testes — 100% de cobertura)
 
-**Tela:** Histórico de sessões agendadas, realizadas, canceladas, faltas.
+**Tela:** Histórico de sessões com filtros por período/status, busca e duas
+visualizações (lista e por paciente).
 
 ```dart
-✓ Filtro "Canceladas" funciona
-  • Exibe apenas sessões com Situacao = 'Cancelado*'
+// Filtros e busca (originais)
+✓ Filtro "Canceladas" exibe apenas sessões canceladas
+✓ Filtro "Faltas" exibe apenas faltas (com/sem aviso)
+✓ Busca por nome do paciente filtra a lista
+✓ Agrupamento por paciente (visualização "Por paciente")
+✓ Visualização de histórico (lista com status, data, hora, paciente)
 
-✓ Filtro "Faltas" funciona
-  • Exibe apenas sessões com 'Faltou com/sem aviso'
+// Busca e estado vazio
+✓ Botão limpar apaga o termo de busca
+✓ Estado vazio mostra o rótulo de cada filtro (todas, hoje, futuras,
+  pendentes, canceladas, faltas, realizadas)
 
-✓ Busca por nome do paciente
-  • TextField filtra por nome
+// Filtros por período e status
+✓ Filtro "Futuras" mostra apenas sessões futuras
+✓ Filtro "Pendentes" mostra sessões atrasadas/de dias anteriores
+✓ Filtro "Realizadas" mostra apenas sessões realizadas
+✓ Filtro "Hoje" mostra sessões do dia
 
-✓ Agrupamento por paciente
-  • Sessões de mesmo paciente agrupadas
-
-✓ Visualização de histórico
-  • Lista com status, data, hora, paciente visível
+// Ações da sessão
+✓ Menu de ações na lista abre o diálogo de confirmação
+✓ Visão por paciente ordena vários pacientes e aciona o menu de ações
 ```
+
+> Usa notifiers de teste (`PacientesNotifierComDados`,
+> `AgendamentosNotifierComDados`) para injetar pacientes e agendamentos.
+> Chips fora da tela são revelados com `tester.ensureVisible` antes do toque.
 
 ---
 
-### tela_configuracoes_test.dart (4 testes)
+### tela_configuracoes_test.dart (11 testes — 100% de cobertura)
 
-**Tela:** Configurações, perfil do usuário, logout.
+**Tela:** Configurações — valor padrão da sessão, dados/privacidade
+(planilha e termos), conta (logout) e logs de auditoria.
 
 ```dart
-✓ Exibir card "Conta" com botão "Sair"
-  • Card visível
-  • Botão "Sair da conta" presente
-  • Descrição: "Desconecta o Google e volta ao login"
+// Conta e logout (originais)
+✓ Exibe o cartão "Conta" com o botão "Sair da conta" e descrição
+✓ Botão "Sair da conta" abre diálogo de confirmação ("Tem certeza?")
+✓ Cancelar o diálogo mantém na TelaConfiguracoes
+✓ Exibe o título "Configurações"
+✓ Confirmar logout navega para a TelaLogin
 
-✓ Botão "Sair" abre diálogo de confirmação
-  • Clica em "Sair da conta"
-  • Dialog aparece: "Tem certeza?"
-  • Opções: "Cancelar" e "Sair"
+// Valor padrão da sessão
+✓ Salvar valor vazio mostra aviso ("Informe um valor padrão.")
+✓ Salvar valor com sucesso mostra confirmação ("Valor padrão salvo.")
+✓ Falha ao salvar exibe snackbar de erro
 
-✓ Cancelar mantém na tela
-  • Clica em "Cancelar"
-  • Dialog fecha
-  • Continua em TelaConfiguracoes
-
-✓ Título "Configurações" exibido
-  • Header com título correto
+// Dados e privacidade
+✓ Logs de auditoria são exibidos quando existem
+✓ Visualizar termos abre e fecha o diálogo (LGPD)
+✓ Abrir planilha com falha exibe snackbar de erro
 ```
+
+> Usa `FakeRepoConfig` / `RepoConfigQueFalha` para os caminhos de sucesso e
+> erro ao salvar o valor padrão, `LogsComDados` para injetar os logs de
+> auditoria e `_PlanilhaIdFixo` para o ID da planilha. A abertura da planilha
+> é testada via mock do canal `plugins.flutter.io/url_launcher` retornando
+> `false` (falha de abertura).
 
 ---
 
-### tela_historico_geral_evolucoes_test.dart (2 testes)
+### tela_historico_geral_evolucoes_test.dart (7 testes — 100% de cobertura)
 
-**Tela:** Timeline de todas as evoluções clínicas, agrupadas por paciente.
+**Tela:** Histórico geral de todas as evoluções clínicas, com busca e duas
+visualizações (lista e por paciente).
 
 ```dart
-✓ Buscar por texto clínico
-  • TextField filtra por conteúdo
-  • Resultados atualizados em tempo real
-
-✓ Agrupar por paciente
-  • Evoluções do mesmo paciente agrupadas
-  • Expansão/colapso de grupos
+✓ Buscar evolução por texto clínico
+✓ Agrupar evoluções por paciente (visualização "Por paciente")
+✓ Estado vazio quando não há evoluções ("Nenhuma evolução registrada ainda.")
+✓ Botão limpar restaura a lista completa
+✓ Cores de condição (Piora e Faltou) são exibidas
+✓ Visão por paciente ordena vários pacientes (comparador de nomes)
+✓ Botão voltar aciona o retorno
 ```
 
 ---
@@ -222,20 +363,13 @@ flutter test test/widgets/telas/tela_pacientes_test.dart
 
 | Tela | Status | Testes | Cobertura |
 |---|---|---|---|
-| Cadastro Paciente | ✅ | 6 | Validação, endereço, anamnese |
-| Lista Pacientes | ✅ | 5 | Filtros, busca, status |
-| Registro Evolução | ✅ | 6 | Criar/editar, bloqueios, protocolo |
-| Sessões/Agenda | ✅ | 5 | Filtros, busca, agrupamento |
-| Configurações | ✅ | 4 | Logout, diálogos |
-| Histórico Evoluções | ✅ | 2 | Busca, agrupamento |
-| **Total** | **✅** | **40** | Telas principais cobertas |
-
----
-
-## Telas SEM Testes
-
-As telas abaixo não têm testes de widget porque:
-- **TelaDashboard:** Complexa (múltiplos cards, navegação). Cobertura via integração com telas secundárias.
-- **TelaNovaSessao:** Depende de TelaPacientes. Testar agendamento via tela_sessoes.dart.
-
-Podem ser adicionadas em futuras iterações se necessário.
+| Login | ✅ | 6 | Termos LGPD, login Google |
+| Dashboard | ✅ | 16 | 100% |
+| Cadastro Paciente | ✅ | 22 | 100% |
+| Lista Pacientes | ✅ | 12 | 100% |
+| Nova Sessão | ✅ | 9 | 100% |
+| Registro Evolução | ✅ | 23 | 100% |
+| Sessões/Agenda | ✅ | 12 | 100% |
+| Configurações | ✅ | 11 | 100% |
+| Histórico Evoluções | ✅ | 7 | 100% |
+| **Total** | **✅** | **118** | Todas as telas principais cobertas |

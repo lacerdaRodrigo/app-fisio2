@@ -1,6 +1,6 @@
 # 📋 Testes Automatizados — Visão Geral
 
-**Status:** ✅ 129 testes passando | 1.800 linhas de código de teste
+**Status:** ✅ 207 testes passando | 1.800 linhas de código de teste
 
 ---
 
@@ -10,10 +10,10 @@ O projeto utiliza **apenas testes unitários e de widget** (sem E2E automatizado
 
 | Categoria | Quantidade | % | Focos |
 |---|---|---|---|
-| **Unit — Utilitários** | 67 | 52% | Validadores, formatadores, utilitários |
-| **Unit — Modelos** | 22 | 17% | Serialização, transformação, cópia |
-| **Widget — Telas** | 40 | 31% | UI, interação, estados visuais |
-| **TOTAL** | **129** | **100%** | — |
+| **Unit — Utilitários** | 67 | 32% | Validadores, formatadores, utilitários |
+| **Unit — Modelos** | 22 | 11% | Serialização, transformação, cópia |
+| **Widget — Telas** | 118 | 57% | UI, interação, estados visuais |
+| **TOTAL** | **207** | **100%** | — |
 
 ---
 
@@ -32,14 +32,17 @@ test/
 │       ├── utilitarios_data_test.dart   (12 testes)
 │       ├── validador_cpf_test.dart      (9 testes)
 │       └── validadores_test.dart        (46 testes)
-└── widgets/                (40 testes — UI + componentes)
+└── widgets/                (118 testes — UI + componentes)
     └── telas/
-        ├── tela_cadastro_paciente_test.dart
-        ├── tela_configuracoes_test.dart
-        ├── tela_historico_geral_evolucoes_test.dart
-        ├── tela_pacientes_test.dart
-        ├── tela_registro_evolucao_test.dart
-        └── tela_sessoes_test.dart
+        ├── tela_login_test.dart               (6 testes)
+        ├── tela_dashboard_test.dart           (16 testes — 100% cobertura)
+        ├── tela_cadastro_paciente_test.dart  (22 testes — 100% cobertura)
+        ├── tela_configuracoes_test.dart       (11 testes — 100% cobertura)
+        ├── tela_historico_geral_evolucoes_test.dart (7 testes — 100% cobertura)
+        ├── tela_pacientes_test.dart          (12 testes — 100% cobertura)
+        ├── tela_registro_evolucao_test.dart  (23 testes — 100% cobertura)
+        ├── tela_sessoes_test.dart           (12 testes — 100% cobertura)
+        └── tela_nova_sessao_test.dart       (9 testes — 100% cobertura)
 ```
 
 ---
@@ -47,7 +50,7 @@ test/
 ## Como Rodar
 
 ```bash
-# Todos os 129 testes
+# Todos os 207 testes
 flutter test
 
 # Apenas unitários

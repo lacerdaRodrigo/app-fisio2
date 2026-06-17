@@ -46,7 +46,7 @@ fisio-home-care/
 │   │   ├── tela_registro_evolucao.dart
 │   │   ├── tela_historico_evolucoes.dart
 │   │   ├── tela_configuracoes.dart
-│   │   └── (7 telas + 2 principais não testadas)
+│   │   └── (telas principais — todas com testes de widget)
 │   │
 │   ├── componentes/
 │   │   ├── design_system.dart       # 🔑 Design tokens, cores, tipografia
@@ -95,14 +95,17 @@ fisio-home-care/
 │   │       ├── validador_cpf_test.dart      (9 testes)
 │   │       └── utilitarios_data_test.dart   (12 testes)
 │   │
-│   └── widgets/                     # 40 testes — UI + componentes
+│   └── widgets/                     # 118 testes — UI + componentes
 │       └── telas/
-│           ├── tela_cadastro_paciente_test.dart      (6 testes)
-│           ├── tela_pacientes_test.dart              (5 testes)
-│           ├── tela_registro_evolucao_test.dart      (6 testes)
-│           ├── tela_sessoes_test.dart                (5 testes)
-│           ├── tela_configuracoes_test.dart          (4 testes)
-│           └── tela_historico_geral_evolucoes_test.dart (2 testes)
+│           ├── tela_login_test.dart                  (6 testes)
+│           ├── tela_dashboard_test.dart              (16 testes — 100% cobertura)
+│           ├── tela_cadastro_paciente_test.dart      (22 testes — 100% cobertura)
+│           ├── tela_pacientes_test.dart              (12 testes — 100% cobertura)
+│           ├── tela_registro_evolucao_test.dart      (23 testes — 100% cobertura; inclui timeline)
+│           ├── tela_sessoes_test.dart                (12 testes — 100% cobertura)
+│           ├── tela_nova_sessao_test.dart             (9 testes — 100% cobertura)
+│           ├── tela_configuracoes_test.dart          (11 testes — 100% cobertura)
+│           └── tela_historico_geral_evolucoes_test.dart (7 testes — 100% cobertura)
 │
 ├── documentacao/
 │   ├── MODELO_DADOS.md              # Estrutura das 5 abas da planilha
@@ -116,9 +119,9 @@ fisio-home-care/
 │   ├── chaves.md                    # (no .gitignore) — credenciais
 │   └── testes/
 │       ├── README.md                # Índice de testes
-│       ├── VISAO_GERAL.md           # Overview 129 testes
+│       ├── VISAO_GERAL.md           # Overview 207 testes
 │       ├── UNITARIOS.md             # Detalhe dos 89 unitários
-│       └── WIDGETS.md               # Detalhe dos 40 widgets
+│       └── WIDGETS.md               # Detalhe dos 118 widgets
 │
 ├── QA/
 │   └── qa.md                        # Script QA manual (NOT E2E automatizado)
@@ -241,7 +244,7 @@ Paciente.calcularIdade()   // ✓ delega para UtilitariosData
 
 ---
 
-## Testes (129 testes automatizados)
+## Testes (207 testes automatizados)
 
 ### Estrutura
 
@@ -252,8 +255,8 @@ test/
 │   ├── modelos/        — 22 testes (serialização, transformação)
 │   └── utilitarios/    — 67 testes (validadores, data, CPF)
 │
-└── widgets/    (40 testes)
-    └── telas/  — 6 telas principais (UI, interação)
+└── widgets/    (118 testes)
+    └── telas/  — 9 telas principais (UI, interação)
 ```
 
 ### Rodar testes
@@ -283,7 +286,7 @@ flutter test --coverage
 ✅ **Validação de entrada** — 46 testes (CPF, telefone, nome, data)  
 ✅ **Modelos** — 22 testes (serialização, cópia, status)  
 ✅ **Utilitários** — 21 testes (idade, formatação)  
-✅ **UI + Interação** — 40 testes (6 telas principais)  
+✅ **UI + Interação** — 118 testes (9 telas principais — TODAS com 100% de cobertura)  
 
 ❌ **Não coberto:**
 - Google Sheets API real (usaria quota, seria lento)
@@ -346,7 +349,7 @@ flutter run
 | IDs agendamento/evolução por `length + 1` tem race condition | Revisar | 🟡 Média |
 | `BackdropFilter` reimplementado inline em telas | Consolidar em FisioGlass | 🟡 Média |
 | Lógica de popup duplicada em dashboard/sessoes | Centralizar em utilitarios | 🟡 Média |
-| Telas Dashboard e NovaSessao sem testes | Testar | 🟢 Baixa |
+| Todas as telas principais possuem testes de widget | — | ✅ |
 
 ---
 
@@ -374,7 +377,7 @@ make prod-android
 | `documentacao/ESPECIFICACOES_TELAS.md` | Requisitos funcionais das telas | ✅ |
 | `documentacao/SEGURANCA_E_DADOS.md` | LGPD, OAuth, modelo BYODB | ✅ |
 | `documentacao/IMPLEMENTAR.md` | Roadmap priorizado | ✅ |
-| `documentacao/testes/` | 129 testes automatizados | ✅ |
+| `documentacao/testes/` | 207 testes automatizados | ✅ |
 | `QA/qa.md` | Script QA manual (não é E2E) | ✅ |
 
 ---
