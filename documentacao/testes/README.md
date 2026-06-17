@@ -1,14 +1,14 @@
 # 📚 Documentação de Testes
 
-Guia completo dos 207 testes automatizados do Fisio Home Care.
+Guia completo dos 237 testes automatizados do Fisio Home Care.
 
 ---
 
 ## 📖 Documentos
 
 1. **[VISAO_GERAL.md](./VISAO_GERAL.md)** — Overview, estrutura, como rodar
-2. **[UNITARIOS.md](./UNITARIOS.md)** — 89 testes unitários (validadores, modelos)
-3. **[WIDGETS.md](./WIDGETS.md)** — 118 testes de widget (telas, UI)
+2. **[UNITARIOS.md](./UNITARIOS.md)** — 102 testes unitários (validadores, modelos, serviços)
+3. **[WIDGETS.md](./WIDGETS.md)** — 135 testes de widget (telas, componentes, utilitários)
 
 ---
 
@@ -34,10 +34,12 @@ flutter test test/unitarios/utilitarios/validadores_test.dart
 
 | Tipo | Quantidade | % |
 |---|---|---|
-| Unit — Utilitários | 67 | 32% |
-| Unit — Modelos | 22 | 11% |
-| Widget — Telas | 118 | 57% |
-| **TOTAL** | **207** | **100%** |
+| Unit — Utilitários | 75 | 32% |
+| Unit — Modelos | 22 | 9% |
+| Unit — Serviços | 5 | 2% |
+| Widget — Telas | 118 | 50% |
+| Widget — Componentes/Utilitários | 17 | 7% |
+| **TOTAL** | **237** | **100%** |
 
 ---
 
@@ -46,7 +48,7 @@ flutter test test/unitarios/utilitarios/validadores_test.dart
 ✅ **Validação de entrada** — CPF, telefone, nome, data, email  
 ✅ **Modelos de dados** — Serialização, transformação, cópia  
 ✅ **Utilitários** — Cálculo de idade, formatação de datas  
-✅ **UI e interação** — 9 telas principais com 118 cenários (TODAS as telas com 100% de cobertura)  
+✅ **UI e interação** — 9 telas principais (100% de cobertura) + modal de detalhes e ações de agendamento  
 
 ❌ **Não coberto:** Google Sheets API real, Google Sign-In real, E2E, performance
 
@@ -59,8 +61,11 @@ test/
 ├── unitarios/
 │   ├── auxiliares/
 │   ├── modelos/
+│   ├── servicos/
 │   └── utilitarios/
 └── widgets/
+    ├── componentes/
+    ├── utilitarios/
     └── telas/
 ```
 

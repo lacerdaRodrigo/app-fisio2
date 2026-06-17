@@ -1,6 +1,7 @@
-# 🎨 Testes de Widget (118 testes)
+# 🎨 Testes de Widget (135 testes)
 
-Testes de componentes visuais: telas, interação do usuário, estados UI.
+Testes de componentes visuais: telas, componentes reutilizáveis e utilitários
+de UI, interação do usuário e estados visuais.
 
 ---
 
@@ -312,6 +313,55 @@ visualizações (lista e por paciente).
 
 ---
 
+## test/widgets/componentes/ (11 testes | 1 arquivo)
+
+### modal_detalhes_paciente_test.dart (11 testes)
+
+**Componente:** Bottom sheet de detalhes do paciente — dados cadastrais,
+anamnese, última evolução, rotas (Maps/Waze) e ações de arquivar/restaurar.
+
+```dart
+✓ Exibe nome, telefone, endereço e seções clínicas preenchidas
+✓ Paciente ativo mostra a ação "Arquivar Paciente"
+✓ Paciente arquivado mostra a ação "Restaurar Paciente"
+✓ Última evolução é exibida para paciente ativo
+✓ Abrir opções de rota mostra Google Maps e Waze
+✓ Abrir rota com falha exibe snackbar
+✓ Cancelar o diálogo de arquivar mantém o modal
+✓ Arquivar com sucesso fecha o modal e mostra confirmação
+✓ Arquivar com erro exibe snackbar de erro
+✓ Restaurar com sucesso fecha o modal e mostra confirmação
+✓ Restaurar com erro exibe snackbar de erro
+```
+
+> Usa `FakeRepoModal` / `RepoModalQueFalha` para os caminhos de sucesso e erro
+> de arquivar/restaurar, `EvolucoesComDados` para a última evolução e mock do
+> canal `url_launcher` para a falha de rota. O botão de rota é revelado com
+> `tester.ensureVisible` antes do toque.
+
+---
+
+## test/widgets/utilitarios/ (6 testes | 1 arquivo)
+
+### acoes_agendamento_test.dart (6 testes — 96% de cobertura)
+
+**Utilitário:** `executarAcaoAgendamento` — registrar evolução ou aplicar
+desfecho (falta/cancelamento) a um agendamento.
+
+```dart
+✓ registrarEvolucao sem paciente não navega
+✓ registrarEvolucao com paciente navega para a tela
+✓ Ação de falta abre diálogo de confirmação
+✓ Cancelar o diálogo não atualiza a sessão
+✓ Confirmar atualiza a situação e exibe snackbar
+✓ Falha ao atualizar exibe snackbar de erro
+```
+
+> Usa `FakeRepoAcoes` / `RepoAcoesQueFalha` e `AgendamentosComDados`. A ação é
+> disparada a partir de um host `Consumer` que fornece o `WidgetRef`.
+
+---
+
 ## Padrão: testWidgets + Arrange-Act-Assert
 
 ```dart
@@ -372,4 +422,6 @@ flutter test test/widgets/telas/tela_pacientes_test.dart
 | Sessões/Agenda | ✅ | 12 | 100% |
 | Configurações | ✅ | 11 | 100% |
 | Histórico Evoluções | ✅ | 7 | 100% |
-| **Total** | **✅** | **118** | Todas as telas principais cobertas |
+| Modal Detalhes Paciente | ✅ | 11 | 93,9% |
+| Ações de Agendamento | ✅ | 6 | 96,2% |
+| **Total** | **✅** | **135** | Telas principais + componentes/utilitários |

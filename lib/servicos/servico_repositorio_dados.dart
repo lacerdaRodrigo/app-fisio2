@@ -5,6 +5,7 @@ import 'package:http/http.dart' as http;
 import '../modelos/agendamento.dart';
 import '../modelos/evolucao.dart';
 import '../modelos/paciente.dart';
+import '../utilitarios/gerador_id.dart';
 import '../utilitarios/utilitarios_data.dart';
 import 'preferencias.dart';
 import 'servico_google_drive.dart';
@@ -368,7 +369,10 @@ class RepositorioDadosGoogle {
         '${UtilitariosData.formatarDataBr(agora)} ${agora.hour.toString().padLeft(2, '0')}:${agora.minute.toString().padLeft(2, '0')}';
 
     await _sheets.inserirLinha(id, 'Auditoria', [
-      'L${(linhas.length + 1).toString().padLeft(3, '0')}',
+      GeradorId.proximo(
+        'L',
+        linhas.map((linha) => linha.isNotEmpty ? linha.first : ''),
+      ),
       data,
       operacao,
       detalhes,
@@ -381,41 +385,44 @@ class RepositorioDadosGoogle {
 
   Paciente _pacienteDeLinha(List<String> linhaOriginal) {
     final linha = _preencher(linhaOriginal, 19);
+    String col(String nome) => linha[Paciente.indicesColunas[nome]!];
+    String? colOuNull(String nome) => col(nome).isEmpty ? null : col(nome);
     return Paciente(
-      idPaciente: linha[0],
-      nome: linha[1],
-      telefone: linha[2],
-      dataNascimento: _parseDataBr(linha[3]),
-      cpf: linha[4],
-      endereco: linha[5],
-      queixaPrincipal: linha[6],
-      histDoencaAtual: linha[7],
-      histPregresso: linha[8],
-      ocupacao: linha[9],
-      situacao: linha[10].isEmpty ? 'Ativo' : linha[10],
-      dataCadastro: DateTime.tryParse(linha[11]) ?? DateTime.now(),
-      genero: linha[12].isEmpty ? null : linha[12],
-      dor: linha[13].isEmpty ? null : linha[13],
-      comorbidades: linha[14].isEmpty ? null : linha[14],
-      medicamentos: linha[15].isEmpty ? null : linha[15],
-      alergias: linha[16].isEmpty ? null : linha[16],
-      cirurgias: linha[17].isEmpty ? null : linha[17],
-      habitosVida: linha[18].isEmpty ? null : linha[18],
+      idPaciente: col('idPaciente'),
+      nome: col('nome'),
+      telefone: col('telefone'),
+      dataNascimento: _parseDataBr(col('dataNascimento')),
+      cpf: col('cpf'),
+      endereco: col('endereco'),
+      queixaPrincipal: colOuNull('queixaPrincipal'),
+      histDoencaAtual: colOuNull('histDoencaAtual'),
+      histPregresso: colOuNull('histPregresso'),
+      ocupacao: colOuNull('ocupacao'),
+      situacao: col('situacao').isEmpty ? 'Ativo' : col('situacao'),
+      dataCadastro: DateTime.tryParse(col('dataCadastro')) ?? DateTime.now(),
+      genero: colOuNull('genero'),
+      dor: colOuNull('dor'),
+      comorbidades: colOuNull('comorbidades'),
+      medicamentos: colOuNull('medicamentos'),
+      alergias: colOuNull('alergias'),
+      cirurgias: colOuNull('cirurgias'),
+      habitosVida: colOuNull('habitosVida'),
     );
   }
 
   Agendamento _agendamentoDeLinha(List<String> linhaOriginal) {
     final linha = _preencher(linhaOriginal, 9);
+    String col(String nome) => linha[Agendamento.indicesColunas[nome]!];
     return Agendamento(
-      idAgendamento: linha[0],
-      idPaciente: linha[1],
-      data: _parseDataBr(linha[2]),
-      horaInicio: linha[3],
-      horaFim: linha[4],
-      valorSessao: double.tryParse(linha[5].replaceAll(',', '.')) ?? 0,
-      observacoes: linha[6],
-      situacao: linha[7].isEmpty ? 'Agendado' : linha[7],
-      dataCriacao: DateTime.tryParse(linha[8]) ?? DateTime.now(),
+      idAgendamento: col('idAgendamento'),
+      idPaciente: col('idPaciente'),
+      data: _parseDataBr(col('data')),
+      horaInicio: col('horaInicio'),
+      horaFim: col('horaFim'),
+      valorSessao: double.tryParse(col('valorSessao').replaceAll(',', '.')) ?? 0,
+      observacoes: col('observacoes'),
+      situacao: col('situacao').isEmpty ? 'Agendado' : col('situacao'),
+      dataCriacao: DateTime.tryParse(col('dataCriacao')) ?? DateTime.now(),
     );
   }
 

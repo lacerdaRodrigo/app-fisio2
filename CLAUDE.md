@@ -79,23 +79,31 @@ fisio-home-care/
 │       ├── validador_cpf.dart       # Validação de CPF isolada
 │       ├── utilitarios_data.dart    # Cálculo de idade, formatação
 │       ├── acoes_agendamento.dart   # Lógica de desfechos
+│       ├── gerador_id.dart          # Geração de IDs sequenciais (max+1)
 │       ├── mensagens_erro_google.dart    # Mapear erros Google
 │       └── (constantes, helpers)
 │
 ├── test/
-│   ├── unitarios/                   # 89 testes — lógica pura
+│   ├── unitarios/                   # 102 testes — lógica pura
 │   │   ├── auxiliares/
 │   │   │   └── fakes.dart           # Mocks reutilizados
 │   │   ├── modelos/
 │   │   │   ├── paciente_test.dart           (9 testes)
 │   │   │   ├── agendamento_test.dart        (7 testes)
 │   │   │   └── evolucao_test.dart           (6 testes)
+│   │   ├── servicos/
+│   │   │   └── preferencias_test.dart       (5 testes)
 │   │   └── utilitarios/
 │   │       ├── validadores_test.dart        (46 testes)
 │   │       ├── validador_cpf_test.dart      (9 testes)
-│   │       └── utilitarios_data_test.dart   (12 testes)
+│   │       ├── utilitarios_data_test.dart   (12 testes)
+│   │       └── gerador_id_test.dart         (8 testes — 100% cobertura)
 │   │
-│   └── widgets/                     # 118 testes — UI + componentes
+│   └── widgets/                     # 135 testes — UI + componentes
+│       ├── componentes/
+│       │   └── modal_detalhes_paciente_test.dart   (11 testes)
+│       ├── utilitarios/
+│       │   └── acoes_agendamento_test.dart         (6 testes)
 │       └── telas/
 │           ├── tela_login_test.dart                  (6 testes)
 │           ├── tela_dashboard_test.dart              (16 testes — 100% cobertura)
@@ -244,19 +252,22 @@ Paciente.calcularIdade()   // ✓ delega para UtilitariosData
 
 ---
 
-## Testes (207 testes automatizados)
+## Testes (237 testes automatizados)
 
 ### Estrutura
 
 ```
 test/
-├── unitarios/  (89 testes)
+├── unitarios/  (102 testes)
 │   ├── auxiliares/     — fakes.dart (mocks reutilizados)
 │   ├── modelos/        — 22 testes (serialização, transformação)
-│   └── utilitarios/    — 67 testes (validadores, data, CPF)
+│   ├── servicos/       — 5 testes (preferencias)
+│   └── utilitarios/    — 75 testes (validadores, data, CPF, gerador_id)
 │
-└── widgets/    (118 testes)
-    └── telas/  — 9 telas principais (UI, interação)
+└── widgets/    (135 testes)
+    ├── telas/        — 9 telas principais (UI, interação)
+    ├── componentes/  — modal de detalhes do paciente
+    └── utilitarios/  — ações de agendamento
 ```
 
 ### Rodar testes
@@ -286,7 +297,7 @@ flutter test --coverage
 ✅ **Validação de entrada** — 46 testes (CPF, telefone, nome, data)  
 ✅ **Modelos** — 22 testes (serialização, cópia, status)  
 ✅ **Utilitários** — 21 testes (idade, formatação)  
-✅ **UI + Interação** — 118 testes (9 telas principais — TODAS com 100% de cobertura)  
+✅ **UI + Interação** — 135 testes (9 telas principais com 100% de cobertura + componentes/utilitários)  
 
 ❌ **Não coberto:**
 - Google Sheets API real (usaria quota, seria lento)
@@ -345,8 +356,8 @@ flutter run
 
 | Descrição | Status | Prioridade |
 |---|---|---|
-| `Evolucao.deLinhaPlanilha` usa índices literais (linha[0..13]) | Refazer | 🟡 Média |
-| IDs agendamento/evolução por `length + 1` tem race condition | Revisar | 🟡 Média |
+| Parsers `_pacienteDeLinha`/`_agendamentoDeLinha` usavam índices literais | Resolvido (usam `indicesColunas`) | ✅ |
+| IDs agendamento/evolução/auditoria por `length + 1` (race condition) | Resolvido (`GeradorId.proximo` usa max+1) | ✅ |
 | `BackdropFilter` reimplementado inline em telas | Consolidar em FisioGlass | 🟡 Média |
 | Lógica de popup duplicada em dashboard/sessoes | Centralizar em utilitarios | 🟡 Média |
 | Todas as telas principais possuem testes de widget | — | ✅ |
@@ -377,7 +388,7 @@ make prod-android
 | `documentacao/ESPECIFICACOES_TELAS.md` | Requisitos funcionais das telas | ✅ |
 | `documentacao/SEGURANCA_E_DADOS.md` | LGPD, OAuth, modelo BYODB | ✅ |
 | `documentacao/IMPLEMENTAR.md` | Roadmap priorizado | ✅ |
-| `documentacao/testes/` | 207 testes automatizados | ✅ |
+| `documentacao/testes/` | 237 testes automatizados | ✅ |
 | `QA/qa.md` | Script QA manual (não é E2E) | ✅ |
 
 ---
@@ -421,6 +432,6 @@ Para questões sobre estrutura, padrões ou decisões técnicas, **SEMPRE consul
 
 ---
 
-**Última atualização:** 2026-06-16  
+**Última atualização:** 2026-06-17  
 **Versão:** 1.0.6  
 **Branch ativo:** test-mobile

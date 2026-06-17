@@ -1,10 +1,10 @@
-# 📁 Testes Unitários (89 testes)
+# 📁 Testes Unitários (102 testes)
 
 Lógica pura: validação de entrada, transformação de dados, cálculos.
 
 ---
 
-## test/unitarios/utilitarios/ (67 testes)
+## test/unitarios/utilitarios/ (75 testes)
 
 ### validadores_test.dart (46 testes)
 
@@ -91,6 +91,38 @@ Manipulação de datas e horários.
 ✓ Identifica mesma semana
 ✓ Identifica mesmo mês
 ✓ Trata datas inválidas
+```
+
+### gerador_id_test.dart (8 testes — 100% de cobertura)
+
+Geração de IDs sequenciais (`A007`, `E012`, `L003`) a partir do maior número
+existente — evita a race condition do antigo `length + 1`.
+
+```dart
+✓ Lista vazia gera o primeiro ID (A001)
+✓ Incrementa a partir do maior número existente
+✓ Usa o maior número mesmo com buracos na numeração (evita colisão)
+✓ Ignora IDs com prefixo diferente
+✓ Ignora sufixos não numéricos
+✓ Ignora entradas vazias ou só com o prefixo
+✓ Respeita a largura customizada de padding
+✓ Não trunca números maiores que a largura
+```
+
+---
+
+## test/unitarios/servicos/ (5 testes)
+
+### preferencias_test.dart (5 testes)
+
+Persistência local via SharedPreferences (ID da planilha).
+
+```dart
+✓ lerPlanilhaId retorna null quando não há valor salvo
+✓ lerPlanilhaId retorna o valor previamente armazenado
+✓ salvarPlanilhaId persiste o valor
+✓ limparPlanilhaId remove o valor armazenado
+✓ salvar sobrescreve um valor existente
 ```
 
 ---

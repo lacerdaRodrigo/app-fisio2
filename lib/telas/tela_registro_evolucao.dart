@@ -6,6 +6,7 @@ import 'package:speech_to_text/speech_to_text.dart' as stt;
 import '../componentes/design_system.dart';
 import '../modelos/agendamento.dart';
 import '../utilitarios/formatters.dart';
+import '../utilitarios/gerador_id.dart';
 import '../modelos/evolucao.dart';
 import '../modelos/paciente.dart';
 import '../provedores/provedores_dados.dart';
@@ -620,7 +621,7 @@ class _TelaRegistroEvolucaoState extends ConsumerState<TelaRegistroEvolucao> {
 
     final idEvolucao = _editando
         ? widget.evolucaoExistente!.idEvolucao
-        : 'E${(evolucoes.length + 1).toString().padLeft(3, '0')}';
+        : GeradorId.proximo('E', evolucoes.map((e) => e.idEvolucao));
 
     final evolucao = Evolucao(
       idEvolucao: idEvolucao,

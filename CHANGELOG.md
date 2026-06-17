@@ -1,5 +1,22 @@
 # Changelog — Fisio Home Care
 
+## [Não lançado] — 2026-06-17
+
+### Qualidade
+- `flutter analyze` 100% limpo (eram 42 issues): aplicado `dart fix`, removido campo morto `_contaAtual` e constantes renomeadas para `lowerCamelCase` (`versaoAtual`, `historico`, `versaoEsquema`)
+- Cobertura global de testes subiu de ~80% para ~85% (237 testes, eram 207)
+
+### Correções de Bugs
+- **Índices literais:** `_pacienteDeLinha` e `_agendamentoDeLinha` em `servico_repositorio_dados.dart` agora usam `Paciente.indicesColunas` / `Agendamento.indicesColunas` em vez de `linha[0..18]` — cumpre a regra crítica do projeto
+- **Race condition de IDs:** geração de IDs por `length + 1` substituída por `GeradorId.proximo` (baseado no maior número existente) em nova sessão, registro de evolução e auditoria — evita IDs duplicados
+
+### Código
+- Novo utilitário `lib/utilitarios/gerador_id.dart` (geração de IDs sequenciais, 100% coberto)
+
+### Testes
+- Novos: `gerador_id_test.dart` (8), `preferencias_test.dart` (5), `modal_detalhes_paciente_test.dart` (11), `acoes_agendamento_test.dart` (6)
+- Teste da tela de configurações documentado (11 testes, 100% de cobertura)
+
 ## [Não lançado] — 2026-06-14
 
 ### Segurança

@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../componentes/design_system.dart';
 import '../modelos/agendamento.dart';
 import '../provedores/provedores_dados.dart';
+import '../utilitarios/gerador_id.dart';
 import '../utilitarios/utilitarios_data.dart';
 
 class TelaNovaSessao extends ConsumerStatefulWidget {
@@ -252,7 +253,10 @@ class _TelaNovaSessaoState extends ConsumerState<TelaNovaSessao> {
         0;
     final horaFim = dataHoraSelecionada.add(const Duration(hours: 1));
     final novoAgendamento = Agendamento(
-      idAgendamento: 'A${(agendamentos.length + 1).toString().padLeft(3, '0')}',
+      idAgendamento: GeradorId.proximo(
+        'A',
+        agendamentos.map((a) => a.idAgendamento),
+      ),
       idPaciente: _pacienteSelecionado!,
       data: DateTime(
         dataHoraSelecionada.year,
