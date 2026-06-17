@@ -17,7 +17,7 @@ Base: Flutter + Riverpod + Google Sheets API + Google Sign-In
 | **Arquitetura** | 8/10 | ✅ Riverpod bem estruturado, schema versioning, separação clara. Falta: algumas duplicações residuais em seletores |
 | **Qualidade de Código** | 8.5/10 | ✅ Lint rigoroso, 0 erros, 165 testes, sem código morto. Falta: documentação de métodos complexos |
 | **Testes** | 7.5/10 | ✅ 165 unitários (validadores, modelos, provedores, widgets). Falta: integração Sheets, performance/carga |
-| **DevOps/Deploy** | 6/10 | ✅ Makefile com targets (`test`, `lint`, `prod-web`, `prod-android`). Falta: CI/CD, automação E2E |
+| **DevOps/Deploy** | 6/10 | ✅ Makefile com targets (`test`, `lint`, `prod-web`, `prod-android`). Falta: CI/CD |
 
 ### O que foi corrigido nesta sessão (2026-06-14)
 
@@ -36,7 +36,6 @@ Base: Flutter + Riverpod + Google Sheets API + Google Sign-In
 ### Para atingir 9/10
 - [ ] Documentação formal de LGPD/Privacidade
 - [ ] CI/CD pipeline (GitHub Actions)
-- [ ] Testes E2E nightly no Android
 - [ ] Validação end-to-end Sheets API com fallbacks
 - [ ] Backup automático para Google Drive
 

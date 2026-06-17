@@ -11,7 +11,6 @@ App Flutter de Fisioterapia Domiciliar. O backend é serverless: usa **Google Sh
 - **Google Sheets API v4** como banco de dados
 - **Google Drive API** para localizar a planilha por nome
 - **Google Sign-In** para OAuth
-- **Mobilewright** (Playwright + Android) para testes E2E
 
 ## Estrutura de pastas
 
@@ -32,7 +31,6 @@ test/
   provedores/          # Testes de AutenticacaoNotificador, ProvedoresDados
   telas/               # Testes de widgets (tela_cadastro_paciente, etc.)
   servicos/            # Testes de VersaoEsquema
-  e2e/                 # Testes E2E Mobilewright (TypeScript)
 ```
 
 ## Banco de dados: Google Sheets
@@ -101,11 +99,6 @@ make lint                       # flutter analyze
 make test                       # flutter test
 ```
 
-Testes E2E (Android físico necessário):
-```bash
-npm run mobilewright:test
-```
-
 ## Publicar
 
 ```bash
@@ -124,4 +117,4 @@ make prod-android  # APK release
 | `documentacao/SEGURANCA_E_DADOS.md` | Modelo BYODB, LGPD, OAuth |
 | `documentacao/IMPLEMENTAR.md` | Backlog priorizado de features |
 | `documentacao/ESPECIFICACOES_TELAS.md` | Requisitos funcionais das telas |
-| `QA/qa.md` | Instruções de QA e aprendizados do Mobilewright |
+| `QA/qa.md` | Instruções de QA |

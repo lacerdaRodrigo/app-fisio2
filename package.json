@@ -1,6 +1,0 @@
-{
-  "scripts": {
-    "patrol:test": "patrol test -d android",
-    "patrol:build": "patrol build -d android"
-  }
-}

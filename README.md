@@ -61,12 +61,5 @@ make prod-web
 make prod-android
 ```
 
-### Maestro (E2E mobile)
-- Mobile MCP configurado em `.cursor/mcp.json` (reinicie o Cursor após clonar)
-- Flows em `.maestro/flows/`
-```bash
-make maestro-test
-```
-
 ## Segurança e LGPD
 O aplicativo opera num modelo soberano: o fisioterapeuta conecta a própria conta do Google e atua como Controlador dos dados. Não há servidores centrais de terceiros processando os prontuários.
