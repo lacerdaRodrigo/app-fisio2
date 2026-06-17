@@ -49,12 +49,12 @@ class TelaLogin extends ConsumerWidget {
         decoration: const BoxDecoration(gradient: FisioGradientes.hero),
         child: Stack(
           children: [
-            Positioned(
+            const Positioned(
               top: -90,
               left: -80,
               child: _OrbeDecorativo(color: FisioCores.primaryLight),
             ),
-            Positioned(
+            const Positioned(
               bottom: -90,
               right: -70,
               child: _OrbeDecorativo(color: Colors.white),
@@ -345,9 +345,9 @@ class TelaLogin extends ConsumerWidget {
     }
 
     if (!estadoAuth.termosAceitos) {
-      return ElevatedButton(
+      return const ElevatedButton(
         onPressed: null,
-        child: const Text('Aceite os termos para entrar'),
+        child: Text('Aceite os termos para entrar'),
       );
     }
 

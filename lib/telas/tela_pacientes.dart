@@ -83,9 +83,9 @@ class _TelaPacientesState extends ConsumerState<TelaPacientes> {
                   // Cabeçalho
                   Row(
                     children: [
-                      Text(
+                      const Text(
                         'Meus Pacientes',
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 22,
                           fontWeight: FontWeight.bold,
                           color: Color(0xFF1E293B),

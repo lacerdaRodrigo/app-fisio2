@@ -60,7 +60,7 @@ void mostrarModalDetalhesPaciente(BuildContext context, Paciente paciente) {
                                 backgroundColor: FisioCores.primary.withValues(
                                   alpha: 0.12,
                                 ),
-                                child: Icon(
+                                child: const Icon(
                                   Icons.person_rounded,
                                   color: FisioCores.primary,
                                 ),
@@ -412,7 +412,7 @@ Future<void> _arquivarPaciente(
   } catch (e) {
     if (!context.mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
+      const SnackBar(
         content: Text('Ocorreu um erro inesperado. Tente novamente.'),
         backgroundColor: Colors.red,
       ),
@@ -461,7 +461,7 @@ Future<void> _restaurarPaciente(
   } catch (e) {
     if (!context.mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
+      const SnackBar(
         content: Text('Ocorreu um erro inesperado. Tente novamente.'),
         backgroundColor: Colors.red,
       ),
@@ -570,9 +570,9 @@ class _UltimaCondicao extends ConsumerWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
+                const Text(
                   'Última evolução',
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 12,
                     color: FisioCores.textSecondary,
                   ),

@@ -104,7 +104,7 @@ class Paciente {
   factory Paciente.deLinhaPlanilha(List<String> linha) {
     // Validar dados básicos antes de processar
     if (linha.isEmpty) {
-      throw FormatException('Linha de paciente vazia');
+      throw const FormatException('Linha de paciente vazia');
     }
 
     String obterValor(String nomeColuna, {String padrao = ''}) {

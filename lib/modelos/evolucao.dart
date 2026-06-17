@@ -71,33 +71,33 @@ class Evolucao {
   }
 
   factory Evolucao.deLinhaPlanilha(List<String> linha) {
-    String _obterValor(String nomeColuna, {String padrao = ''}) {
+    String obterValor(String nomeColuna, {String padrao = ''}) {
       final idx = indicesColunas[nomeColuna] ?? -1;
       if (idx == -1 || idx >= linha.length) return padrao;
       final valor = linha[idx].trim();
       return valor.isEmpty ? padrao : valor;
     }
 
-    final horarioInicio = _parseHora(_obterValor('horarioInicioReal'));
-    final horarioFim = _parseHora(_obterValor('horarioFimReal'));
+    final horarioInicio = _parseHora(obterValor('horarioInicioReal'));
+    final horarioFim = _parseHora(obterValor('horarioFimReal'));
 
     return Evolucao(
-      idEvolucao: _obterValor('idEvolucao'),
-      idPaciente: _obterValor('idPaciente'),
-      idAgendamento: _obterValor('idAgendamento'),
-      dataAtendimento: _parseData(_obterValor('dataAtendimento')),
-      evolucaoTexto: _obterValor('evolucaoTexto'),
-      dataRegistro: DateTime.tryParse(_obterValor('dataRegistro')) ?? DateTime.now(),
-      localAtendimento: _obterValor('localAtendimento', padrao: 'Domicílio'),
-      statusPresenca: _obterValor('statusPresenca', padrao: 'Presente'),
-      dorSessao: int.tryParse(_obterValor('dorSessao', padrao: '0')) ?? 0,
+      idEvolucao: obterValor('idEvolucao'),
+      idPaciente: obterValor('idPaciente'),
+      idAgendamento: obterValor('idAgendamento'),
+      dataAtendimento: _parseData(obterValor('dataAtendimento')),
+      evolucaoTexto: obterValor('evolucaoTexto'),
+      dataRegistro: DateTime.tryParse(obterValor('dataRegistro')) ?? DateTime.now(),
+      localAtendimento: obterValor('localAtendimento', padrao: 'Domicílio'),
+      statusPresenca: obterValor('statusPresenca', padrao: 'Presente'),
+      dorSessao: int.tryParse(obterValor('dorSessao', padrao: '0')) ?? 0,
       horarioInicioReal: horarioInicio,
       horarioFimReal: horarioFim,
-      condicaoPaciente: _obterValor('condicaoPaciente', padrao: 'Melhora'),
-      pressaoArterial: _obterValor('pressaoArterial').isEmpty
+      condicaoPaciente: obterValor('condicaoPaciente', padrao: 'Melhora'),
+      pressaoArterial: obterValor('pressaoArterial').isEmpty
           ? null
-          : _obterValor('pressaoArterial'),
-      frequenciaCardiaca: int.tryParse(_obterValor('frequenciaCardiaca')),
+          : obterValor('pressaoArterial'),
+      frequenciaCardiaca: int.tryParse(obterValor('frequenciaCardiaca')),
     );
   }
 

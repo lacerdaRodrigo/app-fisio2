@@ -105,7 +105,7 @@ class RepositorioDadosGoogle {
     await _sheets.salvarVersaoEsquema(_planilhaId!);
     await Preferencias.salvarPlanilhaId(_planilhaId!);
     developer.log(
-      'Nova planilha criada com versão ${VersaoEsquema.VERSAO_ATUAL}',
+      'Nova planilha criada com versão ${VersaoEsquema.versaoAtual}',
       name: 'RepositorioDadosGoogle',
     );
     return _planilhaId!;

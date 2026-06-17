@@ -26,13 +26,13 @@
 /// ```
 class VersaoEsquema {
   /// Versão atual suportada pelo aplicativo.
-  static const int VERSAO_ATUAL = 1;
+  static const int versaoAtual = 1;
 
   /// Histórico de versões com descrição das mudanças.
   ///
   /// Cada entrada documenta as alterações de estrutura em cada versão.
   /// Útil para rastrear evolution do schema e gerar migration guides.
-  static const Map<int, String> HISTORICO = {
+  static const Map<int, String> historico = {
     1: 'Versão inicial com abas: Pacientes, Agenda, Evolucoes, Configuracoes, Auditoria',
   };
 
@@ -83,7 +83,7 @@ class VersaoEsquema {
       default:
         throw UnsupportedError(
           'Versão de esquema $versao não é suportada por este app. '
-          'Versão suportada: $VERSAO_ATUAL',
+          'Versão suportada: $versaoAtual',
         );
     }
   }
@@ -108,15 +108,15 @@ class VersaoEsquema {
   /// }
   /// ```
   static String? validar(int versaoSheets) {
-    if (versaoSheets > VERSAO_ATUAL) {
+    if (versaoSheets > versaoAtual) {
       return 'A planilha usa versão $versaoSheets, '
-          'mas este app suporta apenas até versão $VERSAO_ATUAL. '
+          'mas este app suporta apenas até versão $versaoAtual. '
           'Atualize o app para a versão mais recente.';
     }
 
-    if (versaoSheets < VERSAO_ATUAL) {
+    if (versaoSheets < versaoAtual) {
       return 'A planilha usa versão $versaoSheets, '
-          'mas este app requer versão $VERSAO_ATUAL. '
+          'mas este app requer versão $versaoAtual. '
           'Entre em contato com o suporte para migrar sua planilha.';
     }
 
@@ -125,26 +125,26 @@ class VersaoEsquema {
 
   /// Obtém a descrição/changelog de uma versão.
   ///
-  /// Procura no [HISTORICO] e retorna a descrição das mudanças naquela versão.
+  /// Procura no [historico] e retorna a descrição das mudanças naquela versão.
   ///
   /// **Parâmetros:**
   /// - `versao`: Versão a consultar
   ///
   /// **Retorna:** Descrição das mudanças ou "Versão desconhecida"
   static String obterDescricao(int versao) {
-    return HISTORICO[versao] ?? 'Versão desconhecida';
+    return historico[versao] ?? 'Versão desconhecida';
   }
 
   /// Verifica se uma versão é suportada pelo app.
   ///
-  /// Retorna `true` para versões iguais ou menores que [VERSAO_ATUAL].
+  /// Retorna `true` para versões iguais ou menores que [versaoAtual].
   ///
   /// **Parâmetros:**
   /// - `versao`: Versão a verificar
   ///
   /// **Retorna:** `true` se suportada, `false` caso contrário
   static bool ehSuportada(int versao) {
-    return versao <= VERSAO_ATUAL;
+    return versao <= versaoAtual;
   }
 
   /// Calcula a próxima versão após a fornecida.

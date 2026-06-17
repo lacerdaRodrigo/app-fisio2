@@ -79,7 +79,7 @@ Future<void> executarAcaoAgendamento(
   } catch (e) {
     if (!context.mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
+      const SnackBar(
         content: Text('Ocorreu um erro inesperado. Tente novamente.'),
         backgroundColor: FisioCores.danger,
       ),

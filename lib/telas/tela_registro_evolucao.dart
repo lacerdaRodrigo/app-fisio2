@@ -186,16 +186,16 @@ class _TelaRegistroEvolucaoState extends ConsumerState<TelaRegistroEvolucao> {
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: FisioCores.warning.withValues(alpha: 0.32)),
       ),
-      child: Row(
+      child: const Row(
         children: [
-          const Icon(
+          Icon(
             Icons.lock_outline_rounded,
             color: Color(0xFF92400E),
             size: 20,
           ),
-          const SizedBox(width: 10),
+          SizedBox(width: 10),
           Expanded(
-            child: const Text(
+            child: Text(
               'Evolução bloqueada — mais de 24h do registro',
               style: TextStyle(
                 fontSize: 13,
@@ -685,7 +685,7 @@ class _TelaRegistroEvolucaoState extends ConsumerState<TelaRegistroEvolucao> {
       if (!mounted) return;
       setState(() => _salvando = false);
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
+        const SnackBar(
           content: Text('Ocorreu um erro inesperado. Tente novamente.'),
           backgroundColor: Colors.red,
         ),

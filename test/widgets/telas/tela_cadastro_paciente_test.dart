@@ -106,13 +106,13 @@ Widget criarAppTeste() {
  () => ListaPacientesNotifier(),
  ),
  ],
- child: MaterialApp(
+ child: const MaterialApp(
  localizationsDelegates: [
  GlobalMaterialLocalizations.delegate,
  GlobalWidgetsLocalizations.delegate,
  ],
  home: TelaCadastroPaciente(),
-  supportedLocales: const [Locale('en', 'US')],
+  supportedLocales: [Locale('en', 'US')],
  ),
  );
 }
@@ -281,13 +281,13 @@ testWidgets('deve permitir salvar paciente sem preencher campos de anamnese', (
   await tester.pumpWidget(
     UncontrolledProviderScope(
       container: container,
-      child: MaterialApp(
+      child: const MaterialApp(
         localizationsDelegates: [
           GlobalMaterialLocalizations.delegate,
           GlobalWidgetsLocalizations.delegate,
         ],
         home: TelaCadastroPaciente(),
-        supportedLocales: const [Locale('en', 'US')],
+        supportedLocales: [Locale('en', 'US')],
       ),
     ),
   );
@@ -492,13 +492,13 @@ group('TelaCadastroPaciente - Campos obrigatorios', () {
     await tester.pumpWidget(
       UncontrolledProviderScope(
         container: container,
-        child: MaterialApp(
+        child: const MaterialApp(
           localizationsDelegates: [
             GlobalMaterialLocalizations.delegate,
             GlobalWidgetsLocalizations.delegate,
           ],
           home: TelaCadastroPaciente(),
-          supportedLocales: const [Locale('en', 'US')],
+          supportedLocales: [Locale('en', 'US')],
         ),
       ),
     );

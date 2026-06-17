@@ -9,7 +9,7 @@ class ServicoGoogleSheets {
   static const nomeBanco = '__saas_fisio_db__';
 
   /// Versão do esquema suportada por esta classe de serviço
-  static const int VERSAO_ESQUEMA = VersaoEsquema.VERSAO_ATUAL;
+  static const int versaoEsquema = VersaoEsquema.versaoAtual;
 
   static const cabecalhos = <String, List<String>>{
     'Pacientes': [
@@ -240,11 +240,11 @@ class ServicoGoogleSheets {
       await atualizarLinha(
         planilhaId,
         'Versao!A1:B1',
-        ['versao', VERSAO_ESQUEMA.toString()],
+        ['versao', versaoEsquema.toString()],
       );
 
       developer.log(
-        'Versão de esquema salva: $VERSAO_ESQUEMA',
+        'Versão de esquema salva: $versaoEsquema',
         name: 'ServicoGoogleSheets',
       );
     } catch (e, st) {

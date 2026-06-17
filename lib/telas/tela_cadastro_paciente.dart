@@ -189,10 +189,10 @@ class _TelaCadastroPacienteState extends ConsumerState<TelaCadastroPaciente> {
                         borderRadius: BorderRadius.circular(12),
                         onTap: () => _mostrarModalEndereco(),
                         child: InputDecorator(
-                          decoration: InputDecoration(
+                          decoration: const InputDecoration(
                             labelText: 'Endereço *',
-                            prefixIcon: const Icon(Icons.location_on_outlined),
-                            suffixIcon: const Icon(
+                            prefixIcon: Icon(Icons.location_on_outlined),
+                            suffixIcon: Icon(
                               Icons.edit_location_alt_rounded,
                             ),
                           ),
@@ -617,7 +617,7 @@ class _TelaCadastroPacienteState extends ConsumerState<TelaCadastroPaciente> {
       if (!mounted) return;
       setState(() => _salvando = false);
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
+        const SnackBar(
           content: Text('Ocorreu um erro inesperado. Tente novamente.'),
           backgroundColor: Colors.red,
         ),

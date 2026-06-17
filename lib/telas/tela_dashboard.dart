@@ -517,7 +517,7 @@ class _TelaDashboardState extends ConsumerState<TelaDashboard> {
             color: Colors.grey.shade300,
           ),
           const SizedBox(height: 12),
-          Text(
+          const Text(
             'Tudo limpo!',
             style: TextStyle(
               fontWeight: FontWeight.bold,

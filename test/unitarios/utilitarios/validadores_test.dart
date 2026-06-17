@@ -104,7 +104,7 @@ void main() {
     });
 
     test('rejeita data de nascimento no futuro', () {
-      final futuro = DateTime.now().add(Duration(days: 1));
+      final futuro = DateTime.now().add(const Duration(days: 1));
       expect(Validadores.validarDataNascimento(futuro), isFalse);
     });
 
@@ -114,7 +114,7 @@ void main() {
     });
 
     test('retorna mensagem de erro para data inválida', () {
-      final futuro = DateTime.now().add(Duration(days: 1));
+      final futuro = DateTime.now().add(const Duration(days: 1));
       final erro = Validadores.mensagemErroDataNascimento(futuro);
       expect(erro, isNotNull);
     });

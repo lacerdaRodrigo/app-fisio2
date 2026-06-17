@@ -75,7 +75,6 @@ class ServicoAutenticacaoGoogleReal implements ServicoAutenticacaoGoogle {
   final _contasController = StreamController<ContaGoogleConectada>.broadcast();
   final _sessoesController = StreamController<SessaoGoogle>.broadcast();
   late final GoogleSignIn _googleSignIn = _criarGoogleSignIn();
-  GoogleSignInAccount? _contaAtual;
   bool _inicializado = false;
 
   @override
@@ -97,7 +96,6 @@ class ServicoAutenticacaoGoogleReal implements ServicoAutenticacaoGoogle {
     final conta = await _googleSignIn.signInSilently();
     if (conta == null) return null;
 
-    _contaAtual = conta;
     return _criarSessao(conta);
   }
 
@@ -110,7 +108,6 @@ class ServicoAutenticacaoGoogleReal implements ServicoAutenticacaoGoogle {
       throw StateError('Login Google cancelado.');
     }
 
-    _contaAtual = conta;
     final sessao = _criarSessao(conta);
     _sessoesController.add(sessao);
     _contasController.add(
@@ -142,7 +139,6 @@ class ServicoAutenticacaoGoogleReal implements ServicoAutenticacaoGoogle {
   @override
   Future<void> sair() async {
     if (!_inicializado) return;
-    _contaAtual = null;
     await _googleSignIn.signOut();
   }
 }
