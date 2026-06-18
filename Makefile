@@ -8,7 +8,7 @@ APP_VERSION := $(shell grep '^version: ' pubspec.yaml | sed 's/version: //')
 
 .DEFAULT_GOAL := help
 
-.PHONY: help dev dev-android dev-web prod-web prod-android check-android-oauth maestro-test maestro-check test lint test-e2e
+.PHONY: help dev dev-android dev-web prod-web prod-android check-android-oauth maestro-test maestro-check test lint test-e2e ci-local release-dev release-prod
 
 help: ## Lista os comandos disponíveis
 	@echo "Comandos disponíveis:"
@@ -26,6 +26,36 @@ test: ## Roda todos os testes Flutter
 
 lint: ## Roda análise estática (flutter analyze)
 	flutter analyze
+
+# ---------------------------------------------------------------------------
+# CI/CD — fluxo via GitHub Actions (auxiliares -> develop -> master)
+# ---------------------------------------------------------------------------
+
+ci-local: ## Roda localmente o mesmo que a CI faz (lint + testes + build web)
+	flutter pub get
+	flutter analyze
+	flutter test --coverage
+	flutter build web --release --base-href=/
+	@echo "CI local OK — seguro para subir."
+
+release-dev: ## Mescla a branch atual na develop e publica o ambiente de testes (preview)
+	@BR=$$(git rev-parse --abbrev-ref HEAD); \
+	echo "Mesclando '$$BR' -> develop e enviando ao GitHub..."; \
+	git checkout develop && \
+	git merge --no-edit $$BR && \
+	git push origin develop && \
+	git checkout $$BR && \
+	echo "Pronto. Acompanhe o deploy em: https://github.com/lacerdaRodrigo/app-fisio2/actions"
+
+release-prod: ## Mescla develop -> master e PUBLICA EM PRODUÇÃO (dispara deploy de produção)
+	@echo "ATENÇÃO: isso publica no site OFICIAL (app-fisio-care-2.web.app)."
+	@printf "Confirma? [s/N] "; read ans; [ "$$ans" = "s" ] || [ "$$ans" = "S" ] || (echo "Cancelado." && exit 1)
+	@BR=$$(git rev-parse --abbrev-ref HEAD); \
+	git checkout master && \
+	git merge --no-edit develop && \
+	git push origin master && \
+	git checkout $$BR && \
+	echo "Deploy de produção disparado. Acompanhe em: https://github.com/lacerdaRodrigo/app-fisio2/actions"
 
 maestro-test: maestro-check ## Roda smoke E2E Maestro (.maestro/flows/smoke_app_abre.yaml)
 	maestro test .maestro/flows/smoke_app_abre.yaml

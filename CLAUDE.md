@@ -392,11 +392,21 @@ Pipeline em `.github/workflows/` seguindo GitFlow simplificado (branches auxilia
 
 | Secret | Conteúdo |
 |---|---|
-| `FIREBASE_SERVICE_ACCOUNT` | JSON da service account do projeto `app-fisio-care-2` (papel Firebase Hosting Admin). |
+| `FIREBASE_SERVICE_ACCOUNT` | **JSON da conta de serviço** (`"type": "service_account"` + `"private_key"`), gerado no Firebase Console → Contas de serviço. **Não** confundir com o arquivo OAuth Client. |
 | `GOOGLE_OAUTH_CLIENT_ID_WEB` | Client ID OAuth web. |
-| `GOOGLE_OAUTH_CLIENT_ID_ANDROID` | Client ID OAuth Android (pode ficar vazio — web-only por enquanto). |
+| `GOOGLE_OAUTH_CLIENT_ID_ANDROID` | Client ID OAuth Android (pode ser `none` — web-only por enquanto). |
 
 > Android está fora de escopo do CI atual (somente web). `google-services.json` não é necessário no CI.
+
+### Atalhos no Makefile
+
+```bash
+make ci-local      # roda localmente o mesmo que a CI (lint + testes + build web)
+make release-dev   # mescla a branch atual na develop → dispara deploy de testes (preview)
+make release-prod  # mescla develop → master → dispara deploy de produção (pede confirmação)
+```
+
+📚 Guia completo (uso, secrets, troubleshooting): `documentacao/CI_CD.md`.
 
 ---
 
@@ -413,6 +423,7 @@ Pipeline em `.github/workflows/` seguindo GitFlow simplificado (branches auxilia
 | `documentacao/SEGURANCA_E_DADOS.md` | LGPD, OAuth, modelo BYODB | ✅ |
 | `documentacao/IMPLEMENTAR.md` | Roadmap priorizado | ✅ |
 | `documentacao/testes/` | 237 testes automatizados | ✅ |
+| `documentacao/CI_CD.md` | Pipeline GitHub Actions: fluxo, secrets, uso e troubleshooting | ✅ |
 | `QA/qa.md` | Script QA manual (não é E2E) | ✅ |
 
 ---

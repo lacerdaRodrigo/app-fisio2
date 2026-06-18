@@ -8,6 +8,9 @@
   - `deploy-preview.yml`: deploy em preview channel do Firebase a cada push em `develop` (ambiente de testes)
   - `deploy-prod.yml`: push em `master` incrementa versão (patch), build, deploy live no Firebase e commita o bump (`[skip ci]`)
 - Auth do Firebase via Service Account (secret `FIREBASE_SERVICE_ACCOUNT`); Flutter pinado em 3.44.1
+- Logs dos workflows em PT-BR com checagem de credencial; ambiente de testes (`develop`) validado e publicando
+- Novos atalhos no `Makefile`: `ci-local`, `release-dev`, `release-prod`
+- Novo guia `documentacao/CI_CD.md` (fluxo, secrets, uso e troubleshooting)
 
 ### Qualidade
 - `flutter analyze` 100% limpo (eram 42 issues): aplicado `dart fix`, removido campo morto `_contaAtual` e constantes renomeadas para `lowerCamelCase` (`versaoAtual`, `historico`, `versaoEsquema`)
