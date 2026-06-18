@@ -376,13 +376,14 @@ make prod-android
 
 ## CI/CD (GitHub Actions)
 
-Pipeline em `.github/workflows/` seguindo GitFlow simplificado (branches auxiliares → `develop` → `master`):
+Pipeline em `.github/workflows/` com fluxo de duas branches (`develop` → `master`):
 
 | Workflow | Dispara em | O que faz |
 |---|---|---|
-| `ci.yml` | PR para `develop`/`master` e push em branches auxiliares | `flutter analyze` + `flutter test --coverage` + build web (smoke test). Não publica. |
 | `deploy-preview.yml` | push em `develop` | Lint + testes + build web → deploy em **preview channel** do Firebase (URL temporária, ambiente de testes). |
 | `deploy-prod.yml` | push em `master` | Lint + testes → incrementa versão (patch em `pubspec.yaml` + `web/version.json`) → build → deploy **live** no Firebase → commita o bump com `[skip ci]`. |
+
+> Não há workflow de CI separado: a verificação (lint + testes) está embutida nos dois deploys, então código quebrado nunca é publicado. Rode `make ci-local` para verificar localmente antes de subir.
 
 - **Flutter pinado** em `3.44.1` (via `subosito/flutter-action@v2`).
 - **Auth Firebase:** Service Account JSON em `FirebaseExtended/action-hosting-deploy@v0`.

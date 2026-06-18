@@ -11,6 +11,7 @@
 - Logs dos workflows em PT-BR com checagem de credencial; ambiente de testes (`develop`) validado e publicando
 - Novos atalhos no `Makefile`: `ci-local`, `release-dev`, `release-prod`
 - Novo guia `documentacao/CI_CD.md` (fluxo, secrets, uso e troubleshooting)
+- Simplificado para fluxo de duas branches: removido `ci.yml` (rodava em toda branch e duplicava execuções); verificação de qualidade agora embutida nos deploys de `develop` e `master`
 
 ### Qualidade
 - `flutter analyze` 100% limpo (eram 42 issues): aplicado `dart fix`, removido campo morto `_contaAtual` e constantes renomeadas para `lowerCamelCase` (`versaoAtual`, `historico`, `versaoEsquema`)
