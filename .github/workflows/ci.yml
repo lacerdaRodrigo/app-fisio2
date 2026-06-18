@@ -1,7 +1,8 @@
-name: CI
+name: CI - Verificação de Qualidade
 
-# Validação de qualidade: roda em toda PR para develop/master
-# e em pushes de branches auxiliares. Não publica nada.
+# Roda em toda PR para develop/master e em pushes de branches auxiliares.
+# Objetivo: garantir que o código compila, passa no lint e nos testes.
+# Esta pipeline NÃO publica nada.
 on:
   pull_request:
     branches: [develop, master]
@@ -13,26 +14,36 @@ jobs:
     name: Lint, testes e build web
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
+      - name: 📥 Baixar o código (checkout)
         uses: actions/checkout@v4
 
-      - name: Configurar Flutter
+      - name: 🐦 Instalar o Flutter (3.44.1)
         uses: subosito/flutter-action@v2
         with:
           channel: stable
           flutter-version: 3.44.1
           cache: true
 
-      - name: Instalar dependências
-        run: flutter pub get
+      - name: 📦 Baixar dependências (flutter pub get)
+        run: |
+          echo "::group::Baixando pacotes do projeto"
+          flutter pub get
+          echo "::endgroup::"
 
-      - name: Análise estática (lint)
-        run: flutter analyze
+      - name: 🔎 Análise estática (lint)
+        run: |
+          echo "Conferindo o código com 'flutter analyze'..."
+          flutter analyze
 
-      - name: Testes (com coverage)
-        run: flutter test --coverage
+      - name: 🧪 Rodar testes (com cobertura)
+        run: |
+          echo "Executando todos os testes do projeto..."
+          flutter test --coverage
 
-      # Smoke test de build — garante que o app web compila.
-      # Sem secrets: dart-defines vazios são suficientes para compilar.
-      - name: Build web (smoke test)
-        run: flutter build web --release --base-href=/
+      - name: 🌐 Compilar a versão web (teste de build)
+        run: |
+          echo "Garantindo que o app web compila sem erros..."
+          flutter build web --release --base-href=/
+
+      - name: ✅ Tudo certo
+        run: echo "Verificação concluída com sucesso! Código pronto para merge."
