@@ -13,6 +13,10 @@
 - Novo guia `documentacao/CI_CD.md` (fluxo, secrets, uso e troubleshooting)
 - Simplificado para fluxo de duas branches: removido `ci.yml` (rodava em toda branch e duplicava execuções); verificação de qualidade agora embutida nos deploys de `develop` e `master`
 
+### UI
+- Versão do app agora aparece **fixa em todas as telas** (canto inferior direito), via `VersaoOverlay` no `builder` do `MaterialApp` — antes `appVersao` existia mas não era exibido em lugar nenhum
+- Novos testes: `rodape_versao_test.dart` (3) — total 240 testes
+
 ### Qualidade
 - `flutter analyze` 100% limpo (eram 42 issues): aplicado `dart fix`, removido campo morto `_contaAtual` e constantes renomeadas para `lowerCamelCase` (`versaoAtual`, `historico`, `versaoEsquema`)
 - Cobertura global de testes subiu de ~80% para ~85% (237 testes, eram 207)

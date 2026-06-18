@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import 'componentes/design_system.dart';
+import 'componentes/rodape_versao.dart';
 import 'telas/tela_login.dart';
 
 void main() {
@@ -164,6 +165,8 @@ class FisioHomeCareApp extends StatelessWidget {
           backgroundColor: Colors.transparent,
         ),
       ),
+      builder: (context, child) =>
+          VersaoOverlay(child: child ?? const SizedBox.shrink()),
       home: const TelaLogin(),
     );
   }
