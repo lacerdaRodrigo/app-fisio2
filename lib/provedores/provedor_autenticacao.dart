@@ -1,6 +1,6 @@
 import 'dart:async';
+import 'dart:developer' as developer;
 
-import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../servicos/preferencias.dart';
@@ -81,6 +81,21 @@ class AutenticacaoNotificador extends Notifier<EstadoAutenticacao> {
       }),
     );
 
+    unawaited(
+      servico.tentarRestaurarSessao().then((sessao) {
+        if (sessao != null) {
+          _autenticarComSessao(sessao);
+        }
+      }).catchError((Object e, StackTrace st) {
+        developer.log(
+          'Falha ao restaurar sessão anterior',
+          error: e,
+          stackTrace: st,
+          name: 'Autenticacao',
+        );
+      }),
+    );
+
     return EstadoAutenticacao();
   }
 
@@ -116,11 +131,13 @@ class AutenticacaoNotificador extends Notifier<EstadoAutenticacao> {
         estaCarregando: false,
         sessao: sessao,
       );
-    } catch (e) {
-      if (kDebugMode) {
-        // ignore: avoid_print
-        print('ERRO_LOGIN_GOOGLE: $e');
-      }
+    } catch (e, stackTrace) {
+      developer.log(
+        'Erro ao fazer login com Google',
+        error: e,
+        stackTrace: stackTrace,
+        name: 'Autenticacao',
+      );
       state = state.copiarCom(
         estaCarregando: false,
         mensagemErro: mensagemErroLoginGoogle(e),

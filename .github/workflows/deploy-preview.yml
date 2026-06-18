@@ -1,0 +1,80 @@
+name: Deploy de Testes (develop)
+
+# A cada push na branch 'develop', publica o app num "preview channel"
+# do Firebase: um endereço temporário para testar antes da produção.
+on:
+  push:
+    branches: [develop]
+
+jobs:
+  deploy-preview:
+    name: Publicar ambiente de testes
+    runs-on: ubuntu-latest
+    steps:
+      - name: 🔐 Conferir credencial do Firebase
+        env:
+          CRED: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+        run: |
+          if [ -z "$CRED" ]; then
+            echo "::error::O secret FIREBASE_SERVICE_ACCOUNT está VAZIO."
+            echo "Verifique em GitHub > Settings > Secrets and variables > Actions:"
+            echo "  - o valor precisa estar na aba 'Secrets' (NÃO 'Variables')"
+            echo "  - o nome precisa ser exatamente: FIREBASE_SERVICE_ACCOUNT"
+            echo "  - o conteúdo precisa ser o JSON COMPLETO da conta de serviço"
+            exit 1
+          fi
+          echo "✅ Credencial do Firebase encontrada."
+
+      - name: 📥 Baixar o código (checkout)
+        uses: actions/checkout@v4
+
+      - name: 🐦 Instalar o Flutter (3.44.1)
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          flutter-version: 3.44.1
+          cache: true
+
+      - name: 📦 Baixar dependências (flutter pub get)
+        run: flutter pub get
+
+      - name: 🔎 Análise estática (lint)
+        run: flutter analyze
+
+      - name: 🧪 Rodar testes
+        run: flutter test
+
+      - name: 🏷️ Ler versão atual do app
+        id: versao
+        run: |
+          VER=$(grep '^version: ' pubspec.yaml | sed 's/version: //' | cut -d'+' -f1)
+          echo "Versão atual: v$VER"
+          echo "app_version=$VER" >> "$GITHUB_OUTPUT"
+
+      - name: 🌐 Compilar o app web
+        run: |
+          echo "Compilando a versão web (release)..."
+          flutter build web --release --base-href=/ \
+            --dart-define=GOOGLE_OAUTH_CLIENT_ID_WEB=${{ secrets.GOOGLE_OAUTH_CLIENT_ID_WEB }} \
+            --dart-define=GOOGLE_OAUTH_CLIENT_ID_ANDROID=${{ secrets.GOOGLE_OAUTH_CLIENT_ID_ANDROID }} \
+            --dart-define=APP_VERSION=${{ steps.versao.outputs.app_version }}
+
+      - name: 📄 Copiar páginas públicas (privacidade, termos, verificação Google)
+        run: |
+          cp branding/privacidade.html build/web/privacidade.html
+          cp branding/termos.html build/web/termos.html
+          cp branding/google505e804a9d870920.html build/web/google505e804a9d870920.html
+          echo "Páginas públicas copiadas."
+
+      - name: 🚀 Publicar no ambiente de testes (preview channel)
+        uses: FirebaseExtended/action-hosting-deploy@v0
+        with:
+          repoToken: ${{ secrets.GITHUB_TOKEN }}
+          firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+          projectId: app-fisio-care-2
+          channelId: develop
+          expires: 30d
+          entryPoint: .
+
+      - name: ✅ Concluído
+        run: echo "Ambiente de testes publicado! Veja a URL de preview na etapa acima."

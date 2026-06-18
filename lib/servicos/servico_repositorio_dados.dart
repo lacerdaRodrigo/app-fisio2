@@ -1,12 +1,16 @@
+import 'dart:developer' as developer;
+
 import 'package:http/http.dart' as http;
 
 import '../modelos/agendamento.dart';
 import '../modelos/evolucao.dart';
 import '../modelos/paciente.dart';
+import '../utilitarios/gerador_id.dart';
 import '../utilitarios/utilitarios_data.dart';
 import 'preferencias.dart';
 import 'servico_google_drive.dart';
 import 'servico_google_sheets.dart';
+import 'versao_esquema.dart';
 
 class DadosCarregados {
   final List<Paciente> pacientes;
@@ -41,86 +45,199 @@ class RepositorioDadosGoogle {
   }
 
   Future<String> obterPlanilhaId() async {
-    if (_planilhaId != null) return _planilhaId!;
+    if (_planilhaId != null) {
+      try {
+        await _sheets.validarVersao(_planilhaId!);
+        return _planilhaId!;
+      } catch (e) {
+        developer.log(
+          'Versão da planilha em cache incompatível, descartando cache',
+          error: e,
+          name: 'RepositorioDadosGoogle',
+        );
+        limparCache();
+        // Continua o fluxo abaixo para buscar/criar nova planilha
+      }
+    }
 
     _planilhaId = await Preferencias.lerPlanilhaId();
     if (_planilhaId != null) {
-      return _planilhaId!;
+      try {
+        await _sheets.validarVersao(_planilhaId!);
+        return _planilhaId!;
+      } catch (e) {
+        developer.log(
+          'Planilha armazenada tem versão incompatível',
+          error: e,
+          name: 'RepositorioDadosGoogle',
+        );
+        // Limpar e tentar encontrar outra
+        await Preferencias.limparPlanilhaId();
+        _planilhaId = null;
+      }
     }
 
     final existente = await _drive.buscarPlanilhaBanco();
     if (existente != null) {
       _planilhaId = existente;
-      await _sheets.garantirEstrutura(existente);
-      await Preferencias.salvarPlanilhaId(existente);
-      return existente;
+      try {
+        await _sheets.garantirEstrutura(existente);
+        await _sheets.validarVersao(existente);
+        await Preferencias.salvarPlanilhaId(existente);
+        developer.log(
+          'Planilha existente encontrada e validada',
+          name: 'RepositorioDadosGoogle',
+        );
+        return existente;
+      } catch (e, st) {
+        developer.log(
+          'Erro ao validar planilha existente',
+          error: e,
+          stackTrace: st,
+          name: 'RepositorioDadosGoogle',
+        );
+        _planilhaId = null;
+        rethrow;
+      }
     }
 
+    // Criar nova planilha
     _planilhaId = await _sheets.criarPlanilhaBanco();
+    await _sheets.salvarVersaoEsquema(_planilhaId!);
     await Preferencias.salvarPlanilhaId(_planilhaId!);
+    developer.log(
+      'Nova planilha criada com versão ${VersaoEsquema.versaoAtual}',
+      name: 'RepositorioDadosGoogle',
+    );
     return _planilhaId!;
   }
 
   Future<DadosCarregados> carregarTudo() async {
-    final id = await obterPlanilhaId();
+    try {
+      final id = await obterPlanilhaId();
 
-    // Carrega todas as abas em paralelo
-    final results = await Future.wait([
-      _sheets.lerAba(id, 'Pacientes'),
-      _sheets.lerAba(id, 'Agenda'),
-      _sheets.lerAba(id, 'Evolucoes'),
-      _sheets.lerAba(id, 'Configuracoes'),
-      _sheets.lerAba(id, 'Auditoria'),
-    ]);
+      developer.log(
+        'Iniciando carregamento de dados',
+        name: 'RepositorioDadosGoogle',
+      );
 
-    final pacientes = results[0].map(_pacienteDeLinha).toList();
-    final agendamentos = results[1].map(_agendamentoDeLinha).toList();
-    final evolucoes = results[2].map(_evolucaoDeLinha).toList();
-    final configuracoes = results[3];
-    final logs = results[4].reversed.map((linha) {
-      final dados = _preencher(linha, 4);
-      return '${dados[1]} - ${dados[2]} - ${dados[3]}';
-    }).toList();
+      // Carrega todas as abas em paralelo
+      final results = await Future.wait([
+        _sheets.lerAba(id, 'Pacientes'),
+        _sheets.lerAba(id, 'Agenda'),
+        _sheets.lerAba(id, 'Evolucoes'),
+        _sheets.lerAba(id, 'Configuracoes'),
+        _sheets.lerAba(id, 'Auditoria'),
+      ]);
 
-    return DadosCarregados(
-      pacientes: pacientes,
-      agendamentos: agendamentos,
-      evolucoes: evolucoes,
-      valorSessaoPadrao: _valorConfiguracao(
-        configuracoes,
-        'valor_sessao_padrao',
-        padrao: '150,00',
-      ),
-      logsAuditoria: logs,
-      planilhaId: id,
-    );
+      final pacientes = results[0].map(_pacienteDeLinha).toList();
+      final agendamentos = results[1].map(_agendamentoDeLinha).toList();
+      final evolucoes = results[2].map(_evolucaoDeLinha).toList();
+      final configuracoes = results[3];
+      final logs = results[4].reversed.map((linha) {
+        final dados = _preencher(linha, 4);
+        return '${dados[1]} - ${dados[2]} - ${dados[3]}';
+      }).toList();
+
+      developer.log(
+        'Dados carregados com sucesso: '
+        '${pacientes.length} pacientes, '
+        '${agendamentos.length} agendamentos, '
+        '${evolucoes.length} evoluções',
+        name: 'RepositorioDadosGoogle',
+      );
+
+      return DadosCarregados(
+        pacientes: pacientes,
+        agendamentos: agendamentos,
+        evolucoes: evolucoes,
+        valorSessaoPadrao: _valorConfiguracao(
+          configuracoes,
+          'valor_sessao_padrao',
+          padrao: '150,00',
+        ),
+        logsAuditoria: logs,
+        planilhaId: id,
+      );
+    } catch (e, st) {
+      developer.log(
+        'Erro ao carregar dados',
+        error: e,
+        stackTrace: st,
+        name: 'RepositorioDadosGoogle',
+      );
+      rethrow;
+    }
   }
 
   Future<void> salvarPaciente(Paciente paciente) async {
-    final id = await obterPlanilhaId();
-    await _sheets.inserirLinha(id, 'Pacientes', _valoresPaciente(paciente));
-    await registrarAuditoria(
-      'CADASTRO_PACIENTE',
-      'Paciente ${paciente.idPaciente} cadastrado.',
-    );
+    try {
+      final id = await obterPlanilhaId();
+      await _sheets.inserirLinha(id, 'Pacientes', _valoresPaciente(paciente));
+      await registrarAuditoria(
+        'CADASTRO_PACIENTE',
+        'Paciente ${paciente.idPaciente} cadastrado.',
+      );
+
+      developer.log(
+        'Paciente salvo com sucesso: ${paciente.idPaciente}',
+        name: 'RepositorioDadosGoogle',
+      );
+    } catch (e, st) {
+      developer.log(
+        'Erro ao salvar paciente: ${paciente.idPaciente}',
+        error: e,
+        stackTrace: st,
+        name: 'RepositorioDadosGoogle',
+      );
+      rethrow;
+    }
   }
 
   Future<void> salvarAgendamento(Agendamento agendamento) async {
-    final id = await obterPlanilhaId();
-    await _sheets.inserirLinha(id, 'Agenda', _valoresAgendamento(agendamento));
-    await registrarAuditoria(
-      'AGENDAMENTO_SESSAO',
-      'Sessão ${agendamento.idAgendamento} agendada.',
-    );
+    try {
+      final id = await obterPlanilhaId();
+      await _sheets.inserirLinha(id, 'Agenda', _valoresAgendamento(agendamento));
+      await registrarAuditoria(
+        'AGENDAMENTO_SESSAO',
+        'Sessão ${agendamento.idAgendamento} agendada.',
+      );
+      developer.log(
+        'Agendamento salvo: ${agendamento.idAgendamento}',
+        name: 'RepositorioDadosGoogle',
+      );
+    } catch (e, st) {
+      developer.log(
+        'Erro ao salvar agendamento: ${agendamento.idAgendamento}',
+        error: e,
+        stackTrace: st,
+        name: 'RepositorioDadosGoogle',
+      );
+      rethrow;
+    }
   }
 
   Future<void> salvarEvolucao(Evolucao evolucao) async {
-    final id = await obterPlanilhaId();
-    await _sheets.inserirLinha(id, 'Evolucoes', _valoresEvolucao(evolucao));
-    await registrarAuditoria(
-      'REGISTRO_EVOLUCAO',
-      'Evolução ${evolucao.idEvolucao} criada.',
-    );
+    try {
+      final id = await obterPlanilhaId();
+      await _sheets.inserirLinha(id, 'Evolucoes', _valoresEvolucao(evolucao));
+      await registrarAuditoria(
+        'REGISTRO_EVOLUCAO',
+        'Evolução ${evolucao.idEvolucao} criada.',
+      );
+      developer.log(
+        'Evolução salva: ${evolucao.idEvolucao}',
+        name: 'RepositorioDadosGoogle',
+      );
+    } catch (e, st) {
+      developer.log(
+        'Erro ao salvar evolução: ${evolucao.idEvolucao}',
+        error: e,
+        stackTrace: st,
+        name: 'RepositorioDadosGoogle',
+      );
+      rethrow;
+    }
   }
 
   Future<void> atualizarEvolucao(Evolucao evolucao) async {
@@ -150,8 +267,9 @@ class RepositorioDadosGoogle {
     );
     if (indice == -1) return;
 
+    final colSituacao = Paciente.indicesColunas['situacao']!;
     final linha = _preencher(linhas[indice], 19);
-    linha[10] = 'Arquivado';
+    linha[colSituacao] = 'Arquivado';
     await _sheets.atualizarLinha(
       id,
       'Pacientes!A${indice + 2}:S${indice + 2}',
@@ -171,8 +289,9 @@ class RepositorioDadosGoogle {
     );
     if (indice == -1) return;
 
+    final colSituacao = Paciente.indicesColunas['situacao']!;
     final linha = _preencher(linhas[indice], 19);
-    linha[10] = 'Ativo';
+    linha[colSituacao] = 'Ativo';
     await _sheets.atualizarLinha(
       id,
       'Pacientes!A${indice + 2}:S${indice + 2}',
@@ -202,8 +321,9 @@ class RepositorioDadosGoogle {
     );
     if (indice == -1) return;
 
+    final colSituacao = Agendamento.indicesColunas['situacao']!;
     final linha = _preencher(linhas[indice], 9);
-    linha[7] = situacao;
+    linha[colSituacao] = situacao;
     await _sheets.atualizarLinha(
       id,
       'Agenda!A${indice + 2}:I${indice + 2}',
@@ -249,7 +369,10 @@ class RepositorioDadosGoogle {
         '${UtilitariosData.formatarDataBr(agora)} ${agora.hour.toString().padLeft(2, '0')}:${agora.minute.toString().padLeft(2, '0')}';
 
     await _sheets.inserirLinha(id, 'Auditoria', [
-      'L${(linhas.length + 1).toString().padLeft(3, '0')}',
+      GeradorId.proximo(
+        'L',
+        linhas.map((linha) => linha.isNotEmpty ? linha.first : ''),
+      ),
       data,
       operacao,
       detalhes,
@@ -262,41 +385,44 @@ class RepositorioDadosGoogle {
 
   Paciente _pacienteDeLinha(List<String> linhaOriginal) {
     final linha = _preencher(linhaOriginal, 19);
+    String col(String nome) => linha[Paciente.indicesColunas[nome]!];
+    String? colOuNull(String nome) => col(nome).isEmpty ? null : col(nome);
     return Paciente(
-      idPaciente: linha[0],
-      nome: linha[1],
-      telefone: linha[2],
-      dataNascimento: _parseDataBr(linha[3]),
-      cpf: linha[4],
-      endereco: linha[5],
-      queixaPrincipal: linha[6],
-      histDoencaAtual: linha[7],
-      histPregresso: linha[8],
-      ocupacao: linha[9],
-      situacao: linha[10].isEmpty ? 'Ativo' : linha[10],
-      dataCadastro: DateTime.tryParse(linha[11]) ?? DateTime.now(),
-      genero: linha[12].isEmpty ? null : linha[12],
-      dor: linha[13].isEmpty ? null : linha[13],
-      comorbidades: linha[14].isEmpty ? null : linha[14],
-      medicamentos: linha[15].isEmpty ? null : linha[15],
-      alergias: linha[16].isEmpty ? null : linha[16],
-      cirurgias: linha[17].isEmpty ? null : linha[17],
-      habitosVida: linha[18].isEmpty ? null : linha[18],
+      idPaciente: col('idPaciente'),
+      nome: col('nome'),
+      telefone: col('telefone'),
+      dataNascimento: _parseDataBr(col('dataNascimento')),
+      cpf: col('cpf'),
+      endereco: col('endereco'),
+      queixaPrincipal: colOuNull('queixaPrincipal'),
+      histDoencaAtual: colOuNull('histDoencaAtual'),
+      histPregresso: colOuNull('histPregresso'),
+      ocupacao: colOuNull('ocupacao'),
+      situacao: col('situacao').isEmpty ? 'Ativo' : col('situacao'),
+      dataCadastro: DateTime.tryParse(col('dataCadastro')) ?? DateTime.now(),
+      genero: colOuNull('genero'),
+      dor: colOuNull('dor'),
+      comorbidades: colOuNull('comorbidades'),
+      medicamentos: colOuNull('medicamentos'),
+      alergias: colOuNull('alergias'),
+      cirurgias: colOuNull('cirurgias'),
+      habitosVida: colOuNull('habitosVida'),
     );
   }
 
   Agendamento _agendamentoDeLinha(List<String> linhaOriginal) {
     final linha = _preencher(linhaOriginal, 9);
+    String col(String nome) => linha[Agendamento.indicesColunas[nome]!];
     return Agendamento(
-      idAgendamento: linha[0],
-      idPaciente: linha[1],
-      data: _parseDataBr(linha[2]),
-      horaInicio: linha[3],
-      horaFim: linha[4],
-      valorSessao: double.tryParse(linha[5].replaceAll(',', '.')) ?? 0,
-      observacoes: linha[6],
-      situacao: linha[7].isEmpty ? 'Agendado' : linha[7],
-      dataCriacao: DateTime.tryParse(linha[8]) ?? DateTime.now(),
+      idAgendamento: col('idAgendamento'),
+      idPaciente: col('idPaciente'),
+      data: _parseDataBr(col('data')),
+      horaInicio: col('horaInicio'),
+      horaFim: col('horaFim'),
+      valorSessao: double.tryParse(col('valorSessao').replaceAll(',', '.')) ?? 0,
+      observacoes: col('observacoes'),
+      situacao: col('situacao').isEmpty ? 'Agendado' : col('situacao'),
+      dataCriacao: DateTime.tryParse(col('dataCriacao')) ?? DateTime.now(),
     );
   }
 

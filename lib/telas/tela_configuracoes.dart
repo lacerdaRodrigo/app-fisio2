@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -238,8 +240,8 @@ class _TelaConfiguracoesState extends ConsumerState<TelaConfiguracoes> {
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Falha ao salvar configuração: $e'),
+        const SnackBar(
+          content: Text('Ocorreu um erro inesperado. Tente novamente.'),
           backgroundColor: Colors.red,
         ),
       );
@@ -314,9 +316,11 @@ class _TelaConfiguracoesState extends ConsumerState<TelaConfiguracoes> {
     limparDados(ref);
 
     if (!context.mounted) return;
-    Navigator.of(context).pushAndRemoveUntil(
-      MaterialPageRoute(builder: (_) => const TelaLogin()),
-      (_) => false,
+    unawaited(
+      Navigator.of(context).pushAndRemoveUntil(
+        MaterialPageRoute(builder: (_) => const TelaLogin()),
+        (_) => false,
+      ),
     );
   }
 }

@@ -11,10 +11,9 @@ String mensagemErroLoginGoogle(Object erro) {
       : erro.toString();
 
   if (texto.contains('12500')) {
-    return 'Login Google não configurado no Android. '
-        'Ative o provedor Google em Firebase → Authentication, '
-        'confirme o SHA-1 no Firebase e crie o cliente OAuth Android '
-        'no Google Cloud Console (projeto app-fisio-care-2).';
+    return 'Login Google não configurado para este dispositivo. '
+        'Ative o provedor Google em Firebase → Authentication '
+        'e confirme o SHA-1 do app no Google Cloud Console.';
   }
 
   if (RegExp(r'\b10\b|: 10|ApiException: 10').hasMatch(texto)) {

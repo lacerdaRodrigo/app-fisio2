@@ -6,7 +6,7 @@ import '../modelos/agendamento.dart';
 import '../modelos/paciente.dart';
 import '../provedores/provedores_dados.dart';
 import '../utilitarios/utilitarios_data.dart';
-import 'tela_registro_evolucao.dart';
+import '../utilitarios/acoes_agendamento.dart';
 
 enum FiltroSessoes {
   todas,
@@ -210,8 +210,9 @@ class _TelaSessoesState extends ConsumerState<TelaSessoes> {
         return _CardSessao(
           agendamento: agendamento,
           paciente: pacientes[agendamento.idPaciente],
-          onAcao: (acao) => _executarAcao(
+          onAcao: (acao) => executarAcaoAgendamento(
             context,
+            ref,
             acao,
             agendamento,
             pacientes[agendamento.idPaciente],
@@ -246,7 +247,7 @@ class _TelaSessoesState extends ConsumerState<TelaSessoes> {
             agendamento: agendamento,
             paciente: paciente,
             onAcao: (acao) =>
-                _executarAcao(context, acao, agendamento, paciente),
+                executarAcaoAgendamento(context, ref, acao, agendamento, paciente),
           ),
         );
       },
@@ -350,75 +351,6 @@ class _TelaSessoesState extends ConsumerState<TelaSessoes> {
     };
   }
 
-  Future<void> _executarAcao(
-    BuildContext context,
-    _AcaoSessao acao,
-    Agendamento agendamento,
-    Paciente? paciente,
-  ) async {
-    if (acao == _AcaoSessao.registrarEvolucao) {
-      if (paciente == null) return;
-      await Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (_) => TelaRegistroEvolucao(
-            paciente: paciente,
-            agendamento: agendamento,
-          ),
-        ),
-      );
-      return;
-    }
-
-    final situacao = switch (acao) {
-      _AcaoSessao.faltouComAviso => Agendamento.situacaoFaltouComAviso,
-      _AcaoSessao.faltouSemAviso => Agendamento.situacaoFaltouSemAviso,
-      _AcaoSessao.canceladoPaciente => Agendamento.situacaoCanceladoPaciente,
-      _AcaoSessao.canceladoProfissional =>
-        Agendamento.situacaoCanceladoProfissional,
-      _AcaoSessao.registrarEvolucao => Agendamento.situacaoAgendado,
-    };
-
-    final confirmou = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Atualizar sessão?'),
-        content: Text('Marcar esta sessão como "$situacao"?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancelar'),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.pop(context, true),
-            child: const Text('Confirmar'),
-          ),
-        ],
-      ),
-    );
-
-    if (confirmou != true || !context.mounted) return;
-
-    try {
-      await atualizarSituacaoAgendamentoReal(
-        ref,
-        agendamento.idAgendamento,
-        situacao,
-      );
-      if (!context.mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Sessão atualizada para $situacao.')),
-      );
-    } catch (e) {
-      if (!context.mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Falha ao atualizar sessão: $e'),
-          backgroundColor: FisioCores.danger,
-        ),
-      );
-    }
-  }
 }
 
 class _EstadoVazio extends StatelessWidget {
@@ -457,7 +389,7 @@ class _EstadoVazio extends StatelessWidget {
 class _CardSessao extends StatelessWidget {
   final Agendamento agendamento;
   final Paciente? paciente;
-  final ValueChanged<_AcaoSessao> onAcao;
+  final ValueChanged<AcaoAgendamento> onAcao;
 
   const _CardSessao({
     required this.agendamento,
@@ -532,29 +464,29 @@ class _CardSessao extends StatelessWidget {
               ],
             ),
           ),
-          PopupMenuButton<_AcaoSessao>(
+          PopupMenuButton<AcaoAgendamento>(
             tooltip: 'Ações da sessão',
             icon: Icon(Icons.more_vert_rounded, color: Colors.grey.shade500),
             onSelected: onAcao,
             itemBuilder: (context) => const [
               PopupMenuItem(
-                value: _AcaoSessao.registrarEvolucao,
+                value: AcaoAgendamento.registrarEvolucao,
                 child: Text('Registrar evolução'),
               ),
               PopupMenuItem(
-                value: _AcaoSessao.faltouComAviso,
+                value: AcaoAgendamento.faltouComAviso,
                 child: Text('Faltou com aviso'),
               ),
               PopupMenuItem(
-                value: _AcaoSessao.faltouSemAviso,
+                value: AcaoAgendamento.faltouSemAviso,
                 child: Text('Faltou sem aviso'),
               ),
               PopupMenuItem(
-                value: _AcaoSessao.canceladoPaciente,
+                value: AcaoAgendamento.canceladoPaciente,
                 child: Text('Cancelar pelo paciente'),
               ),
               PopupMenuItem(
-                value: _AcaoSessao.canceladoProfissional,
+                value: AcaoAgendamento.canceladoProfissional,
                 child: Text('Cancelar pelo profissional'),
               ),
             ],
@@ -670,10 +602,3 @@ class _MetaSessao extends StatelessWidget {
   }
 }
 
-enum _AcaoSessao {
-  registrarEvolucao,
-  faltouComAviso,
-  faltouSemAviso,
-  canceladoPaciente,
-  canceladoProfissional,
-}

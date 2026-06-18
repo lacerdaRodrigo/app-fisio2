@@ -6,12 +6,13 @@ import '../modelos/paciente.dart';
 import '../componentes/design_system.dart';
 import '../provedores/provedores_dados.dart';
 import '../utilitarios/utilitarios_data.dart';
+import '../utilitarios/acoes_agendamento.dart';
 import 'tela_cadastro_paciente.dart';
 import 'tela_historico_geral_evolucoes.dart';
 import 'tela_pacientes.dart';
 import 'tela_nova_sessao.dart';
-import 'tela_registro_evolucao.dart';
 import 'tela_sessoes.dart';
+import 'tela_configuracoes.dart';
 
 class TelaDashboard extends ConsumerStatefulWidget {
   final String nomeUsuario;
@@ -72,6 +73,7 @@ class _TelaDashboardState extends ConsumerState<TelaDashboard> {
         children: [
           telas[_indiceSelecionado.clamp(0, telas.length - 1)],
           _construirNavFlutuante(context, pacientes, carregamento),
+          _construirFab(context, pacientes, carregamento),
         ],
       ),
     );
@@ -121,7 +123,7 @@ class _TelaDashboardState extends ConsumerState<TelaDashboard> {
                       ],
                     ),
                     child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      mainAxisAlignment: MainAxisAlignment.spaceAround,
                       children: [
                         _NavItem(
                           icon: Icons.home_rounded,
@@ -135,7 +137,6 @@ class _TelaDashboardState extends ConsumerState<TelaDashboard> {
                           isActive: _indiceSelecionado == 1,
                           onTap: () => setState(() => _indiceSelecionado = 1),
                         ),
-                        const SizedBox(width: 72),
                         _NavItem(
                           icon: Icons.people_alt_rounded,
                           label: 'Pacientes',
@@ -148,30 +149,44 @@ class _TelaDashboardState extends ConsumerState<TelaDashboard> {
                 ),
               ),
             ),
-            GestureDetector(
-              onTap: _acaoFabCentral(context, pacientes, carregamento),
-              child: Container(
-                width: 54,
-                height: 54,
-                decoration: BoxDecoration(
-                  color: FisioCores.primary,
-                  shape: BoxShape.circle,
-                  boxShadow: [
-                    BoxShadow(
-                      color: FisioCores.primary.withValues(alpha: 0.36),
-                      blurRadius: 18,
-                      offset: const Offset(0, 8),
-                    ),
-                  ],
-                ),
-                child: const Icon(
-                  Icons.add_rounded,
-                  color: Colors.white,
-                  size: 30,
-                ),
-              ),
-            ),
           ],
+        ),
+      ),
+    );
+  }
+
+  Widget _construirFab(
+    BuildContext context,
+    List<Paciente> pacientes,
+    EstadoCarregamentoDados carregamento,
+  ) {
+    if (_indiceSelecionado == 0) return const SizedBox.shrink();
+
+    if (!carregamento.carregouComSucesso) return const SizedBox.shrink();
+
+    final bool ehAbaPacientes = _indiceSelecionado == 2;
+
+    if (!ehAbaPacientes && pacientes.isEmpty) return const SizedBox.shrink();
+
+    return Positioned(
+      bottom: 120,
+      left: 0,
+      right: 0,
+      child: Center(
+        child: FloatingActionButton.extended(
+          heroTag: 'fab_principal',
+          onPressed: ehAbaPacientes
+              ? () => Navigator.push(context, MaterialPageRoute(builder: (_) => const TelaCadastroPaciente()))
+              : () => Navigator.push(context, MaterialPageRoute(builder: (_) => const TelaNovaSessao())),
+          icon: Icon(
+            ehAbaPacientes
+                ? Icons.person_add_alt_1_rounded
+                : Icons.add_rounded,
+          ),
+          label: Text(ehAbaPacientes ? 'Novo Paciente' : 'Nova Sessão'),
+          backgroundColor: FisioCores.primary,
+          foregroundColor: Colors.white,
+          elevation: 6,
         ),
       ),
     );
@@ -243,25 +258,33 @@ class _TelaDashboardState extends ConsumerState<TelaDashboard> {
                         ),
                       ],
                     ),
-                    Container(
-                      width: 48,
-                      height: 48,
-                      decoration: BoxDecoration(
-                        color: Colors.white.withValues(alpha: 0.15),
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(
-                          color: Colors.white.withValues(alpha: 0.3),
+                    GestureDetector(
+                      onTap: () => Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => const TelaConfiguracoes(),
                         ),
                       ),
-                      child: Center(
-                        child: Text(
-                          widget.nomeUsuario.isNotEmpty
-                              ? widget.nomeUsuario[0].toUpperCase()
-                              : '?',
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 20,
-                            fontWeight: FontWeight.bold,
+                      child: Container(
+                        width: 48,
+                        height: 48,
+                        decoration: BoxDecoration(
+                          color: Colors.white.withValues(alpha: 0.15),
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(
+                            color: Colors.white.withValues(alpha: 0.3),
+                          ),
+                        ),
+                        child: Center(
+                          child: Text(
+                            widget.nomeUsuario.isNotEmpty
+                                ? widget.nomeUsuario[0].toUpperCase()
+                                : '?',
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
                         ),
                       ),
@@ -398,30 +421,6 @@ class _TelaDashboardState extends ConsumerState<TelaDashboard> {
     );
   }
 
-  VoidCallback? _acaoFabCentral(
-    BuildContext context,
-    List<Paciente> pacientes,
-    EstadoCarregamentoDados carregamento,
-  ) {
-    if (_indiceSelecionado == 2 && carregamento.carregouComSucesso) {
-      return () => Navigator.push(
-        context,
-        MaterialPageRoute(builder: (_) => const TelaCadastroPaciente()),
-      );
-    }
-
-    if ((_indiceSelecionado == 0 || _indiceSelecionado == 1) &&
-        carregamento.carregouComSucesso &&
-        pacientes.isNotEmpty) {
-      return () => Navigator.push(
-        context,
-        MaterialPageRoute(builder: (_) => const TelaNovaSessao()),
-      );
-    }
-
-    return null;
-  }
-
   void _abrirPacientes(FiltroPacientes filtro) {
     setState(() {
       _filtroPacientes = filtro;
@@ -518,7 +517,7 @@ class _TelaDashboardState extends ConsumerState<TelaDashboard> {
             color: Colors.grey.shade300,
           ),
           const SizedBox(height: 12),
-          Text(
+          const Text(
             'Tudo limpo!',
             style: TextStyle(
               fontWeight: FontWeight.bold,
@@ -681,30 +680,30 @@ class _TelaDashboardState extends ConsumerState<TelaDashboard> {
               ],
             ),
           ),
-          PopupMenuButton<_AcaoAgendamento>(
+          PopupMenuButton<AcaoAgendamento>(
             tooltip: 'Ações da sessão',
             icon: Icon(Icons.more_vert_rounded, color: Colors.grey.shade500),
             onSelected: (acao) =>
-                _executarAcaoAgendamento(context, acao, agendamento, paciente),
+                executarAcaoAgendamento(context, ref, acao, agendamento, paciente),
             itemBuilder: (context) => const [
               PopupMenuItem(
-                value: _AcaoAgendamento.registrarEvolucao,
+                value: AcaoAgendamento.registrarEvolucao,
                 child: Text('Registrar evolução'),
               ),
               PopupMenuItem(
-                value: _AcaoAgendamento.faltouComAviso,
+                value: AcaoAgendamento.faltouComAviso,
                 child: Text('Faltou com aviso'),
               ),
               PopupMenuItem(
-                value: _AcaoAgendamento.faltouSemAviso,
+                value: AcaoAgendamento.faltouSemAviso,
                 child: Text('Faltou sem aviso'),
               ),
               PopupMenuItem(
-                value: _AcaoAgendamento.canceladoPaciente,
+                value: AcaoAgendamento.canceladoPaciente,
                 child: Text('Cancelar pelo paciente'),
               ),
               PopupMenuItem(
-                value: _AcaoAgendamento.canceladoProfissional,
+                value: AcaoAgendamento.canceladoProfissional,
                 child: Text('Cancelar pelo profissional'),
               ),
             ],
@@ -712,77 +711,6 @@ class _TelaDashboardState extends ConsumerState<TelaDashboard> {
         ],
       ),
     );
-  }
-
-  Future<void> _executarAcaoAgendamento(
-    BuildContext context,
-    _AcaoAgendamento acao,
-    Agendamento agendamento,
-    Paciente? paciente,
-  ) async {
-    if (acao == _AcaoAgendamento.registrarEvolucao) {
-      if (paciente == null) return;
-      await Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (_) => TelaRegistroEvolucao(
-            paciente: paciente,
-            agendamento: agendamento,
-          ),
-        ),
-      );
-      return;
-    }
-
-    final situacao = switch (acao) {
-      _AcaoAgendamento.faltouComAviso => Agendamento.situacaoFaltouComAviso,
-      _AcaoAgendamento.faltouSemAviso => Agendamento.situacaoFaltouSemAviso,
-      _AcaoAgendamento.canceladoPaciente =>
-        Agendamento.situacaoCanceladoPaciente,
-      _AcaoAgendamento.canceladoProfissional =>
-        Agendamento.situacaoCanceladoProfissional,
-      _AcaoAgendamento.registrarEvolucao => Agendamento.situacaoAgendado,
-    };
-
-    final confirmou = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Atualizar sessão?'),
-        content: Text('Marcar esta sessão como "$situacao"?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancelar'),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.pop(context, true),
-            child: const Text('Confirmar'),
-          ),
-        ],
-      ),
-    );
-
-    if (confirmou != true || !context.mounted) return;
-
-    try {
-      await atualizarSituacaoAgendamentoReal(
-        ref,
-        agendamento.idAgendamento,
-        situacao,
-      );
-      if (!context.mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Sessão atualizada para $situacao.')),
-      );
-    } catch (e) {
-      if (!context.mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Falha ao atualizar sessão: $e'),
-          backgroundColor: FisioCores.danger,
-        ),
-      );
-    }
   }
 
   Widget _construirDashboardCarregando(BuildContext context) {
@@ -895,14 +823,6 @@ class _NavItem extends StatelessWidget {
       ),
     );
   }
-}
-
-enum _AcaoAgendamento {
-  registrarEvolucao,
-  faltouComAviso,
-  faltouSemAviso,
-  canceladoPaciente,
-  canceladoProfissional,
 }
 
 class _MetaAgenda extends StatelessWidget {

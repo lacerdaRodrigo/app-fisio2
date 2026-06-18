@@ -1,6 +1,32 @@
+import '../utilitarios/utilitarios_data.dart';
+import '../utilitarios/validadores.dart';
+
 /// Modelo de dados representando um paciente cadastrado.
 /// Espelha a aba `Pacientes` da planilha `__saas_fisio_db__`.
 class Paciente {
+  /// Mapa de nomes de coluna para índices (0-based).
+  /// Atualizar aqui quando a estrutura da planilha mudar.
+  static const indicesColunas = {
+    'idPaciente': 0,
+    'nome': 1,
+    'telefone': 2,
+    'dataNascimento': 3,
+    'cpf': 4,
+    'endereco': 5,
+    'queixaPrincipal': 6,
+    'histDoencaAtual': 7,
+    'histPregresso': 8,
+    'ocupacao': 9,
+    'situacao': 10,
+    'dataCadastro': 11,
+    'genero': 12,
+    'dor': 13,
+    'comorbidades': 14,
+    'medicamentos': 15,
+    'alergias': 16,
+    'cirurgias': 17,
+    'habitosVida': 18,
+  };
   final String idPaciente;
   final String nome;
   final String telefone;
@@ -44,15 +70,8 @@ class Paciente {
   }) : dataCadastro = dataCadastro ?? DateTime.now();
 
   /// Calcula a idade do paciente com base na data atual.
-  int calcularIdade({DateTime? dataReferencia}) {
-    final hoje = dataReferencia ?? DateTime.now();
-    int idade = hoje.year - dataNascimento.year;
-    if (hoje.month < dataNascimento.month ||
-        (hoje.month == dataNascimento.month && hoje.day < dataNascimento.day)) {
-      idade--;
-    }
-    return idade;
-  }
+  int calcularIdade({DateTime? dataReferencia}) =>
+      UtilitariosData.calcularIdade(dataNascimento, dataReferencia: dataReferencia);
 
   bool get estaAtivo => situacao == 'Ativo';
 
@@ -83,33 +102,107 @@ class Paciente {
   }
 
   factory Paciente.deLinhaPlanilha(List<String> linha) {
-    final partesData = linha[3].split('/');
+    // Validar dados básicos antes de processar
+    if (linha.isEmpty) {
+      throw const FormatException('Linha de paciente vazia');
+    }
+
+    String obterValor(String nomeColuna, {String padrao = ''}) {
+      final idx = indicesColunas[nomeColuna] ?? -1;
+      if (idx == -1) throw FormatException('Coluna desconhecida: $nomeColuna');
+      if (idx >= linha.length) return padrao;
+      final valor = linha[idx].trim();
+      return valor.isEmpty ? padrao : valor;
+    }
+
+    String? obterValorOuNull(String nomeColuna) {
+      final idx = indicesColunas[nomeColuna] ?? -1;
+      if (idx == -1 || idx >= linha.length) return null;
+      final valor = linha[idx].trim();
+      return valor.isEmpty ? null : valor;
+    }
+
+    /// Helper para obter data pelo nome da coluna
+    DateTime obterData(String nomeColuna, {DateTime? padrao}) {
+      final valor = obterValor(nomeColuna);
+      if (valor.isEmpty) return padrao ?? DateTime.now();
+
+      // Tentar parser formato DD/MM/YYYY
+      final partes = valor.split('/');
+      if (partes.length == 3) {
+        try {
+          return DateTime.parse(
+            '${partes[2]}-${partes[1].padLeft(2, '0')}-${partes[0].padLeft(2, '0')}',
+          );
+        } catch (_) {
+          // Ignorar erro e tentar ISO format
+        }
+      }
+
+      // Tentar parser ISO format
+      return DateTime.tryParse(valor) ?? (padrao ?? DateTime.now());
+    }
+
+    // Obter dados básicos
+    final idPaciente = obterValor('idPaciente');
+    final nome = obterValor('nome');
+    final telefone = obterValor('telefone');
+    final cpf = obterValor('cpf');
+    final endereco = obterValor('endereco');
+
+    // Validar nome
+    if (!Validadores.validarNome(nome)) {
+      throw FormatException('Nome inválido: "$nome"');
+    }
+
+    // Validar telefone
+    if (!Validadores.validarTelefone(telefone)) {
+      throw FormatException('Telefone inválido: "$telefone"');
+    }
+
+    // Validar CPF
+    if (!Validadores.validarCPF(cpf)) {
+      throw FormatException('CPF inválido: "$cpf"');
+    }
+
+    // Validar endereço
+    if (!Validadores.validarEndereco(endereco)) {
+      throw FormatException('Endereço inválido: "$endereco"');
+    }
+
+    // Processar data de nascimento
+    final dataNasc = obterData('dataNascimento');
+
+    // Validar data de nascimento
+    if (!Validadores.validarDataNascimento(dataNasc)) {
+      throw FormatException(
+        'Data de nascimento inválida: ${obterValor('dataNascimento')}',
+      );
+    }
+
+    // Processar data de cadastro
+    final dataCadastro = obterData('dataCadastro', padrao: DateTime.now());
+
     return Paciente(
-      idPaciente: linha[0],
-      nome: linha[1],
-      telefone: linha[2],
-      dataNascimento: DateTime(
-        int.parse(partesData[2]),
-        int.parse(partesData[1]),
-        int.parse(partesData[0]),
-      ),
-      cpf: linha[4],
-      endereco: linha[5],
-      queixaPrincipal: linha.length > 6 ? linha[6] : null,
-      histDoencaAtual: linha.length > 7 ? linha[7] : null,
-      histPregresso: linha.length > 8 ? linha[8] : null,
-      ocupacao: linha.length > 9 ? linha[9] : null,
-      situacao: linha.length > 10 ? linha[10] : 'Ativo',
-      dataCadastro: linha.length > 11
-          ? DateTime.tryParse(linha[11]) ?? DateTime.now()
-          : DateTime.now(),
-      genero: linha.length > 12 ? linha[12] : null,
-      dor: linha.length > 13 ? linha[13] : null,
-      comorbidades: linha.length > 14 ? linha[14] : null,
-      medicamentos: linha.length > 15 ? linha[15] : null,
-      alergias: linha.length > 16 ? linha[16] : null,
-      cirurgias: linha.length > 17 ? linha[17] : null,
-      habitosVida: linha.length > 18 ? linha[18] : null,
+      idPaciente: idPaciente,
+      nome: nome,
+      telefone: telefone,
+      dataNascimento: dataNasc,
+      cpf: cpf,
+      endereco: endereco,
+      queixaPrincipal: obterValorOuNull('queixaPrincipal'),
+      histDoencaAtual: obterValorOuNull('histDoencaAtual'),
+      histPregresso: obterValorOuNull('histPregresso'),
+      ocupacao: obterValorOuNull('ocupacao'),
+      situacao: obterValor('situacao', padrao: 'Ativo'),
+      dataCadastro: dataCadastro,
+      genero: obterValorOuNull('genero'),
+      dor: obterValorOuNull('dor'),
+      comorbidades: obterValorOuNull('comorbidades'),
+      medicamentos: obterValorOuNull('medicamentos'),
+      alergias: obterValorOuNull('alergias'),
+      cirurgias: obterValorOuNull('cirurgias'),
+      habitosVida: obterValorOuNull('habitosVida'),
     );
   }
 
@@ -151,6 +244,7 @@ class Paciente {
       cirurgias: cirurgias ?? this.cirurgias,
       habitosVida: habitosVida ?? this.habitosVida,
       situacao: situacao ?? this.situacao,
+      dataCadastro: dataCadastro, // preserva data original
     );
   }
 }

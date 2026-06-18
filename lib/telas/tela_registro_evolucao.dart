@@ -6,6 +6,7 @@ import 'package:speech_to_text/speech_to_text.dart' as stt;
 import '../componentes/design_system.dart';
 import '../modelos/agendamento.dart';
 import '../utilitarios/formatters.dart';
+import '../utilitarios/gerador_id.dart';
 import '../modelos/evolucao.dart';
 import '../modelos/paciente.dart';
 import '../provedores/provedores_dados.dart';
@@ -186,16 +187,16 @@ class _TelaRegistroEvolucaoState extends ConsumerState<TelaRegistroEvolucao> {
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: FisioCores.warning.withValues(alpha: 0.32)),
       ),
-      child: Row(
+      child: const Row(
         children: [
-          const Icon(
+          Icon(
             Icons.lock_outline_rounded,
             color: Color(0xFF92400E),
             size: 20,
           ),
-          const SizedBox(width: 10),
+          SizedBox(width: 10),
           Expanded(
-            child: const Text(
+            child: Text(
               'Evolução bloqueada — mais de 24h do registro',
               style: TextStyle(
                 fontSize: 13,
@@ -620,7 +621,7 @@ class _TelaRegistroEvolucaoState extends ConsumerState<TelaRegistroEvolucao> {
 
     final idEvolucao = _editando
         ? widget.evolucaoExistente!.idEvolucao
-        : 'E${(evolucoes.length + 1).toString().padLeft(3, '0')}';
+        : GeradorId.proximo('E', evolucoes.map((e) => e.idEvolucao));
 
     final evolucao = Evolucao(
       idEvolucao: idEvolucao,
@@ -685,8 +686,8 @@ class _TelaRegistroEvolucaoState extends ConsumerState<TelaRegistroEvolucao> {
       if (!mounted) return;
       setState(() => _salvando = false);
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Falha ao salvar evolução: $e'),
+        const SnackBar(
+          content: Text('Ocorreu um erro inesperado. Tente novamente.'),
           backgroundColor: Colors.red,
         ),
       );

@@ -170,7 +170,7 @@ class _ItemTimeline extends StatelessWidget {
                         evolucao.condicaoPaciente,
                       ).withValues(alpha: 0.3),
                       blurRadius: 4,
-                      offset: Offset(0, 2),
+                      offset: const Offset(0, 2),
                     ),
                   ],
                 ),

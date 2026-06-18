@@ -1,0 +1,472 @@
+# Fisio Home Care — Contexto Completo para Claude
+
+> ⚠️ **IMPORTANTE:** Este arquivo deve ser **SEMPRE ATUALIZADO** quando o projeto muda. Além disso, **testes e documentação DEVEM ser mantidos atualizados** em paralelo com o código.
+
+---
+
+## O que é este projeto
+
+**Fisio Home Care** é um aplicativo mobile + web de Fisioterapia Domiciliar desenvolvido em Flutter.
+
+### Características principais
+- **Backend:** Serverless via Google Sheets API (modelo BYODB — o fisioterapeuta conecta sua própria conta Google)
+- **Autenticação:** OAuth 2.0 (Google Sign-In)
+- **Hospedagem web:** Firebase Hosting
+- **Conformidade:** LGPD (dados nunca saem da conta Google do profissional)
+- **Sem servidor central:** Não há prontuário centralizado de terceiros
+
+---
+
+## Stack Técnico
+
+| Tecnologia | Versão | Propósito |
+|---|---|---|
+| **Flutter + Dart** | 3.12.0+ | Framework principal (Material 3, null-safety) |
+| **Riverpod** | 3.x | Estado e injeção de dependência |
+| **Google Sheets API** | v4 | Banco de dados BYODB |
+| **Google Drive API** | v3 | Localizar planilha do usuário |
+| **Google Sign-In** | 6.2.1 | Autenticação OAuth |
+| **Firebase Hosting** | — | Deploy web |
+
+---
+
+## Estrutura de Pastas
+
+```
+fisio-home-care/
+├── lib/
+│   ├── main.dart                    # Ponto de entrada
+│   ├── telas/                       # Screens UI
+│   │   ├── tela_login.dart
+│   │   ├── tela_dashboard.dart
+│   │   ├── tela_pacientes.dart
+│   │   ├── tela_cadastro_paciente.dart
+│   │   ├── tela_nova_sessao.dart
+│   │   ├── tela_sessoes.dart
+│   │   ├── tela_registro_evolucao.dart
+│   │   ├── tela_historico_evolucoes.dart
+│   │   ├── tela_configuracoes.dart
+│   │   └── (telas principais — todas com testes de widget)
+│   │
+│   ├── componentes/
+│   │   ├── design_system.dart       # 🔑 Design tokens, cores, tipografia
+│   │   ├── cards.dart
+│   │   ├── dialogs.dart
+│   │   ├── bottom_sheets.dart
+│   │   └── (widgets reutilizáveis)
+│   │
+│   ├── provedores/                  # Riverpod state management
+│   │   ├── provedor_autenticacao.dart    # Login Google
+│   │   ├── provedores_dados.dart         # CRUD de pacientes, agendamentos, evoluções
+│   │   └── (seletores, callbacks)
+│   │
+│   ├── modelos/
+│   │   ├── paciente.dart            # 19 colunas na planilha
+│   │   ├── agendamento.dart         # 9 colunas
+│   │   ├── evolucao.dart            # 14 colunas
+│   │   └── (value objects, copyWith, serialização)
+│   │
+│   ├── servicos/
+│   │   ├── servico_autenticacao_google.dart    # Google Sign-In wrapper
+│   │   ├── servico_repositorio_dados.dart      # Google Sheets CRUD
+│   │   ├── servico_google_drive.dart           # Localizar planilha
+│   │   ├── servico_preferencias.dart           # SharedPreferences
+│   │   ├── versao_esquema.dart                 # Versionamento de schema
+│   │   └── (integração com APIs externas)
+│   │
+│   └── utilitarios/
+│       ├── validadores.dart         # CPF, telefone, nome, data, email
+│       ├── validador_cpf.dart       # Validação de CPF isolada
+│       ├── utilitarios_data.dart    # Cálculo de idade, formatação
+│       ├── acoes_agendamento.dart   # Lógica de desfechos
+│       ├── gerador_id.dart          # Geração de IDs sequenciais (max+1)
+│       ├── mensagens_erro_google.dart    # Mapear erros Google
+│       └── (constantes, helpers)
+│
+├── test/
+│   ├── unitarios/                   # 102 testes — lógica pura
+│   │   ├── auxiliares/
+│   │   │   └── fakes.dart           # Mocks reutilizados
+│   │   ├── modelos/
+│   │   │   ├── paciente_test.dart           (9 testes)
+│   │   │   ├── agendamento_test.dart        (7 testes)
+│   │   │   └── evolucao_test.dart           (6 testes)
+│   │   ├── servicos/
+│   │   │   └── preferencias_test.dart       (5 testes)
+│   │   └── utilitarios/
+│   │       ├── validadores_test.dart        (46 testes)
+│   │       ├── validador_cpf_test.dart      (9 testes)
+│   │       ├── utilitarios_data_test.dart   (12 testes)
+│   │       └── gerador_id_test.dart         (8 testes — 100% cobertura)
+│   │
+│   └── widgets/                     # 135 testes — UI + componentes
+│       ├── componentes/
+│       │   └── modal_detalhes_paciente_test.dart   (11 testes)
+│       ├── utilitarios/
+│       │   └── acoes_agendamento_test.dart         (6 testes)
+│       └── telas/
+│           ├── tela_login_test.dart                  (6 testes)
+│           ├── tela_dashboard_test.dart              (16 testes — 100% cobertura)
+│           ├── tela_cadastro_paciente_test.dart      (22 testes — 100% cobertura)
+│           ├── tela_pacientes_test.dart              (12 testes — 100% cobertura)
+│           ├── tela_registro_evolucao_test.dart      (23 testes — 100% cobertura; inclui timeline)
+│           ├── tela_sessoes_test.dart                (12 testes — 100% cobertura)
+│           ├── tela_nova_sessao_test.dart             (9 testes — 100% cobertura)
+│           ├── tela_configuracoes_test.dart          (11 testes — 100% cobertura)
+│           └── tela_historico_geral_evolucoes_test.dart (7 testes — 100% cobertura)
+│
+├── documentacao/
+│   ├── MODELO_DADOS.md              # Estrutura das 5 abas da planilha
+│   ├── DIAGRAMA_FLUXOS.md           # Navegação e fluxos
+│   ├── ESPECIFICACOES_TELAS.md      # Requisitos funcionais
+│   ├── SEGURANCA_E_DADOS.md         # LGPD, OAuth, modelo BYODB
+│   ├── IMPLEMENTAR.md               # Roadmap priorizado
+│   ├── LOGIN_SCREEN_SPEC.md         # Specs tela login
+│   ├── PACIENTES_SPEC.md            # Specs tela pacientes
+│   ├── SUGESTOES_CADASTRO_PACIENTE.md
+│   ├── chaves.md                    # (no .gitignore) — credenciais
+│   └── testes/
+│       ├── README.md                # Índice de testes
+│       ├── VISAO_GERAL.md           # Overview 207 testes
+│       ├── UNITARIOS.md             # Detalhe dos 89 unitários
+│       └── WIDGETS.md               # Detalhe dos 118 widgets
+│
+├── QA/
+│   └── qa.md                        # Script QA manual (NOT E2E automatizado)
+│
+├── android/                         # Config Firebase, signing
+├── ios/                             # Config iOS (futuro)
+├── web/                             # Config web
+├── pubspec.yaml                     # Dependências (patrol removido)
+├── analysis_options.yaml            # Lints rigorosos
+├── Makefile                         # Targets: dev, test, lint, prod
+├── CLAUDE.md                        # Este arquivo
+├── README.md                        # Getting started
+├── CHANGELOG.md                     # Histórico versões
+└── .gitignore                       # (inclui .env, chaves.md, google-services.json)
+```
+
+---
+
+## Banco de Dados: Google Sheets
+
+Planilha: `__saas_fisio_db__` (na conta Google do fisioterapeuta)
+
+| Aba | Colunas | Descrição |
+|---|---|---|
+| **Pacientes** | 19 | ID, Nome, CPF, Telefone, Data Nascimento, Endereço, Situação, Anamnese clínica (queixa, histórico, comorbidades, medicamentos, alergias, cirurgias, hábitos) |
+| **Agenda** | 9 | ID, ID_Paciente, Data, Hora início/fim, Valor, Situação (Agendado/Realizado/Cancelado/Faltou), Observações |
+| **Evoluções** | 14 | ID, ID_Paciente, ID_Agendamento, Data, Protocolo, Texto clínico, Horário real, Desfecho, etc. |
+| **Configurações** | K/V | Valor padrão sessão, links, etc. |
+| **Auditoria** | Log | Operações (quem, quando, o quê) |
+
+### ⚠️ Regra crítica
+**NUNCA** use índice numérico literal como `linha[10]`. Use mapa de índices:
+- `Paciente.indicesColunas` (lib/modelos/paciente.dart:L30)
+- `Agendamento.indicesColunas` (lib/modelos/agendamento.dart:L20)
+- `VersaoEsquema.obterIndicesColunas(versao)` (lib/servicos/versao_esquema.dart:L45)
+
+---
+
+## Padrões de Código
+
+### Estado (Riverpod)
+
+**Localização:** `lib/provedores/`
+
+```dart
+// Autenticação
+provedorAutenticacao → AutenticacaoNotificador
+  .login()
+  .logout()
+
+// Dados
+provedorRepositorioDados → RepositorioDadosGoogle (null se não autenticado)
+  .carregarPacientes()
+  .salvarPaciente(paciente)
+
+// Listas em estado
+provedorListaPacientes → StateNotifier<List<Paciente>>
+provedorListaAgendamentos → StateNotifier<List<Agendamento>>
+provedorListaEvolucoes → StateNotifier<List<Evolucao>>
+```
+
+**Padrão de carregamento:**
+```dart
+Future<void> carregarDadosReais(WidgetRef ref) async {
+  final repo = ref.read(provedorRepositorioDados);
+  if (repo == null) return; // não autenticado
+  
+  final pacientes = await repo.carregarPacientes();
+  ref.read(provedorListaPacientes.notifier).definir(pacientes);
+}
+```
+
+### Logging
+
+**Regra:** `print()` é proibido (lint ativo).
+
+Use sempre:
+```dart
+import 'dart:developer' as developer;
+
+developer.log(
+  'Mensagem aqui',
+  error: exception,
+  stackTrace: st,
+  name: 'NomeClasse'
+);
+```
+
+### Erros na UI
+
+**Na tela:**
+```dart
+ScaffoldMessenger.of(context).showSnackBar(
+  SnackBar(content: Text('Erro ao salvar. Tente novamente.'))
+);
+```
+
+**No console/logs:**
+```dart
+developer.log(
+  'Erro salvar paciente: ${e.message}',
+  error: e,
+  stackTrace: st,
+  name: 'TelaCadastroPaciente'
+);
+```
+
+### Validação
+
+Usar classe `Validadores` (`lib/utilitarios/validadores.dart`):
+```dart
+if (!Validadores.validarCPF(cpf)) {
+  // erro
+}
+
+// Delega para implementação isolada
+ValidadorCpf.validar(cpf)  // ✓ fonte única de verdade
+Paciente.calcularIdade()   // ✓ delega para UtilitariosData
+```
+
+---
+
+## Testes (237 testes automatizados)
+
+### Estrutura
+
+```
+test/
+├── unitarios/  (102 testes)
+│   ├── auxiliares/     — fakes.dart (mocks reutilizados)
+│   ├── modelos/        — 22 testes (serialização, transformação)
+│   ├── servicos/       — 5 testes (preferencias)
+│   └── utilitarios/    — 75 testes (validadores, data, CPF, gerador_id)
+│
+└── widgets/    (135 testes)
+    ├── telas/        — 9 telas principais (UI, interação)
+    ├── componentes/  — modal de detalhes do paciente
+    └── utilitarios/  — ações de agendamento
+```
+
+### Rodar testes
+
+```bash
+# Todos
+flutter test
+
+# Apenas unitários
+flutter test test/unitarios/
+
+# Apenas widgets
+flutter test test/widgets/
+
+# Um arquivo
+flutter test test/unitarios/utilitarios/validadores_test.dart
+
+# Modo watch
+flutter test --watch
+
+# Coverage
+flutter test --coverage
+```
+
+### Cobertura
+
+✅ **Validação de entrada** — 46 testes (CPF, telefone, nome, data)  
+✅ **Modelos** — 22 testes (serialização, cópia, status)  
+✅ **Utilitários** — 21 testes (idade, formatação)  
+✅ **UI + Interação** — 135 testes (9 telas principais com 100% de cobertura + componentes/utilitários)  
+
+❌ **Não coberto:**
+- Google Sheets API real (usaria quota, seria lento)
+- Google Sign-In real (exigiria device/navegador)
+- Testes E2E (removidos em 2026-06-16 — redundante)
+- Performance/carga
+
+### Documentação de testes
+
+📚 Ver `documentacao/testes/`:
+- `README.md` — índice
+- `VISAO_GERAL.md` — overview
+- `UNITARIOS.md` — cada teste unitário
+- `WIDGETS.md` — cada teste de widget
+
+---
+
+## Credenciais e Segurança
+
+### Variáveis de ambiente
+
+```bash
+# .env (NUNCA commitar)
+GOOGLE_OAUTH_CLIENT_ID_WEB=1034972209864-22ivlkbu9eu206fv6tvot90mup62stic.apps.googleusercontent.com
+GOOGLE_OAUTH_CLIENT_ID_ANDROID=...
+GOOGLE_CLOUD_PROJECT_NUMBER=...
+GOOGLE_AUTHORIZED_JAVASCRIPT_ORIGIN=https://app-fisio-care-2.web.app
+GOOGLE_AUTHORIZED_REDIRECT_URI=https://app-fisio-care-2.web.app/__/auth/handler
+```
+
+### Arquivos no .gitignore
+
+```
+.env
+.env.local
+documentacao/chaves.md
+documentacao/chaves.local.md
+android/app/google-services.json
+ios/GoogleService-Info.plist
+```
+
+### Rodando localmente
+
+```bash
+# Carregar .env e rodar
+./run-dev.sh
+
+# Ou manual
+export GOOGLE_OAUTH_CLIENT_ID_WEB=...
+flutter run
+```
+
+---
+
+## Bugs conhecidos / Trade-offs
+
+| Descrição | Status | Prioridade |
+|---|---|---|
+| Parsers `_pacienteDeLinha`/`_agendamentoDeLinha` usavam índices literais | Resolvido (usam `indicesColunas`) | ✅ |
+| IDs agendamento/evolução/auditoria por `length + 1` (race condition) | Resolvido (`GeradorId.proximo` usa max+1) | ✅ |
+| `BackdropFilter` reimplementado inline em telas | Consolidar em FisioGlass | 🟡 Média |
+| Lógica de popup duplicada em dashboard/sessoes | Centralizar em utilitarios | 🟡 Média |
+| Todas as telas principais possuem testes de widget | — | ✅ |
+
+---
+
+## Publicar
+
+```bash
+# Web → Firebase Hosting (incrementa versão automaticamente)
+make prod-web
+
+# Android → APK release
+make prod-android
+```
+
+## CI/CD (GitHub Actions)
+
+Pipeline em `.github/workflows/` seguindo GitFlow simplificado (branches auxiliares → `develop` → `master`):
+
+| Workflow | Dispara em | O que faz |
+|---|---|---|
+| `ci.yml` | PR para `develop`/`master` e push em branches auxiliares | `flutter analyze` + `flutter test --coverage` + build web (smoke test). Não publica. |
+| `deploy-preview.yml` | push em `develop` | Lint + testes + build web → deploy em **preview channel** do Firebase (URL temporária, ambiente de testes). |
+| `deploy-prod.yml` | push em `master` | Lint + testes → incrementa versão (patch em `pubspec.yaml` + `web/version.json`) → build → deploy **live** no Firebase → commita o bump com `[skip ci]`. |
+
+- **Flutter pinado** em `3.44.1` (via `subosito/flutter-action@v2`).
+- **Auth Firebase:** Service Account JSON em `FirebaseExtended/action-hosting-deploy@v0`.
+- A lógica de bump de versão e cópia de branding replica o target `prod-web` do `Makefile`.
+
+### Secrets necessários (GitHub → Settings → Secrets and variables → Actions)
+
+| Secret | Conteúdo |
+|---|---|
+| `FIREBASE_SERVICE_ACCOUNT` | **JSON da conta de serviço** (`"type": "service_account"` + `"private_key"`), gerado no Firebase Console → Contas de serviço. **Não** confundir com o arquivo OAuth Client. |
+| `GOOGLE_OAUTH_CLIENT_ID_WEB` | Client ID OAuth web. |
+| `GOOGLE_OAUTH_CLIENT_ID_ANDROID` | Client ID OAuth Android (pode ser `none` — web-only por enquanto). |
+
+> Android está fora de escopo do CI atual (somente web). `google-services.json` não é necessário no CI.
+
+### Atalhos no Makefile
+
+```bash
+make ci-local      # roda localmente o mesmo que a CI (lint + testes + build web)
+make release-dev   # mescla a branch atual na develop → dispara deploy de testes (preview)
+make release-prod  # mescla develop → master → dispara deploy de produção (pede confirmação)
+```
+
+📚 Guia completo (uso, secrets, troubleshooting): `documentacao/CI_CD.md`.
+
+---
+
+## Documentação do Projeto
+
+| Arquivo | Conteúdo | Atualizado? |
+|---|---|---|
+| `README.md` | Getting started, como rodar, publicar | ✅ |
+| `CHANGELOG.md` | Histórico de versões | ✅ |
+| `CLAUDE.md` | Este arquivo (contexto para Claude) | ✅ |
+| `documentacao/MODELO_DADOS.md` | Estrutura das 5 abas da planilha | ✅ |
+| `documentacao/DIAGRAMA_FLUXOS.md` | Navegação e fluxos do app | ✅ |
+| `documentacao/ESPECIFICACOES_TELAS.md` | Requisitos funcionais das telas | ✅ |
+| `documentacao/SEGURANCA_E_DADOS.md` | LGPD, OAuth, modelo BYODB | ✅ |
+| `documentacao/IMPLEMENTAR.md` | Roadmap priorizado | ✅ |
+| `documentacao/testes/` | 237 testes automatizados | ✅ |
+| `documentacao/CI_CD.md` | Pipeline GitHub Actions: fluxo, secrets, uso e troubleshooting | ✅ |
+| `QA/qa.md` | Script QA manual (não é E2E) | ✅ |
+
+---
+
+## ⚠️ REGRAS IMPORTANTES
+
+### 1. Manter Documentação Sincronizada
+
+**TODA vez que você muda o código, VOCÊ DEVE:**
+
+- ✅ Atualizar testes (ou criar novos)
+- ✅ Atualizar documentação relevante
+- ✅ Atualizar este arquivo (CLAUDE.md) se mudar estrutura, stack ou padrões
+- ✅ Atualizar `CHANGELOG.md` com resumo da mudança
+- ❌ **NUNCA** commitar sem testes + docs atualizados
+
+### 2. Testes Sempre Atualizados
+
+```bash
+# Antes de fazer commit, SEMPRE:
+flutter test   # Deve passar 100%
+make lint      # Sem warnings
+```
+
+### 3. Quando Adicionar Feature
+
+1. **Criar testes primeiro** (TDD)
+2. **Implementar código**
+3. **Rodar testes** — devem passar
+4. **Atualizar documentação**
+5. **Atualizar CLAUDE.md** se necessário
+6. **Commit** com mensagem clara
+
+---
+
+## Contato e Contexto
+
+Este projeto é desenvolvido por **Rodrigo Lacerda** (rodrigo@example.com).
+
+Para questões sobre estrutura, padrões ou decisões técnicas, **SEMPRE consulte este arquivo primeiro**.
+
+---
+
+**Última atualização:** 2026-06-17  
+**Versão:** 1.0.6  
+**Branch ativo:** test-mobile

@@ -7,8 +7,7 @@ import 'cliente_google_autenticado.dart';
 
 const googleOAuthClientIdWeb = String.fromEnvironment(
   'GOOGLE_OAUTH_CLIENT_ID_WEB',
-  defaultValue:
-      '1034972209864-22ivlkbu9eu206fv6tvot90mup62stic.apps.googleusercontent.com',
+  defaultValue: '',
 );
 
 const escoposGoogleFisio = <String>[
@@ -49,6 +48,14 @@ abstract class ServicoAutenticacaoGoogle {
 }
 
 GoogleSignIn _criarGoogleSignIn() {
+  if (googleOAuthClientIdWeb.isEmpty) {
+    throw StateError(
+      'GOOGLE_OAUTH_CLIENT_ID_WEB não foi definido. '
+      'Configure a variável de ambiente ou execute:\n'
+      'flutter run --dart-define=GOOGLE_OAUTH_CLIENT_ID_WEB=SEU_CLIENT_ID'
+    );
+  }
+
   if (kIsWeb) {
     return GoogleSignIn(
       clientId: googleOAuthClientIdWeb,
@@ -68,7 +75,6 @@ class ServicoAutenticacaoGoogleReal implements ServicoAutenticacaoGoogle {
   final _contasController = StreamController<ContaGoogleConectada>.broadcast();
   final _sessoesController = StreamController<SessaoGoogle>.broadcast();
   late final GoogleSignIn _googleSignIn = _criarGoogleSignIn();
-  GoogleSignInAccount? _contaAtual;
   bool _inicializado = false;
 
   @override
@@ -90,7 +96,6 @@ class ServicoAutenticacaoGoogleReal implements ServicoAutenticacaoGoogle {
     final conta = await _googleSignIn.signInSilently();
     if (conta == null) return null;
 
-    _contaAtual = conta;
     return _criarSessao(conta);
   }
 
@@ -103,7 +108,6 @@ class ServicoAutenticacaoGoogleReal implements ServicoAutenticacaoGoogle {
       throw StateError('Login Google cancelado.');
     }
 
-    _contaAtual = conta;
     final sessao = _criarSessao(conta);
     _sessoesController.add(sessao);
     _contasController.add(
@@ -135,7 +139,6 @@ class ServicoAutenticacaoGoogleReal implements ServicoAutenticacaoGoogle {
   @override
   Future<void> sair() async {
     if (!_inicializado) return;
-    _contaAtual = null;
     await _googleSignIn.signOut();
   }
 }
