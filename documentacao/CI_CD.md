@@ -14,36 +14,34 @@ vá ao ar e mantém a versão sempre organizada.
 
 ---
 
-## O fluxo de branches (GitFlow simplificado)
+## O fluxo de branches (duas branches)
 
 ```
-  feature/correção (branches auxiliares)
-            │  (abre Pull Request)
-            ▼
         develop ───────────►  Ambiente de TESTES (URL temporária de preview)
-            │  (merge quando aprovado)
+            │  (merge quando aprovado nos testes)
             ▼
          master ───────────►  PRODUÇÃO (site oficial app-fisio-care-2.web.app)
 ```
 
-- **Branches auxiliares** (`feature/...`, `fix/...`): onde você desenvolve. Ao abrir
-  PR, roda a verificação de qualidade (não publica nada).
-- **`develop`**: ambiente de testes. Todo push aqui publica num **preview channel**
-  do Firebase (endereço temporário, isolado da produção).
-- **`master`**: produção. Todo push aqui **incrementa a versão**, publica o site
-  oficial e registra o número da nova versão automaticamente.
+- **`develop`**: ambiente de testes. Todo push aqui roda lint + testes e publica
+  num **preview channel** do Firebase (endereço temporário, isolado da produção).
+- **`master`**: produção. Todo push aqui roda lint + testes, **incrementa a versão**,
+  publica o site oficial e registra o número da nova versão automaticamente.
 
-> Não há bloqueio de merge — é responsabilidade do time seguir o fluxo.
+> Em ambos os casos, se o lint ou os testes falharem, **a publicação é cancelada** —
+> nada quebrado vai ao ar. Não há um workflow de CI separado: a verificação está
+> embutida dentro dos dois deploys.
 
 ---
 
-## Os 3 workflows (`.github/workflows/`)
+## Os 2 workflows (`.github/workflows/`)
 
 | Arquivo | Dispara quando | O que faz |
 |---|---|---|
-| `ci.yml` | PR para `develop`/`master` e push em branches auxiliares | `flutter analyze` + `flutter test --coverage` + build web. **Não publica.** |
-| `deploy-preview.yml` | push em `develop` | Testa, builda e publica no **preview channel** (ambiente de testes). |
-| `deploy-prod.yml` | push em `master` | Testa, **incrementa a versão**, builda, publica em **produção** e commita o bump (`[skip ci]`). |
+| `deploy-preview.yml` | push em `develop` | `flutter analyze` + `flutter test`, builda e publica no **preview channel** (ambiente de testes). |
+| `deploy-prod.yml` | push em `master` | `flutter analyze` + `flutter test`, **incrementa a versão**, builda, publica em **produção** e commita o bump (`[skip ci]`). |
+
+> Para rodar a mesma verificação localmente antes de subir, use `make ci-local`.
 
 Detalhes técnicos:
 - **Flutter** fixado em `3.44.1` (`subosito/flutter-action@v2`).
@@ -82,27 +80,21 @@ make release-prod  # mescla develop -> master e PUBLICA EM PRODUÇÃO (pede conf
 
 ### Passo a passo típico
 
-1. **Desenvolver** numa branch auxiliar:
+1. **Desenvolver** na `develop`:
    ```bash
-   git checkout -b feature/minha-mudanca
+   git checkout develop
    # ...código...
-   make ci-local            # confere que está tudo verde localmente
+   make ci-local            # confere que está tudo verde localmente (opcional)
    git add . && git commit -m "feat: minha mudança"
-   git push origin feature/minha-mudanca
+   git push origin develop
    ```
-   → abre PR para `develop` no GitHub; a CI roda sozinha.
+   → dispara o **Deploy de Testes**; a URL de preview aparece em **Actions**, na etapa
+   *"🚀 Publicar no ambiente de testes"* (formato `https://app-fisio-care-2--develop-XXXX.web.app`).
+   Para pegar a URL pelo terminal: `firebase hosting:channel:list --project app-fisio-care-2`.
 
-2. **Testar no ambiente de testes** (após aprovar/mesclar na develop):
+2. **Publicar em produção** (quando aprovado nos testes):
    ```bash
-   make release-dev
-   ```
-   → acompanhe em **Actions**; a URL de preview aparece na etapa
-   *"🚀 Publicar no ambiente de testes"* (formato
-   `https://app-fisio-care-2--develop-XXXX.web.app`).
-
-3. **Publicar em produção** (quando aprovado nos testes):
-   ```bash
-   make release-prod        # pede confirmação (s/N)
+   make release-prod        # mescla develop -> master e pede confirmação (s/N)
    ```
    → publica em `https://app-fisio-care-2.web.app`, sobe a versão (ex.: 1.0.7 → 1.0.8)
    e registra o commit do bump.
