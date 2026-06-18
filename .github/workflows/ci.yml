@@ -1,0 +1,38 @@
+name: CI
+
+# Validação de qualidade: roda em toda PR para develop/master
+# e em pushes de branches auxiliares. Não publica nada.
+on:
+  pull_request:
+    branches: [develop, master]
+  push:
+    branches-ignore: [develop, master]
+
+jobs:
+  verificar:
+    name: Lint, testes e build web
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configurar Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          flutter-version: 3.44.1
+          cache: true
+
+      - name: Instalar dependências
+        run: flutter pub get
+
+      - name: Análise estática (lint)
+        run: flutter analyze
+
+      - name: Testes (com coverage)
+        run: flutter test --coverage
+
+      # Smoke test de build — garante que o app web compila.
+      # Sem secrets: dart-defines vazios são suficientes para compilar.
+      - name: Build web (smoke test)
+        run: flutter build web --release --base-href=/

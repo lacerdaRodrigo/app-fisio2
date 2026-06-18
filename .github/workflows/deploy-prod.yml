@@ -1,0 +1,86 @@
+name: Deploy Produção (master)
+
+# Produção: a cada push em master, incrementa a versão (patch),
+# faz build, publica live no Firebase Hosting e commita o bump.
+on:
+  push:
+    branches: [master]
+
+permissions:
+  contents: write
+
+jobs:
+  deploy-prod:
+    name: Build, deploy live e bump de versão
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Configurar Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          flutter-version: 3.44.1
+          cache: true
+
+      - name: Instalar dependências
+        run: flutter pub get
+
+      - name: Análise estática (lint)
+        run: flutter analyze
+
+      - name: Testes
+        run: flutter test
+
+      # Incrementa o PATCH em pubspec.yaml e web/version.json
+      # (porta da lógica do target prod-web do Makefile).
+      - name: Incrementar versão
+        id: versao
+        run: |
+          V=$(grep '^version: ' pubspec.yaml | sed 's/version: //' | cut -d'+' -f1)
+          MAJOR=$(echo "$V" | cut -d'.' -f1)
+          MINOR=$(echo "$V" | cut -d'.' -f2)
+          PATCH=$(echo "$V" | cut -d'.' -f3)
+          NEW_PATCH=$((PATCH + 1))
+          NEW_VER="$MAJOR.$MINOR.$NEW_PATCH"
+          NEW_FULL="$NEW_VER+0"
+          BUILD_TS=$(date +%s)
+          sed -i "s/^version: .*/version: $NEW_FULL/" pubspec.yaml
+          sed -i "s/\"version\": \".*\"/\"version\": \"$NEW_VER\"/" web/version.json
+          sed -i "s/\"build\": \".*\"/\"build\": \"$BUILD_TS\"/" web/version.json
+          echo "app_version=$NEW_VER" >> "$GITHUB_OUTPUT"
+          echo "Nova versão: v$NEW_VER"
+
+      - name: Build web
+        run: |
+          flutter build web --release --base-href=/ \
+            --dart-define=GOOGLE_OAUTH_CLIENT_ID_WEB=${{ secrets.GOOGLE_OAUTH_CLIENT_ID_WEB }} \
+            --dart-define=GOOGLE_OAUTH_CLIENT_ID_ANDROID=${{ secrets.GOOGLE_OAUTH_CLIENT_ID_ANDROID }} \
+            --dart-define=APP_VERSION=${{ steps.versao.outputs.app_version }}
+
+      - name: Copiar páginas públicas (branding)
+        run: |
+          cp branding/privacidade.html build/web/privacidade.html
+          cp branding/termos.html build/web/termos.html
+          cp branding/google505e804a9d870920.html build/web/google505e804a9d870920.html
+
+      - name: Deploy live no Firebase Hosting
+        uses: FirebaseExtended/action-hosting-deploy@v0
+        with:
+          repoToken: ${{ secrets.GITHUB_TOKEN }}
+          firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+          projectId: app-fisio-care-2
+          channelId: live
+          entryPoint: .
+
+      - name: Commit do bump de versão
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add pubspec.yaml web/version.json
+          git commit -m "chore: bump versão para ${{ steps.versao.outputs.app_version }} [skip ci]"
+          git push

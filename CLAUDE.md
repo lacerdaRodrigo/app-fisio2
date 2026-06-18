@@ -374,6 +374,30 @@ make prod-web
 make prod-android
 ```
 
+## CI/CD (GitHub Actions)
+
+Pipeline em `.github/workflows/` seguindo GitFlow simplificado (branches auxiliares → `develop` → `master`):
+
+| Workflow | Dispara em | O que faz |
+|---|---|---|
+| `ci.yml` | PR para `develop`/`master` e push em branches auxiliares | `flutter analyze` + `flutter test --coverage` + build web (smoke test). Não publica. |
+| `deploy-preview.yml` | push em `develop` | Lint + testes + build web → deploy em **preview channel** do Firebase (URL temporária, ambiente de testes). |
+| `deploy-prod.yml` | push em `master` | Lint + testes → incrementa versão (patch em `pubspec.yaml` + `web/version.json`) → build → deploy **live** no Firebase → commita o bump com `[skip ci]`. |
+
+- **Flutter pinado** em `3.44.1` (via `subosito/flutter-action@v2`).
+- **Auth Firebase:** Service Account JSON em `FirebaseExtended/action-hosting-deploy@v0`.
+- A lógica de bump de versão e cópia de branding replica o target `prod-web` do `Makefile`.
+
+### Secrets necessários (GitHub → Settings → Secrets and variables → Actions)
+
+| Secret | Conteúdo |
+|---|---|
+| `FIREBASE_SERVICE_ACCOUNT` | JSON da service account do projeto `app-fisio-care-2` (papel Firebase Hosting Admin). |
+| `GOOGLE_OAUTH_CLIENT_ID_WEB` | Client ID OAuth web. |
+| `GOOGLE_OAUTH_CLIENT_ID_ANDROID` | Client ID OAuth Android (pode ficar vazio — web-only por enquanto). |
+
+> Android está fora de escopo do CI atual (somente web). `google-services.json` não é necessário no CI.
+
 ---
 
 ## Documentação do Projeto

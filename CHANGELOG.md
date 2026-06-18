@@ -2,6 +2,13 @@
 
 ## [Não lançado] — 2026-06-17
 
+### CI/CD
+- Adicionada pipeline GitHub Actions (`.github/workflows/`):
+  - `ci.yml`: lint + testes (`--coverage`) + build web em toda PR para `develop`/`master` e pushes de branches auxiliares
+  - `deploy-preview.yml`: deploy em preview channel do Firebase a cada push em `develop` (ambiente de testes)
+  - `deploy-prod.yml`: push em `master` incrementa versão (patch), build, deploy live no Firebase e commita o bump (`[skip ci]`)
+- Auth do Firebase via Service Account (secret `FIREBASE_SERVICE_ACCOUNT`); Flutter pinado em 3.44.1
+
 ### Qualidade
 - `flutter analyze` 100% limpo (eram 42 issues): aplicado `dart fix`, removido campo morto `_contaAtual` e constantes renomeadas para `lowerCamelCase` (`versaoAtual`, `historico`, `versaoEsquema`)
 - Cobertura global de testes subiu de ~80% para ~85% (237 testes, eram 207)

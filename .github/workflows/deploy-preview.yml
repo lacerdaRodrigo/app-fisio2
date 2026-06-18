@@ -1,0 +1,60 @@
+name: Deploy Preview (develop)
+
+# Ambiente de testes: a cada push em develop, publica num
+# preview channel do Firebase Hosting (URL temporária).
+on:
+  push:
+    branches: [develop]
+
+jobs:
+  deploy-preview:
+    name: Build e deploy em preview channel
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configurar Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          flutter-version: 3.44.1
+          cache: true
+
+      - name: Instalar dependências
+        run: flutter pub get
+
+      - name: Análise estática (lint)
+        run: flutter analyze
+
+      - name: Testes
+        run: flutter test
+
+      - name: Ler versão do pubspec
+        id: versao
+        run: |
+          VER=$(grep '^version: ' pubspec.yaml | sed 's/version: //' | cut -d'+' -f1)
+          echo "app_version=$VER" >> "$GITHUB_OUTPUT"
+
+      - name: Build web
+        run: |
+          flutter build web --release --base-href=/ \
+            --dart-define=GOOGLE_OAUTH_CLIENT_ID_WEB=${{ secrets.GOOGLE_OAUTH_CLIENT_ID_WEB }} \
+            --dart-define=GOOGLE_OAUTH_CLIENT_ID_ANDROID=${{ secrets.GOOGLE_OAUTH_CLIENT_ID_ANDROID }} \
+            --dart-define=APP_VERSION=${{ steps.versao.outputs.app_version }}
+
+      - name: Copiar páginas públicas (branding)
+        run: |
+          cp branding/privacidade.html build/web/privacidade.html
+          cp branding/termos.html build/web/termos.html
+          cp branding/google505e804a9d870920.html build/web/google505e804a9d870920.html
+
+      - name: Deploy no preview channel
+        uses: FirebaseExtended/action-hosting-deploy@v0
+        with:
+          repoToken: ${{ secrets.GITHUB_TOKEN }}
+          firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+          projectId: app-fisio-care-2
+          channelId: develop
+          expires: 30d
+          entryPoint: .
