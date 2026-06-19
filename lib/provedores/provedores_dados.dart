@@ -200,6 +200,26 @@ Future<void> salvarPacienteReal(WidgetRef ref, Paciente paciente) async {
   );
 }
 
+Future<void> atualizarPacienteReal(
+  WidgetRef ref,
+  Paciente pacienteAtualizado,
+) async {
+  await _repositorio(ref).atualizarPaciente(pacienteAtualizado);
+  final pacientes = ref.read(provedorListaPacientes);
+  ref.read(provedorListaPacientes.notifier).definir([
+    for (final paciente in pacientes)
+      if (paciente.idPaciente == pacienteAtualizado.idPaciente)
+        pacienteAtualizado
+      else
+        paciente,
+  ]);
+  registrarLog(
+    ref,
+    'EDITAR_PACIENTE',
+    'Paciente ${pacienteAtualizado.idPaciente} atualizado.',
+  );
+}
+
 Future<void> salvarAgendamentoReal(
   WidgetRef ref,
   Agendamento agendamento,

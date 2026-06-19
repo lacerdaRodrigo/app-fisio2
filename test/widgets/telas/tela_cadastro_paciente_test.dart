@@ -99,6 +99,12 @@ Future<void> _preencherObrigatorios(
   await tester.pumpAndSettle();
 }
 
+/// Confirma o popup "campos definitivos" exibido após tocar em Salvar.
+Future<void> _confirmarCamposDefinitivos(WidgetTester tester) async {
+  await tester.tap(find.byKey(const Key('btn_confirmar_cadastro')));
+  await tester.pumpAndSettle();
+}
+
 Widget criarAppTeste() {
  return ProviderScope(
  overrides: [
@@ -339,6 +345,7 @@ testWidgets('deve permitir salvar paciente sem preencher campos de anamnese', (
   await tester.pumpAndSettle();
   await tester.tap(find.text('Salvar Paciente'));
   await tester.pumpAndSettle();
+  await _confirmarCamposDefinitivos(tester);
 
   // Verificar se os dados básicos foram salvos
   final pacientes = container.read(provedorListaPacientes);
@@ -547,8 +554,11 @@ group('TelaCadastroPaciente - Campos obrigatorios', () {
     await tester.tap(find.text('Salvar Paciente'));
     await tester.pumpAndSettle();
 
-    // Dialog NÃO deve aparecer
+    // Dialog de campos obrigatórios NÃO deve aparecer
     expect(find.text('Campos obrigatórios'), findsNothing);
+    // Mas o aviso de campos definitivos aparece; confirmar para salvar.
+    expect(find.text('Atenção: campos definitivos'), findsOneWidget);
+    await _confirmarCamposDefinitivos(tester);
     final pacientes = container.read(provedorListaPacientes);
     expect(pacientes, isNotEmpty);
     final pacienteSalvo = pacientes.first;
@@ -742,6 +752,7 @@ group('TelaCadastroPaciente - Cobertura adicional', () {
 
       await tester.tap(find.byKey(const Key('btn_salvar_paciente')));
       await tester.pumpAndSettle();
+      await _confirmarCamposDefinitivos(tester);
 
       final pacientes = container.read(provedorListaPacientes);
       expect(pacientes, hasLength(2));
@@ -766,11 +777,34 @@ group('TelaCadastroPaciente - Cobertura adicional', () {
 
     await tester.tap(find.byKey(const Key('btn_salvar_paciente')));
     await tester.pumpAndSettle();
+    await _confirmarCamposDefinitivos(tester);
 
     expect(
       find.text('Ocorreu um erro inesperado. Tente novamente.'),
       findsOneWidget,
     );
   });
+
+  testWidgets(
+    'popup de campos definitivos: Revisar cancela sem salvar',
+    (tester) async {
+      await _montarTela(tester, repositorio: FakeRepositorioDadosGoogle());
+
+      await _preencherObrigatorios(tester);
+
+      await tester.tap(find.byKey(const Key('btn_salvar_paciente')));
+      await tester.pumpAndSettle();
+
+      // Aviso aparece listando os campos definitivos.
+      expect(find.text('Atenção: campos definitivos'), findsOneWidget);
+
+      // Revisar fecha o aviso e não salva.
+      await tester.tap(find.byKey(const Key('btn_revisar_cadastro')));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Atenção: campos definitivos'), findsNothing);
+      expect(find.text('Paciente cadastrado com sucesso!'), findsNothing);
+    },
+  );
 });
 }

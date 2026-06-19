@@ -49,17 +49,11 @@ class _TelaHistoricoGeralEvolucoesState
             padding: const EdgeInsets.fromLTRB(20, 48, 20, 18),
             decoration: BoxDecoration(
               color: Colors.white,
-              borderRadius: const BorderRadius.only(
-                bottomLeft: Radius.circular(32),
-                bottomRight: Radius.circular(32),
+              borderRadius: BorderRadius.only(
+                bottomLeft: Radius.circular(FisioRaios.lg),
+                bottomRight: Radius.circular(FisioRaios.lg),
               ),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.055),
-                  blurRadius: 20,
-                  offset: const Offset(0, 10),
-                ),
-              ],
+              boxShadow: FisioSombras.card,
             ),
             child: Column(
               children: [
@@ -75,7 +69,7 @@ class _TelaHistoricoGeralEvolucoesState
                         style: TextStyle(
                           color: FisioCores.textPrimary,
                           fontSize: 22,
-                          fontWeight: FontWeight.w800,
+                          fontWeight: FontWeight.w700,
                         ),
                       ),
                     ),
@@ -127,9 +121,9 @@ class _TelaHistoricoGeralEvolucoesState
     return Container(
       padding: const EdgeInsets.all(4),
       decoration: BoxDecoration(
-        color: const Color(0xFFF1F5F9),
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: const Color(0xFFE2E8F0)),
+        color: FisioCores.inputFill,
+        borderRadius: BorderRadius.circular(FisioRaios.base),
+        border: Border.all(color: FisioCores.border),
       ),
       child: Row(
         children: [
@@ -165,7 +159,7 @@ class _TelaHistoricoGeralEvolucoesState
           textAlign: TextAlign.center,
           style: TextStyle(
             color: selecionado ? FisioCores.primary : FisioCores.textSecondary,
-            fontWeight: FontWeight.w800,
+            fontWeight: FontWeight.w700,
             fontSize: 12,
           ),
         ),
@@ -323,7 +317,7 @@ class _CardEvolucaoGeral extends StatelessWidget {
                     Text(
                       nomePaciente,
                       style: const TextStyle(
-                        fontWeight: FontWeight.w800,
+                        fontWeight: FontWeight.w700,
                         color: FisioCores.textPrimary,
                       ),
                     ),
@@ -399,7 +393,7 @@ class _GrupoPacienteEvolucoes extends StatelessWidget {
       padding: const EdgeInsets.only(bottom: 12),
       child: Material(
         color: FisioCores.card,
-        borderRadius: BorderRadius.circular(24),
+        borderRadius: BorderRadius.circular(FisioRaios.base),
         elevation: 2,
         shadowColor: Colors.black.withValues(alpha: 0.08),
         child: Theme(
@@ -423,7 +417,7 @@ class _GrupoPacienteEvolucoes extends StatelessWidget {
                   paciente == null ? '??' : fisioIniciais(paciente!.nome),
                   style: TextStyle(
                     color: cor,
-                    fontWeight: FontWeight.w800,
+                    fontWeight: FontWeight.w700,
                     fontSize: 16,
                   ),
                 ),
@@ -433,7 +427,7 @@ class _GrupoPacienteEvolucoes extends StatelessWidget {
               nome,
               style: const TextStyle(
                 color: FisioCores.textPrimary,
-                fontWeight: FontWeight.w800,
+                fontWeight: FontWeight.w700,
               ),
             ),
             subtitle: Text(
@@ -462,9 +456,9 @@ class _MetaChip extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(
-        color: const Color(0xFFF1F5F9),
+        color: FisioCores.inputFill,
         borderRadius: BorderRadius.circular(999),
-        border: Border.all(color: const Color(0xFFE2E8F0)),
+        border: Border.all(color: FisioCores.border),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,

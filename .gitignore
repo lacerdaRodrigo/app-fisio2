@@ -72,6 +72,7 @@ GoogleService-Info.local.plist
 
 # Android Firebase config (contém credenciais)
 android/app/google-services.json
+google-services.json
 
 # npm / Mobilewright artifacts
 node_modules/

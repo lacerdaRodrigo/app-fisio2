@@ -259,6 +259,27 @@ class RepositorioDadosGoogle {
     );
   }
 
+  Future<void> atualizarPaciente(Paciente paciente) async {
+    final id = await obterPlanilhaId();
+    final linhas = await _sheets.lerAba(id, 'Pacientes');
+    final indice = linhas.indexWhere(
+      (linha) => linha.isNotEmpty && linha.first == paciente.idPaciente,
+    );
+    if (indice == -1) {
+      throw StateError('Paciente ${paciente.idPaciente} não encontrado.');
+    }
+
+    await _sheets.atualizarLinha(
+      id,
+      'Pacientes!A${indice + 2}:S${indice + 2}',
+      _valoresPaciente(paciente),
+    );
+    await registrarAuditoria(
+      'EDITAR_PACIENTE',
+      'Paciente ${paciente.idPaciente} atualizado.',
+    );
+  }
+
   Future<void> arquivarPaciente(String idPaciente) async {
     final id = await obterPlanilhaId();
     final linhas = await _sheets.lerAba(id, 'Pacientes');

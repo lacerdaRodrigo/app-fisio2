@@ -428,7 +428,7 @@ class _TelaCadastroPacienteState extends ConsumerState<TelaCadastroPaciente> {
       titulo,
       style: const TextStyle(
         fontSize: 14,
-        fontWeight: FontWeight.w800,
+        fontWeight: FontWeight.w700,
         color: FisioCores.primary,
       ),
     );
@@ -527,14 +527,72 @@ class _TelaCadastroPacienteState extends ConsumerState<TelaCadastroPaciente> {
     );
   }
 
+  /// Avisa que Nome, CPF, Data de Nascimento e Gênero não poderão ser editados
+  /// depois do cadastro. Retorna `true` se o usuário confirmar.
+  Future<bool> _confirmarCamposDefinitivos() async {
+    const camposDefinitivos = [
+      'Nome',
+      'CPF',
+      'Data de Nascimento',
+      'Gênero',
+    ];
+    final confirmou = await showDialog<bool>(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) => AlertDialog(
+        key: const Key('dialog_campos_definitivos'),
+        title: const Text('Atenção: campos definitivos'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Os campos abaixo NÃO poderão ser alterados depois do cadastro:',
+            ),
+            const SizedBox(height: 12),
+            ...camposDefinitivos.map(
+              (c) => Padding(
+                padding: const EdgeInsets.only(bottom: 4),
+                child: Row(
+                  children: [
+                    Icon(
+                      Icons.lock_outline,
+                      color: Colors.grey.shade600,
+                      size: 18,
+                    ),
+                    const SizedBox(width: 8),
+                    Text(c),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(height: 8),
+            const Text('Deseja confirmar e salvar?'),
+          ],
+        ),
+        actions: [
+          TextButton(
+            key: const Key('btn_revisar_cadastro'),
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Revisar'),
+          ),
+          FilledButton(
+            key: const Key('btn_confirmar_cadastro'),
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('Confirmar e salvar'),
+          ),
+        ],
+      ),
+    );
+    return confirmou ?? false;
+  }
+
   Future<void> _salvarPaciente() async {
     final faltando = _listarCamposFaltando();
     if (faltando.isNotEmpty) {
       _mostrarDialogCamposFaltando(faltando);
       return;
     }
-
-    setState(() => _salvando = true);
 
     final pacientes = ref.read(provedorListaPacientes);
     final cpfLimpo = _cpfController.text.trim().replaceAll(RegExp(r'[^\d]'), '');
@@ -543,7 +601,6 @@ class _TelaCadastroPacienteState extends ConsumerState<TelaCadastroPaciente> {
     );
 
     if (cpfJaCadastrado) {
-      setState(() => _salvando = false);
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Este CPF já está cadastrado.'),
@@ -552,6 +609,13 @@ class _TelaCadastroPacienteState extends ConsumerState<TelaCadastroPaciente> {
       );
       return;
     }
+
+    // Confirma antes de marcar como "salvando" para que o spinner não anime
+    // enquanto o diálogo de aviso está aberto.
+    final confirmou = await _confirmarCamposDefinitivos();
+    if (!confirmou || !mounted) return;
+
+    setState(() => _salvando = true);
 
     final novoPaciente = Paciente(
       idPaciente: () {
@@ -687,7 +751,7 @@ class _ModalEnderecoState extends State<_ModalEndereco> {
     final theme = Theme.of(context);
 
     return AlertDialog(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(FisioRaios.base)),
       title: Row(
         children: [
           Icon(
