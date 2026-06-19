@@ -103,6 +103,16 @@ void main() {
       expect(find.text('Alergias'), findsOneWidget);
     });
 
+    testWidgets('mostra ação Editar Paciente', (tester) async {
+      await tester.binding.setSurfaceSize(const Size(600, 2000));
+      addTearDown(() => tester.binding.setSurfaceSize(null));
+
+      await tester.pumpWidget(_host(_pacienteCompleto()));
+      await _abrirModal(tester);
+
+      expect(find.text('Editar Paciente'), findsOneWidget);
+    });
+
     testWidgets('paciente ativo mostra ação Arquivar', (tester) async {
       await tester.binding.setSurfaceSize(const Size(600, 2000));
       addTearDown(() => tester.binding.setSurfaceSize(null));

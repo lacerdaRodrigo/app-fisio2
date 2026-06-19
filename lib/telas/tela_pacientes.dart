@@ -66,17 +66,11 @@ class _TelaPacientesState extends ConsumerState<TelaPacientes> {
               padding: const EdgeInsets.fromLTRB(20, 16, 20, 18),
               decoration: BoxDecoration(
                 color: Colors.white,
-                borderRadius: const BorderRadius.only(
-                  bottomLeft: Radius.circular(32),
-                  bottomRight: Radius.circular(32),
+                borderRadius: BorderRadius.only(
+                  bottomLeft: Radius.circular(FisioRaios.lg),
+                  bottomRight: Radius.circular(FisioRaios.lg),
                 ),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.055),
-                    blurRadius: 20,
-                    offset: const Offset(0, 10),
-                  ),
-                ],
+                boxShadow: FisioSombras.card,
               ),
               child: Column(
                 children: [
@@ -87,8 +81,8 @@ class _TelaPacientesState extends ConsumerState<TelaPacientes> {
                         'Meus Pacientes',
                         style: TextStyle(
                           fontSize: 22,
-                          fontWeight: FontWeight.bold,
-                          color: Color(0xFF1E293B),
+                          fontWeight: FontWeight.w700,
+                          color: FisioCores.textPrimary,
                         ),
                       ),
                       const Spacer(),
@@ -116,8 +110,8 @@ class _TelaPacientesState extends ConsumerState<TelaPacientes> {
                             }
                           }(),
                           style: const TextStyle(
-                            color: Color(0xFF0D9488),
-                            fontWeight: FontWeight.bold,
+                            color: FisioCores.primary,
+                            fontWeight: FontWeight.w600,
                             fontSize: 12,
                           ),
                         ),
@@ -146,24 +140,24 @@ class _TelaPacientesState extends ConsumerState<TelaPacientes> {
                       hintText: 'Buscar por nome ou CPF...',
                       prefixIcon: const Icon(
                         Icons.search_rounded,
-                        color: Color(0xFF94A3B8),
+                        color: FisioCores.textMuted,
                       ),
                       suffixIcon: termoBusca.isNotEmpty
                           ? IconButton(
                               icon: const Icon(
                                 Icons.clear,
-                                color: Color(0xFF94A3B8),
+                                color: FisioCores.textMuted,
                               ),
                               onPressed: () =>
                                   ref.read(provedorBusca.notifier).definir(''),
                             )
                           : null,
                       border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(16),
+                        borderRadius: BorderRadius.circular(FisioRaios.base),
                         borderSide: BorderSide.none,
                       ),
                       filled: true,
-                      fillColor: const Color(0xFFF1F5F9),
+                      fillColor: FisioCores.inputFill,
                     ),
                   ),
                 ],
@@ -177,7 +171,7 @@ class _TelaPacientesState extends ConsumerState<TelaPacientes> {
                   : pacientesFiltrados.isEmpty
                       ? _construirEstadoVazio(theme)
                       : FisioResponsiveCenter(
-                          maxWidth: 620,
+                          maxWidth: FisioPontoQuebra.tablet,
                           child: ListView.builder(
                         padding: const EdgeInsets.fromLTRB(20, 20, 20, 96),
                         itemCount: pacientesFiltrados.length,
@@ -211,12 +205,12 @@ class _TelaPacientesState extends ConsumerState<TelaPacientes> {
         duration: const Duration(milliseconds: 160),
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
         decoration: BoxDecoration(
-          color: selecionado ? FisioCores.primaryDark : const Color(0xFFF1F5F9),
-          borderRadius: BorderRadius.circular(20),
+          color: selecionado ? FisioCores.primary : FisioCores.inputFill,
+          borderRadius: BorderRadius.circular(FisioRaios.lg),
           border: Border.all(
             color: selecionado
-                ? FisioCores.primaryDark
-                : const Color(0xFFE2E8F0),
+                ? FisioCores.primary
+                : FisioCores.border,
           ),
         ),
         child: Text(
@@ -253,18 +247,14 @@ class _TelaPacientesState extends ConsumerState<TelaPacientes> {
 
   Widget _construirCardPaciente(BuildContext context, Paciente paciente) {
     final idade = paciente.calcularIdade();
-    final iniciais = paciente.nome
-        .split(' ')
-        .map((n) => n.isNotEmpty ? n[0] : '')
-        .take(2)
-        .join();
+    final iniciais = fisioIniciais(paciente.nome);
     final cor = fisioAvatarColor(paciente.nome);
     final estaArquivado = !paciente.estaAtivo;
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
       child: InkWell(
-        borderRadius: BorderRadius.circular(24),
+        borderRadius: BorderRadius.circular(FisioRaios.base),
         onTap: () => mostrarModalDetalhesPaciente(context, paciente),
         child: Opacity(
           opacity: estaArquivado ? 0.6 : 1,
@@ -276,17 +266,13 @@ class _TelaPacientesState extends ConsumerState<TelaPacientes> {
                 Container(
                   width: 56,
                   height: 56,
-                  decoration: BoxDecoration(
-                    color: cor.withValues(alpha: 0.14),
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: cor.withValues(alpha: 0.16)),
-                  ),
+                  decoration: FisioDecoracoes.tinted(cor),
                   child: Center(
                     child: Text(
-                      iniciais.toUpperCase(),
+                      iniciais,
                       style: TextStyle(
                         color: cor,
-                        fontWeight: FontWeight.bold,
+                        fontWeight: FontWeight.w700,
                         fontSize: 18,
                       ),
                     ),

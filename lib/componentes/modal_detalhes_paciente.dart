@@ -1,4 +1,3 @@
-import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -6,6 +5,7 @@ import 'package:url_launcher/url_launcher.dart';
 import 'design_system.dart';
 import '../modelos/paciente.dart';
 import '../provedores/provedores_dados.dart';
+import '../telas/tela_editar_paciente.dart';
 import '../telas/tela_historico_evolucoes.dart';
 import '../telas/tela_registro_evolucao.dart';
 
@@ -14,8 +14,8 @@ void mostrarModalDetalhesPaciente(BuildContext context, Paciente paciente) {
     context: context,
     isScrollControlled: true,
     showDragHandle: true,
-    shape: const RoundedRectangleBorder(
-      borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
+    shape: RoundedRectangleBorder(
+      borderRadius: BorderRadius.vertical(top: Radius.circular(FisioRaios.lg)),
     ),
     backgroundColor: Colors.transparent,
     builder: (sheetContext) {
@@ -24,13 +24,9 @@ void mostrarModalDetalhesPaciente(BuildContext context, Paciente paciente) {
           final theme = Theme.of(context);
           final idade = paciente.calcularIdade();
 
-          final alturaMaxima = MediaQuery.of(context).size.height * 0.6;
+          final alturaMaxima = MediaQuery.of(context).size.height * 0.72;
 
-          return ClipRRect(
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(34)),
-            child: BackdropFilter(
-              filter: ui.ImageFilter.blur(sigmaX: 20, sigmaY: 20),
-              child: SafeArea(
+          return SafeArea(
                 child: Padding(
                   padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
                   child: ConstrainedBox(
@@ -38,13 +34,11 @@ void mostrarModalDetalhesPaciente(BuildContext context, Paciente paciente) {
                     child: Container(
                       padding: const EdgeInsets.fromLTRB(18, 10, 18, 18),
                       decoration: BoxDecoration(
-                        color: Colors.white.withValues(alpha: 0.96),
-                        borderRadius: const BorderRadius.vertical(
-                          top: Radius.circular(34),
+                        color: Colors.white,
+                        borderRadius: BorderRadius.vertical(
+                          top: Radius.circular(FisioRaios.lg),
                         ),
-                        border: Border.all(
-                          color: Colors.white.withValues(alpha: 0.75),
-                        ),
+                        border: Border.all(color: FisioCores.border),
                         boxShadow: FisioSombras.card,
                       ),
                       child: Column(
@@ -74,7 +68,7 @@ void mostrarModalDetalhesPaciente(BuildContext context, Paciente paciente) {
                                       paciente.nome,
                                       style: theme.textTheme.titleLarge
                                           ?.copyWith(
-                                            fontWeight: FontWeight.w800,
+                                            fontWeight: FontWeight.w700,
                                             color: FisioCores.textPrimary,
                                           ),
                                     ),
@@ -194,6 +188,20 @@ void mostrarModalDetalhesPaciente(BuildContext context, Paciente paciente) {
                             },
                           ),
                           _BotaoAcao(
+                            icone: Icons.edit_outlined,
+                            texto: 'Editar Paciente',
+                            onTap: () {
+                              Navigator.pop(sheetContext);
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) =>
+                                      TelaEditarPaciente(paciente: paciente),
+                                ),
+                              );
+                            },
+                          ),
+                          _BotaoAcao(
                             icone: Icons.history_edu_rounded,
                             texto: 'Ver Histórico',
                             onTap: () {
@@ -237,8 +245,6 @@ void mostrarModalDetalhesPaciente(BuildContext context, Paciente paciente) {
                     ),
                   ),
                 ),
-              ),
-            ),
           );
         },
       );
@@ -276,7 +282,7 @@ Future<void> _mostrarOpcoesRota(BuildContext context, String endereco) async {
                   height: 5,
                   margin: const EdgeInsets.only(bottom: 18),
                   decoration: BoxDecoration(
-                    color: const Color(0xFFCBD5E1),
+                    color: FisioCores.textMuted,
                     borderRadius: BorderRadius.circular(999),
                   ),
                 ),
@@ -284,7 +290,7 @@ Future<void> _mostrarOpcoesRota(BuildContext context, String endereco) async {
               Text(
                 'Como chegar',
                 style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                  fontWeight: FontWeight.w800,
+                  fontWeight: FontWeight.w700,
                   color: FisioCores.textPrimary,
                 ),
               ),
@@ -340,9 +346,9 @@ class _OpcaoRota extends StatelessWidget {
   Widget build(BuildContext context) {
     return Material(
       color: FisioCores.primary.withValues(alpha: 0.08),
-      borderRadius: BorderRadius.circular(18),
+      borderRadius: BorderRadius.circular(FisioRaios.base),
       child: ListTile(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(FisioRaios.base)),
         contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
         leading: Container(
           width: 42,
@@ -354,7 +360,7 @@ class _OpcaoRota extends StatelessWidget {
           titulo,
           style: const TextStyle(
             color: FisioCores.textPrimary,
-            fontWeight: FontWeight.w800,
+            fontWeight: FontWeight.w700,
           ),
         ),
         subtitle: Text(subtitulo),
@@ -613,10 +619,10 @@ class _BotaoAcao extends StatelessWidget {
       padding: const EdgeInsets.only(top: 8),
       child: Material(
         color: corFinal.withValues(alpha: 0.08),
-        borderRadius: BorderRadius.circular(18),
+        borderRadius: BorderRadius.circular(FisioRaios.base),
         child: ListTile(
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(18),
+            borderRadius: BorderRadius.circular(FisioRaios.base),
           ),
           leading: Icon(icone, color: corFinal),
           title: Text(

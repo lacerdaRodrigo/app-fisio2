@@ -119,6 +119,7 @@ Esta tela permite realizar o cadastro completo do paciente no aplicativo e preen
     * O sistema deve consultar a lista de pacientes cadastrados e bloquear a criação se o CPF inserido já estiver registrado, exibindo a mensagem `"Este CPF já está cadastrado."`
 * **Campos Obrigatórios:** Nome Completo, CPF, Telefone, Endereço e Escala de Dor são obrigatórios para habilitar o botão de cadastro.
 * **Situação Inicial:** Todo paciente cadastrado é criado com a situação `"Ativo"` por padrão na planilha.
+* **Aviso de Campos Definitivos:** Ao clicar em "Salvar Paciente" com os dados válidos, antes de gravar é exibido um popup de confirmação avisando que **Nome, CPF, Data de Nascimento e Gênero** não poderão ser alterados depois do cadastro. O usuário pode "Revisar" (cancela) ou "Confirmar e salvar".
 
 ## 2. Implementação Técnica
 * **Gerenciamento de Estado:** Utilizar `Riverpod` (`StateNotifierProvider` ou `AsyncNotifierProvider`) para gerenciar as validações do formulário e o estado de submissão.
@@ -128,7 +129,30 @@ Esta tela permite realizar o cadastro completo do paciente no aplicativo e preen
 1. Tela de Pacientes -> Clicar no botão "+" (Novo Paciente).
 2. Abrir `TelaCadastroPaciente`.
 3. Preencher campos obrigatórios e anamnese clínica.
-4. Clicar em "Salvar Paciente" -> Gravar no Google Sheets -> Retornar para a lista de Pacientes atualizada.
+4. Clicar em "Salvar Paciente" -> Confirmar aviso de campos definitivos -> Gravar no Google Sheets -> Retornar para a lista de Pacientes atualizada.
+
+---
+
+# Especificação da Tela: Edição de Paciente
+
+Permite corrigir e atualizar os dados de um paciente já cadastrado, sem recriá-lo. Implementada em `lib/telas/tela_editar_paciente.dart`.
+
+## 1. Requisitos Funcionais
+* **Acesso:** No modal de detalhes do paciente (`mostrarModalDetalhesPaciente`), botão **"Editar Paciente"** abre a `TelaEditarPaciente`, que recebe o `Paciente` e pré-preenche todos os campos.
+* **Campos travados (não editáveis):** **Nome, CPF, Data de Nascimento e Gênero** — exibidos preenchidos, porém desabilitados (cinza, com ícone de cadeado e legenda "Campo não editável"). Regra de negócio: identidade do paciente não muda após o cadastro.
+* **Campos editáveis:** Telefone, Endereço, e toda a anamnese clínica (Queixa Principal, HDA, História Pregressa, Ocupação, Escala de Dor, Comorbidades, Medicamentos, Alergias, Cirurgias, Hábitos de Vida).
+* **Campos Obrigatórios:** Telefone (mínimo 10 dígitos), Endereço e Escala de Dor. Campos clínicos opcionais podem ser limpos (passam a ficar vazios/`null`).
+* **Sem checagem de CPF duplicado:** o CPF não muda, então a validação de unicidade não se aplica na edição.
+
+## 2. Implementação Técnica
+* **Persistência:** `atualizarPacienteReal(ref, paciente)` (provedor) → `RepositorioDadosGoogle.atualizarPaciente(paciente)` reescreve a linha existente na aba `Pacientes` (range `A:S`, 19 colunas), preservando `ID_Paciente`, `Data_Cadastro` e `Situacao`. Registra auditoria/log `EDITAR_PACIENTE`.
+* **Construção do objeto:** a tela constrói o `Paciente` diretamente (em vez de `copiarCom`) para permitir limpar campos opcionais para `null`, mantendo a identidade vinda do paciente original.
+
+## 3. Fluxo de Navegação
+1. Lista/detalhes do Paciente -> "Editar Paciente".
+2. Abrir `TelaEditarPaciente` com dados pré-preenchidos.
+3. Alterar campos editáveis -> "Salvar Alterações".
+4. Atualizar a linha no Google Sheets -> Retornar para a lista atualizada.
 
 ---
 

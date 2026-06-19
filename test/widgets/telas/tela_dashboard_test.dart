@@ -170,7 +170,7 @@ void main() {
   });
 
   group('TelaDashboard — cabeçalho e cards', () {
-    testWidgets('cabeçalho mostra nome e inicial do usuário', (tester) async {
+    testWidgets('cabeçalho mostra nome do usuário', (tester) async {
       await _montar(
         tester,
         _criarApp(carregamento: _carregado, pacientes: [_paciente()]),
@@ -178,17 +178,16 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('Dr. Teste'), findsOneWidget);
-      expect(find.text('D'), findsOneWidget); // inicial no avatar
     });
 
-    testWidgets('tocar no avatar abre as Configurações', (tester) async {
+    testWidgets('aba Config abre as Configurações', (tester) async {
       await _montar(
         tester,
         _criarApp(carregamento: _carregado, pacientes: [_paciente()]),
       );
       await tester.pumpAndSettle();
 
-      await tester.tap(find.text('D'));
+      await tester.tap(find.text('Config'));
       await tester.pumpAndSettle();
 
       expect(find.text('Configurações'), findsOneWidget);
@@ -307,9 +306,8 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      // Na aba Início (0) não há FAB.
-      expect(find.text('Nova Sessão'), findsNothing);
-      expect(find.text('Novo Paciente'), findsNothing);
+      // Na aba Início (0) o FAB "Nova Sessão" aparece (dados carregados + pacientes).
+      expect(find.text('Nova Sessão'), findsOneWidget);
 
       await tester.tap(find.text('Sessões'));
       await tester.pumpAndSettle();
@@ -319,11 +317,11 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.text('Novo Paciente'), findsOneWidget);
 
-      // Voltar para a aba Início esconde os FABs novamente.
-      await tester.tap(find.text('Início'));
+      // Na aba Config o FAB é escondido.
+      await tester.tap(find.text('Config'));
       await tester.pumpAndSettle();
       expect(find.text('Novo Paciente'), findsNothing);
-      expect(find.text('Agenda de Hoje'), findsOneWidget);
+      expect(find.text('Nova Sessão'), findsNothing);
     });
 
     testWidgets('FAB "Novo Paciente" abre o cadastro de paciente', (

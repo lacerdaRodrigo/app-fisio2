@@ -1,11 +1,11 @@
-# 🎨 Testes de Widget (135 testes)
+# 🎨 Testes de Widget (143 testes)
 
 Testes de componentes visuais: telas, componentes reutilizáveis e utilitários
 de UI, interação do usuário e estados visuais.
 
 ---
 
-## test/widgets/telas/ (118 testes | 9 arquivos)
+## test/widgets/telas/ (125 testes | 10 arquivos)
 
 Cada arquivo de teste representa uma tela da aplicação.
 
@@ -99,7 +99,7 @@ valor e observações.
 
 ---
 
-### tela_cadastro_paciente_test.dart (22 testes — 100% de cobertura)
+### tela_cadastro_paciente_test.dart (23 testes — 100% de cobertura)
 
 **Tela:** Cadastro de novo paciente — formulário com validação de campos obrigatórios.
 
@@ -136,7 +136,7 @@ valor e observações.
 ✓ CT-F6: Dialog fecha ao clicar OK
 ```
 
-#### Cobertura adicional (7 testes)
+#### Cobertura adicional (8 testes)
 ```dart
 ✓ Botão fechar (X) aciona o retorno
 ✓ Selecionar gênero no dropdown atualiza a seleção
@@ -145,7 +145,28 @@ valor e observações.
 ✓ CPF já cadastrado exibe snackbar de erro
 ✓ Salvar com todos os campos gera próximo ID (P005 → P006) e persiste a anamnese
 ✓ Falha ao salvar exibe snackbar de erro
+✓ Popup de campos definitivos: "Revisar" cancela sem salvar
 ```
+
+> Obs.: os testes que persistem o paciente confirmam o popup de campos
+> definitivos (Nome/CPF/Data/Gênero) via `btn_confirmar_cadastro` antes de gravar.
+
+### tela_editar_paciente_test.dart (6 testes)
+
+**Tela:** Edição de paciente existente — campos de identidade travados.
+
+```dart
+✓ Pré-preenche os campos editáveis com o paciente
+✓ Nome, CPF, nascimento e gênero estão desabilitados (campos editáveis seguem habilitados)
+✓ Salvar atualiza editáveis e preserva identidade (id/nome/cpf/gênero/nascimento); campo limpo vira null
+✓ Endereço vazio impede salvar (dialog de campos obrigatórios)
+✓ Telefone com menos de 10 dígitos é sinalizado
+✓ Falha ao atualizar exibe snackbar de erro
+```
+
+> Usa `FakeRepoEdicao` (captura o `Paciente` enviado a `atualizarPaciente`),
+> `RepoEdicaoQueFalha` e `PacientesComDados`. Verifica o estado desabilitado pelo
+> `TextField.enabled` interno de cada campo travado.
 
 > Usa `FakeRepositorioDadosGoogle` / `RepositorioQueFalha` e `PacientesComDados`
 > para os caminhos de sucesso, erro e CPF duplicado. Os testes que preenchem
@@ -313,15 +334,16 @@ visualizações (lista e por paciente).
 
 ---
 
-## test/widgets/componentes/ (11 testes | 1 arquivo)
+## test/widgets/componentes/ (12 testes | 1 arquivo)
 
-### modal_detalhes_paciente_test.dart (11 testes)
+### modal_detalhes_paciente_test.dart (12 testes)
 
 **Componente:** Bottom sheet de detalhes do paciente — dados cadastrais,
-anamnese, última evolução, rotas (Maps/Waze) e ações de arquivar/restaurar.
+anamnese, última evolução, rotas (Maps/Waze) e ações de editar/arquivar/restaurar.
 
 ```dart
 ✓ Exibe nome, telefone, endereço e seções clínicas preenchidas
+✓ Mostra a ação "Editar Paciente"
 ✓ Paciente ativo mostra a ação "Arquivar Paciente"
 ✓ Paciente arquivado mostra a ação "Restaurar Paciente"
 ✓ Última evolução é exibida para paciente ativo

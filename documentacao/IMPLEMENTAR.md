@@ -70,11 +70,12 @@ Base: Flutter + Riverpod + Google Sheets API + Google Sign-In
 2. **Editar / reagendar sessão** — evita poluir o histórico com cancelamentos desnecessários quando o paciente apenas muda data, horário, valor ou local.
 3. **Financeiro simples** — transforma a agenda em controle operacional e financeiro básico para uso real no dia a dia.
 
-### 1. Editar paciente
-- **Arquivo:** `lib/telas/tela_cadastro_paciente.dart`
-- **O que falta:** A tela atual só cria. Precisa aceitar um `Paciente?` opcional. Se receber, pré-preenche os campos e salva como atualização.
-- **Serviço:** `lib/servicos/servico_repositorio_dados.dart` — adicionar `atualizarPaciente()`
-- **Validação:** CPF único (ignorando o próprio paciente ao editar)
+### 1. Editar paciente ✅ (implementado em 2026-06-18)
+- **Arquivo:** `lib/telas/tela_editar_paciente.dart` (tela dedicada que recebe `Paciente`).
+- **Acesso:** botão "Editar Paciente" no modal de detalhes (`modal_detalhes_paciente.dart`).
+- **Campos travados:** Nome, CPF, Data de Nascimento e Gênero (somente leitura). Editáveis: telefone, endereço e toda a anamnese.
+- **Serviço:** `RepositorioDadosGoogle.atualizarPaciente()` + `atualizarPacienteReal()` no provedor (auditoria `EDITAR_PACIENTE`).
+- **Melhoria relacionada:** popup de confirmação no cadastro avisando que os campos de identidade não poderão ser alterados depois.
 
 ### 2. Editar / reagendar agendamento
 - **Arquivo:** `lib/telas/tela_nova_sessao.dart` — adaptar para aceitar `Agendamento?` opcional
