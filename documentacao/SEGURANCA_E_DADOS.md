@@ -53,7 +53,7 @@ O aplicativo foi projetado desde a base sob os conceitos de *Privacy by Design* 
 
 ### B. Atendimento aos Direitos do Titular (Paciente)
 A escolha do Google Sheets como backend facilita o cumprimento imediato dos direitos dos pacientes:
-* **Direito de Acesso e Retificação:** O paciente pode solicitar a correção de dados incorretos. O profissional pode corrigir no aplicativo ou diretamente na própria planilha.
+* **Direito de Acesso e Retificação:** O paciente pode solicitar a correção de dados incorretos. O profissional pode corrigir pelo app (tela "Editar Paciente" — telefone, endereço e anamnese; campos de identidade como Nome, CPF, Data de Nascimento e Gênero são travados após o cadastro) ou diretamente na própria planilha.
 * **Direito ao Esquecimento (Eliminação):** Se o paciente solicitar a exclusão de seu prontuário, o fisioterapeuta pode apagá-lo diretamente pelo aplicativo ou deletar a linha correspondente de forma definitiva na planilha do Google Sheets.
 * **Minimização de Dados:** Apenas os dados estritamente necessários para o acompanhamento clínico e faturamento de sessões domiciliares são coletados.
 

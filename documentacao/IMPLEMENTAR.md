@@ -13,11 +13,11 @@ Base: Flutter + Riverpod + Google Sheets API + Google Sign-In
 |---|---|---|
 | **Segurança** | 8.5/10 | ✅ Credenciais fora do git, validação de entrada, logging estruturado. Falta: validação de API endpoints Sheets; BYODB depende da conta Google |
 | **Documentação** | 8/10 | ✅ `CLAUDE.md`, `CHANGELOG.md` unificado, `README.md` claro. Falta: LGPD/Privacidade formal, fluxos de erro |
-| **Funcionalidades** | 7.5/10 | ✅ Pacientes, agendamentos, evoluções, login funcionando. Falta: edição de paciente/sessão, relatórios, backup automático |
+| **Funcionalidades** | 8/10 | ✅ Pacientes (CRUD completo com edição), agendamentos, evoluções, login. Falta: edição de sessão, relatórios, backup automático |
 | **Arquitetura** | 8/10 | ✅ Riverpod bem estruturado, schema versioning, separação clara. Falta: algumas duplicações residuais em seletores |
 | **Qualidade de Código** | 8.5/10 | ✅ Lint rigoroso, 0 erros, 165 testes, sem código morto. Falta: documentação de métodos complexos |
-| **Testes** | 7.5/10 | ✅ 165 unitários (validadores, modelos, provedores, widgets). Falta: integração Sheets, performance/carga |
-| **DevOps/Deploy** | 6/10 | ✅ Makefile com targets (`test`, `lint`, `prod-web`, `prod-android`). Falta: CI/CD |
+| **Testes** | 8/10 | ✅ 248 testes (unitários + widgets, 10 telas cobertas). Falta: integração Sheets, performance/carga |
+| **DevOps/Deploy** | 8/10 | ✅ CI/CD GitHub Actions (deploy preview + prod), Makefile com targets. Falta: testes de integração no pipeline |
 
 ### O que foi corrigido nesta sessão (2026-06-14)
 
@@ -35,7 +35,7 @@ Base: Flutter + Riverpod + Google Sheets API + Google Sign-In
 
 ### Para atingir 9/10
 - [ ] Documentação formal de LGPD/Privacidade
-- [ ] CI/CD pipeline (GitHub Actions)
+- [x] CI/CD pipeline (GitHub Actions) — implementado em 2026-06-17
 - [ ] Validação end-to-end Sheets API com fallbacks
 - [ ] Backup automático para Google Drive
 

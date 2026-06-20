@@ -1,6 +1,6 @@
 # 📋 Testes Automatizados — Visão Geral
 
-**Status:** ✅ 237 testes passando | cobertura global ~85%
+**Status:** ✅ 248 testes passando | cobertura global ~85%
 
 ---
 
@@ -13,9 +13,9 @@ O projeto utiliza **apenas testes unitários e de widget** (sem E2E automatizado
 | **Unit — Utilitários** | 75 | 32% | Validadores, formatadores, gerador de IDs |
 | **Unit — Modelos** | 22 | 9% | Serialização, transformação, cópia |
 | **Unit — Serviços** | 5 | 2% | Preferências (SharedPreferences) |
-| **Widget — Telas** | 118 | 50% | UI, interação, estados visuais |
-| **Widget — Componentes/Utilitários** | 17 | 7% | Modal de detalhes, ações de agendamento |
-| **TOTAL** | **237** | **100%** | — |
+| **Widget — Telas** | 125 | 50% | UI, interação, estados visuais |
+| **Widget — Componentes/Utilitários** | 18 | 7% | Modal de detalhes, ações de agendamento |
+| **TOTAL** | **248** | **100%** | — |
 
 ---
 
@@ -37,15 +37,16 @@ test/
 │       ├── validador_cpf_test.dart      (9 testes)
 │       ├── validadores_test.dart        (46 testes)
 │       └── gerador_id_test.dart         (8 testes — 100% cobertura)
-└── widgets/                (135 testes — UI + componentes)
+└── widgets/                (143 testes — UI + componentes)
     ├── componentes/
-    │   └── modal_detalhes_paciente_test.dart   (11 testes)
+    │   └── modal_detalhes_paciente_test.dart   (12 testes)
     ├── utilitarios/
     │   └── acoes_agendamento_test.dart         (6 testes)
     └── telas/
         ├── tela_login_test.dart               (6 testes)
         ├── tela_dashboard_test.dart           (16 testes — 100% cobertura)
-        ├── tela_cadastro_paciente_test.dart  (22 testes — 100% cobertura)
+        ├── tela_cadastro_paciente_test.dart  (23 testes — 100% cobertura)
+        ├── tela_editar_paciente_test.dart    (6 testes — campos travados + atualização)
         ├── tela_configuracoes_test.dart       (11 testes — 100% cobertura)
         ├── tela_historico_geral_evolucoes_test.dart (7 testes — 100% cobertura)
         ├── tela_pacientes_test.dart          (12 testes — 100% cobertura)
@@ -59,7 +60,7 @@ test/
 ## Como Rodar
 
 ```bash
-# Todos os 237 testes
+# Todos os 248 testes
 flutter test
 
 # Apenas unitários

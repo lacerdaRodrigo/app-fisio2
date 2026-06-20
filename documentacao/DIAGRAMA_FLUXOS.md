@@ -30,6 +30,8 @@ graph TD
     GoogleSheets[("Google Sheets Backend")]
     
     %% Subfluxos de Pacientes
+    EditarPaciente["Tela: Editar Paciente"]
+    ConfirmacaoCampos{"Confirmar Campos Definitivos?"}
     CadastroPaciente["Tela: Cadastro & Anamnese"]
     CpfValidator{"CPF Único?"}
     DetailsModal["Modal: Detalhes do Paciente"]
@@ -80,7 +82,9 @@ graph TD
     PacientesScreen -->|Botão Central + em Pacientes| CadastroPaciente
     CadastroPaciente -->|Salvar| CpfValidator
     CpfValidator -- Duplicado -->|Alerta: CPF Existente| CadastroPaciente
-    CpfValidator -- Único -->|Salvar Ativo| GoogleSheets
+    CpfValidator -- Único -->|Popup de campos definitivos| ConfirmacaoCampos
+    ConfirmacaoCampos -- Revisar --> CadastroPaciente
+    ConfirmacaoCampos -- Confirmar -->|Salvar Ativo| GoogleSheets
     GoogleSheets -->|Retorna Atualizado| PacientesScreen
     
     %% Busca e Detalhes
@@ -91,6 +95,7 @@ graph TD
     DetailsModal -->|Botão: Como Chegar| RouteSelection
     RouteSelection -->|Deep Link| GmapsWaze
     DetailsModal -->|Ação: Arquivar| GoogleSheets
+    DetailsModal -->|Botão: Editar Paciente| EditarPaciente
     DetailsModal -->|Botão: Ver Histórico| TimelineScreen
     DetailsModal -->|Botão: Nova Evolução| EvolucaoScreen
     
@@ -99,6 +104,10 @@ graph TD
     SpeechToText -->|Preencher Texto| EvolucaoScreen
     EvolucaoScreen -->|Salvar Evolução| GoogleSheets
     GoogleSheets -->|Grava evolução & Agenda.Situacao Realizado| PacientesScreen
+
+    %% Fluxo Editar Paciente
+    EditarPaciente -->|Salvar Alterações| GoogleSheets
+    GoogleSheets -->|Atualiza linha na aba Pacientes| PacientesScreen
 
     %% Fluxo Configurações
     ConfiguracoesScreen -->|Alterar Valor Padrão| GoogleSheets
@@ -116,9 +125,9 @@ graph TD
     %% Aplicação das classes nos elementos correspondentes
     class Start startEnd;
     
-    class LoginScreen,TermsModal,Dashboard,SessoesScreen,PacientesScreen,NovaSessaoScreen,CadastroPaciente,DetailsModal,TimelineScreen,EvolucaoScreen,ConfiguracoesScreen,HistoricoGeral screen;
+    class LoginScreen,TermsModal,Dashboard,SessoesScreen,PacientesScreen,NovaSessaoScreen,CadastroPaciente,EditarPaciente,DetailsModal,TimelineScreen,EvolucaoScreen,ConfiguracoesScreen,HistoricoGeral screen;
     
-    class Splash,CheckboxLGPD,DbLoading,DateValidator,CpfValidator,SpeechToText,RouteSelection,LogoutAction,AcoesSessao,PendenciasAgenda action;
+    class Splash,CheckboxLGPD,DbLoading,DateValidator,CpfValidator,ConfirmacaoCampos,SpeechToText,RouteSelection,LogoutAction,AcoesSessao,PendenciasAgenda action;
     
     class GoogleSheets sheets;
     
