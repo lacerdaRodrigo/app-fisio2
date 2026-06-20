@@ -61,11 +61,17 @@ class _TelaSessoesState extends ConsumerState<TelaSessoes> {
               padding: const EdgeInsets.fromLTRB(20, 18, 20, 18),
               decoration: BoxDecoration(
                 color: Colors.white,
-                borderRadius: BorderRadius.only(
-                  bottomLeft: Radius.circular(FisioRaios.lg),
-                  bottomRight: Radius.circular(FisioRaios.lg),
+                borderRadius: const BorderRadius.only(
+                  bottomLeft: Radius.circular(32),
+                  bottomRight: Radius.circular(32),
                 ),
-                boxShadow: FisioSombras.card,
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.055),
+                    blurRadius: 20,
+                    offset: const Offset(0, 10),
+                  ),
+                ],
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -77,7 +83,7 @@ class _TelaSessoesState extends ConsumerState<TelaSessoes> {
                           'Sessões',
                           style: TextStyle(
                             fontSize: 22,
-                            fontWeight: FontWeight.w700,
+                            fontWeight: FontWeight.w800,
                             color: FisioCores.textPrimary,
                           ),
                         ),
@@ -146,9 +152,9 @@ class _TelaSessoesState extends ConsumerState<TelaSessoes> {
     return Container(
       padding: const EdgeInsets.all(4),
       decoration: BoxDecoration(
-        color: FisioCores.inputFill,
-        borderRadius: BorderRadius.circular(FisioRaios.base),
-        border: Border.all(color: FisioCores.border),
+        color: const Color(0xFFF1F5F9),
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: const Color(0xFFE2E8F0)),
       ),
       child: Row(
         children: [
@@ -176,7 +182,7 @@ class _TelaSessoesState extends ConsumerState<TelaSessoes> {
         padding: const EdgeInsets.symmetric(vertical: 9),
         decoration: BoxDecoration(
           color: selecionado ? Colors.white : Colors.transparent,
-          borderRadius: BorderRadius.circular(FisioRaios.md),
+          borderRadius: BorderRadius.circular(14),
           boxShadow: selecionado ? FisioSombras.card : null,
         ),
         child: Text(
@@ -184,7 +190,7 @@ class _TelaSessoesState extends ConsumerState<TelaSessoes> {
           textAlign: TextAlign.center,
           style: TextStyle(
             color: selecionado ? FisioCores.primary : FisioCores.textSecondary,
-            fontWeight: FontWeight.w600,
+            fontWeight: FontWeight.w800,
             fontSize: 12,
           ),
         ),
@@ -260,13 +266,13 @@ class _TelaSessoesState extends ConsumerState<TelaSessoes> {
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
           decoration: BoxDecoration(
             color: selecionado
-                ? FisioCores.primary
-                : FisioCores.inputFill,
-            borderRadius: BorderRadius.circular(FisioRaios.lg),
+                ? FisioCores.primaryDark
+                : const Color(0xFFF1F5F9),
+            borderRadius: BorderRadius.circular(20),
             border: Border.all(
               color: selecionado
-                  ? FisioCores.primary
-                  : FisioCores.border,
+                  ? FisioCores.primaryDark
+                  : const Color(0xFFE2E8F0),
             ),
           ),
           child: Text(
@@ -416,7 +422,7 @@ class _CardSessao extends StatelessWidget {
                 paciente == null ? '??' : fisioIniciais(paciente!.nome),
                 style: TextStyle(
                   color: cor,
-                  fontWeight: FontWeight.w700,
+                  fontWeight: FontWeight.w800,
                   fontSize: 18,
                 ),
               ),
@@ -433,7 +439,7 @@ class _CardSessao extends StatelessWidget {
                   overflow: TextOverflow.ellipsis,
                   style: const TextStyle(
                     color: FisioCores.textPrimary,
-                    fontWeight: FontWeight.w700,
+                    fontWeight: FontWeight.w800,
                     fontSize: 15,
                   ),
                 ),
@@ -525,7 +531,7 @@ class _GrupoPacienteSessoes extends StatelessWidget {
       padding: const EdgeInsets.only(bottom: 12),
       child: Material(
         color: FisioCores.card,
-        borderRadius: BorderRadius.circular(FisioRaios.base),
+        borderRadius: BorderRadius.circular(24),
         elevation: 2,
         shadowColor: Colors.black.withValues(alpha: 0.08),
         child: Theme(
@@ -549,7 +555,7 @@ class _GrupoPacienteSessoes extends StatelessWidget {
                   paciente == null ? '??' : fisioIniciais(paciente!.nome),
                   style: TextStyle(
                     color: cor,
-                    fontWeight: FontWeight.w700,
+                    fontWeight: FontWeight.w800,
                     fontSize: 16,
                   ),
                 ),
@@ -559,7 +565,7 @@ class _GrupoPacienteSessoes extends StatelessWidget {
               nome,
               style: const TextStyle(
                 color: FisioCores.textPrimary,
-                fontWeight: FontWeight.w700,
+                fontWeight: FontWeight.w800,
               ),
             ),
             subtitle: Text(

@@ -428,7 +428,7 @@ class _TelaCadastroPacienteState extends ConsumerState<TelaCadastroPaciente> {
       titulo,
       style: const TextStyle(
         fontSize: 14,
-        fontWeight: FontWeight.w700,
+        fontWeight: FontWeight.w800,
         color: FisioCores.primary,
       ),
     );
@@ -751,7 +751,7 @@ class _ModalEnderecoState extends State<_ModalEndereco> {
     final theme = Theme.of(context);
 
     return AlertDialog(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(FisioRaios.base)),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
       title: Row(
         children: [
           Icon(

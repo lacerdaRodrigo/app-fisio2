@@ -251,7 +251,7 @@ class _ItemTimeline extends StatelessWidget {
                           child: const Text(
                             'Editar',
                             style: TextStyle(
-                              color: FisioCores.primary,
+                              color: Color(0xFF0D9488),
                               fontWeight: FontWeight.bold,
                               fontSize: 13,
                             ),
@@ -302,7 +302,7 @@ class _ItemTimeline extends StatelessWidget {
                       width: double.infinity,
                       padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
-                        color: FisioCores.surface,
+                        color: const Color(0xFFF8FAFC),
                         borderRadius: BorderRadius.circular(16),
                       ),
                       child: Text(

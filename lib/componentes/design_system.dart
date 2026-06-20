@@ -1,61 +1,58 @@
+import 'dart:ui' as ui;
+
 import 'package:flutter/material.dart';
 
 class FisioCores {
-  static const Color primary = Color(0xFF4F6D7A);
-  static const Color secondary = Color(0xFF7CB9A8);
-  static const Color surface = Color(0xFFF0F4F8);
+  static const Color primaryDark = Color(0xFF0F172A);
+  static const Color primary = Color(0xFF00796B);
+  static const Color primaryLight = Color(0xFF00BFA5);
+  static const Color surface = Color(0xFFF8FAFC);
   static const Color card = Colors.white;
-  static const Color accent = Color(0xFFE8D5B7);
-  static const Color border = Color(0xFFE2E8F0);
-  static const Color inputFill = Color(0xFFF1F5F9);
-
   static const Color textPrimary = Color(0xFF1A1A2E);
   static const Color textSecondary = Color(0xFF64748B);
   static const Color textMuted = Color(0xFF94A3B8);
-
   static const Color success = Color(0xFF10B981);
   static const Color warning = Color(0xFFF59E0B);
-  static const Color danger = Color(0xFFC9515B);
+  static const Color danger = Color(0xFFEF4444);
   static const Color info = Color(0xFF3B82F6);
   static const Color indigo = Color(0xFF6366F1);
   static const Color pink = Color(0xFFEC4899);
 
   static const List<Color> avatarPalette = [primary, indigo, warning, pink];
-
 }
 
-class FisioEspacamentos {
-  static const double xs = 4;
-  static const double sm = 8;
-  static const double md = 12;
-  static const double base = 16;
-  static const double lg = 20;
-  static const double xl = 24;
-  static const double xxl = 32;
-  static const double xxxl = 48;
-}
+class FisioGradientes {
+  static const LinearGradient hero = LinearGradient(
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+    colors: [
+      FisioCores.primaryDark,
+      FisioCores.primary,
+      FisioCores.primaryLight,
+    ],
+  );
 
-class FisioRaios {
-  static const double sm = 8;
-  static const double md = 12;
-  static const double base = 16;
-  static const double lg = 20;
-  static const double xl = 24;
-  static const double pill = 999;
+  static const LinearGradient teal = LinearGradient(
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+    colors: [FisioCores.primary, FisioCores.primaryLight],
+  );
 }
-
-class FisioPontoQuebra {
-  static const double tablet = 620;
-  static const double desktop = 1024;
-}
-
 
 class FisioSombras {
   static List<BoxShadow> get card => [
     BoxShadow(
-      color: Colors.black.withValues(alpha: 0.04),
-      blurRadius: 8,
-      offset: const Offset(0, 2),
+      color: Colors.black.withValues(alpha: 0.055),
+      blurRadius: 22,
+      offset: const Offset(0, 10),
+    ),
+  ];
+
+  static List<BoxShadow> colored(Color color) => [
+    BoxShadow(
+      color: color.withValues(alpha: 0.28),
+      blurRadius: 18,
+      offset: const Offset(0, 8),
     ),
   ];
 }
@@ -63,17 +60,17 @@ class FisioSombras {
 class FisioDecoracoes {
   static BoxDecoration card({
     Color color = FisioCores.card,
-    double radius = FisioRaios.base,
+    double radius = 24,
   }) {
     return BoxDecoration(
       color: color,
       borderRadius: BorderRadius.circular(radius),
-      border: Border.all(color: FisioCores.border.withValues(alpha: 0.7)),
+      border: Border.all(color: const Color(0xFFE2E8F0).withValues(alpha: 0.7)),
       boxShadow: FisioSombras.card,
     );
   }
 
-  static BoxDecoration tinted(Color color, {double radius = FisioRaios.md}) {
+  static BoxDecoration tinted(Color color, {double radius = 18}) {
     return BoxDecoration(
       color: color.withValues(alpha: 0.12),
       borderRadius: BorderRadius.circular(radius),
@@ -128,6 +125,8 @@ class FisioPageHeader extends StatelessWidget {
   final VoidCallback? onBack;
   final bool closeIcon;
   final Widget? trailing;
+  final bool gradient;
+
   const FisioPageHeader({
     super.key,
     required this.title,
@@ -136,22 +135,32 @@ class FisioPageHeader extends StatelessWidget {
     this.onBack,
     this.closeIcon = false,
     this.trailing,
+    this.gradient = false,
   });
 
   @override
   Widget build(BuildContext context) {
-    const foreground = FisioCores.textPrimary;
-    const secondaryColor = FisioCores.textSecondary;
+    final foreground = gradient ? Colors.white : FisioCores.textPrimary;
+    final secondary = gradient
+        ? Colors.white.withValues(alpha: 0.76)
+        : FisioCores.textSecondary;
 
     return Container(
       padding: const EdgeInsets.fromLTRB(20, 48, 20, 18),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.only(
-          bottomLeft: Radius.circular(FisioRaios.lg),
-          bottomRight: Radius.circular(FisioRaios.lg),
+        gradient: gradient ? FisioGradientes.teal : null,
+        color: gradient ? null : Colors.white,
+        borderRadius: const BorderRadius.only(
+          bottomLeft: Radius.circular(32),
+          bottomRight: Radius.circular(32),
         ),
-        boxShadow: FisioSombras.card,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: gradient ? 0.1 : 0.055),
+            blurRadius: 20,
+            offset: const Offset(0, 10),
+          ),
+        ],
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
@@ -165,10 +174,23 @@ class FisioPageHeader extends StatelessWidget {
               color: foreground,
               onPressed: onBack,
             ),
-            const SizedBox(width: FisioEspacamentos.xs),
+            const SizedBox(width: 4),
           ] else if (leadingIcon != null) ...[
-            FisioIconBox(icon: leadingIcon!, color: FisioCores.primary),
-            const SizedBox(width: FisioEspacamentos.md),
+            Container(
+              width: 44,
+              height: 44,
+              decoration: BoxDecoration(
+                color: (gradient ? Colors.white : FisioCores.primary)
+                    .withValues(alpha: gradient ? 0.18 : 0.12),
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(
+                  color: (gradient ? Colors.white : FisioCores.primary)
+                      .withValues(alpha: 0.2),
+                ),
+              ),
+              child: Icon(leadingIcon, color: foreground),
+            ),
+            const SizedBox(width: 12),
           ],
           Expanded(
             child: Column(
@@ -179,16 +201,16 @@ class FisioPageHeader extends StatelessWidget {
                   title,
                   style: Theme.of(context).textTheme.titleLarge?.copyWith(
                     color: foreground,
-                    fontWeight: FontWeight.w700,
+                    fontWeight: FontWeight.w800,
                     letterSpacing: -0.2,
                   ),
                 ),
                 if (subtitle != null) ...[
-                  const SizedBox(height: FisioEspacamentos.xs),
+                  const SizedBox(height: 4),
                   Text(
                     subtitle!,
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: secondaryColor,
+                      color: secondary,
                       fontWeight: FontWeight.w500,
                     ),
                   ),
@@ -218,7 +240,7 @@ class FisioCard extends StatelessWidget {
     this.margin,
     this.color = FisioCores.card,
     this.onTap,
-    this.radius = FisioRaios.base,
+    this.radius = 24,
   });
 
   @override
@@ -253,13 +275,18 @@ class FisioSectionTitle extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        FisioIconBox(icon: icon, color: FisioCores.primary, size: 34),
+        Container(
+          width: 34,
+          height: 34,
+          decoration: FisioDecoracoes.tinted(FisioCores.primary, radius: 12),
+          child: Icon(icon, color: FisioCores.primary, size: 19),
+        ),
         const SizedBox(width: 10),
         Expanded(
           child: Text(
             title,
             style: Theme.of(context).textTheme.titleMedium?.copyWith(
-              fontWeight: FontWeight.w700,
+              fontWeight: FontWeight.w800,
               color: FisioCores.textPrimary,
             ),
           ),
@@ -285,7 +312,7 @@ class FisioBadge extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.12),
-        borderRadius: BorderRadius.circular(FisioRaios.pill),
+        borderRadius: BorderRadius.circular(999),
         border: Border.all(color: color.withValues(alpha: 0.18)),
       ),
       child: Text(
@@ -293,112 +320,43 @@ class FisioBadge extends StatelessWidget {
         style: TextStyle(
           color: color,
           fontSize: 12,
-          fontWeight: FontWeight.w600,
+          fontWeight: FontWeight.w800,
         ),
       ),
     );
   }
 }
 
-class FisioIconBox extends StatelessWidget {
-  final IconData icon;
+class FisioGlass extends StatelessWidget {
+  final Widget child;
+  final BorderRadius borderRadius;
+  final EdgeInsetsGeometry padding;
   final Color color;
-  final double size;
-  final double iconSize;
 
-  const FisioIconBox({
+  const FisioGlass({
     super.key,
-    required this.icon,
-    required this.color,
-    this.size = 44,
-    this.iconSize = 20,
+    required this.child,
+    this.borderRadius = const BorderRadius.all(Radius.circular(28)),
+    this.padding = const EdgeInsets.all(24),
+    this.color = Colors.white,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: size,
-      height: size,
-      decoration: FisioDecoracoes.tinted(color, radius: FisioRaios.base),
-      child: Icon(icon, color: color, size: iconSize),
+    return ClipRRect(
+      borderRadius: borderRadius,
+      child: BackdropFilter(
+        filter: ui.ImageFilter.blur(sigmaX: 18, sigmaY: 18),
+        child: Container(
+          padding: padding,
+          decoration: BoxDecoration(
+            color: color.withValues(alpha: 0.13),
+            borderRadius: borderRadius,
+            border: Border.all(color: color.withValues(alpha: 0.22)),
+          ),
+          child: child,
+        ),
+      ),
     );
   }
 }
-
-enum FisioButtonVariant { filled, outlined, ghost }
-
-class FisioButton extends StatelessWidget {
-  final String label;
-  final IconData? icon;
-  final FisioButtonVariant variant;
-  final Color? color;
-  final VoidCallback? onPressed;
-
-  const FisioButton({
-    super.key,
-    required this.label,
-    this.icon,
-    this.variant = FisioButtonVariant.filled,
-    this.color,
-    this.onPressed,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final c = color ?? FisioCores.primary;
-
-    switch (variant) {
-      case FisioButtonVariant.filled:
-        return ElevatedButton.icon(
-          onPressed: onPressed,
-          icon: icon != null ? Icon(icon, size: 18) : const SizedBox.shrink(),
-          label: Text(label),
-          style: ElevatedButton.styleFrom(
-            backgroundColor: c,
-            foregroundColor: Colors.white,
-            padding: const EdgeInsets.symmetric(
-              horizontal: FisioEspacamentos.xl,
-              vertical: FisioEspacamentos.base,
-            ),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(FisioRaios.base),
-            ),
-          ),
-        );
-      case FisioButtonVariant.outlined:
-        return OutlinedButton.icon(
-          onPressed: onPressed,
-          icon: icon != null ? Icon(icon, size: 18) : const SizedBox.shrink(),
-          label: Text(label),
-          style: OutlinedButton.styleFrom(
-            foregroundColor: c,
-            side: BorderSide(color: c),
-            padding: const EdgeInsets.symmetric(
-              horizontal: FisioEspacamentos.xl,
-              vertical: FisioEspacamentos.base,
-            ),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(FisioRaios.base),
-            ),
-          ),
-        );
-      case FisioButtonVariant.ghost:
-        return TextButton.icon(
-          onPressed: onPressed,
-          icon: icon != null ? Icon(icon, size: 18) : const SizedBox.shrink(),
-          label: Text(label),
-          style: TextButton.styleFrom(
-            foregroundColor: c,
-            padding: const EdgeInsets.symmetric(
-              horizontal: FisioEspacamentos.xl,
-              vertical: FisioEspacamentos.base,
-            ),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(FisioRaios.base),
-            ),
-          ),
-        );
-    }
-  }
-}
-
