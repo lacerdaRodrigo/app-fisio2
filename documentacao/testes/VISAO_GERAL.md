@@ -14,7 +14,7 @@ O projeto utiliza **apenas testes unitários e de widget** (sem E2E automatizado
 | **Unit — Modelos** | 22 | 9% | Serialização, transformação, cópia |
 | **Unit — Serviços** | 5 | 2% | Preferências (SharedPreferences) |
 | **Widget — Telas** | 125 | 50% | UI, interação, estados visuais |
-| **Widget — Componentes/Utilitários** | 18 | 7% | Modal de detalhes, ações de agendamento |
+| **Widget — Componentes/Utilitários** | 21 | 9% | Modal de detalhes, rodapé versão, ações de agendamento |
 | **TOTAL** | **248** | **100%** | — |
 
 ---
@@ -37,9 +37,10 @@ test/
 │       ├── validador_cpf_test.dart      (9 testes)
 │       ├── validadores_test.dart        (46 testes)
 │       └── gerador_id_test.dart         (8 testes — 100% cobertura)
-└── widgets/                (143 testes — UI + componentes)
+└── widgets/                (146 testes — UI + componentes)
     ├── componentes/
-    │   └── modal_detalhes_paciente_test.dart   (12 testes)
+    │   ├── modal_detalhes_paciente_test.dart   (12 testes)
+│   └── rodape_versao_test.dart             (3 testes)
     ├── utilitarios/
     │   └── acoes_agendamento_test.dart         (6 testes)
     └── telas/

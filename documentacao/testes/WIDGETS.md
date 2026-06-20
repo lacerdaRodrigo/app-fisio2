@@ -437,13 +437,15 @@ flutter test test/widgets/telas/tela_pacientes_test.dart
 |---|---|---|---|
 | Login | ✅ | 6 | Termos LGPD, login Google |
 | Dashboard | ✅ | 16 | 100% |
-| Cadastro Paciente | ✅ | 22 | 100% |
+| Cadastro Paciente | ✅ | 23 | 100% |
 | Lista Pacientes | ✅ | 12 | 100% |
 | Nova Sessão | ✅ | 9 | 100% |
 | Registro Evolução | ✅ | 23 | 100% |
 | Sessões/Agenda | ✅ | 12 | 100% |
 | Configurações | ✅ | 11 | 100% |
 | Histórico Evoluções | ✅ | 7 | 100% |
-| Modal Detalhes Paciente | ✅ | 11 | 93,9% |
+| Editar Paciente | ✅ | 6 | Campos travados + atualização |
+| Modal Detalhes Paciente | ✅ | 12 | 93,9% |
+| Rodapé Versão | ✅ | 3 | Overlay de versão |
 | Ações de Agendamento | ✅ | 6 | 96,2% |
-| **Total** | **✅** | **135** | Telas principais + componentes/utilitários |
+| **Total** | **✅** | **146** | Telas principais + componentes/utilitários |
