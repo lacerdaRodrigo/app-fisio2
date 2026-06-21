@@ -1,4 +1,4 @@
-# 📁 Testes Unitários (102 testes)
+# 📁 Testes Unitários (104 testes)
 
 Lógica pura: validação de entrada, transformação de dados, cálculos.
 
@@ -127,7 +127,7 @@ Persistência local via SharedPreferences (ID da planilha).
 
 ---
 
-## test/unitarios/modelos/ (22 testes)
+## test/unitarios/modelos/ (24 testes)
 
 Serialização, transformação e comportamento dos modelos de dados.
 
@@ -147,7 +147,7 @@ Modelo Paciente: dados cadastrais, anamnese, status.
 ✓ Preserva anamnese na cópia
 ```
 
-### agendamento_test.dart (7 testes)
+### agendamento_test.dart (9 testes)
 
 Modelo Agendamento: sessões, desfechos, horários.
 
@@ -159,6 +159,8 @@ Modelo Agendamento: sessões, desfechos, horários.
 ✓ deLinhaPlanilha() desserializa linha
 ✓ Calcula duração corretamente
 ✓ Status em aberto vs finalizado
+✓ copiarCom altera campos editáveis e preserva identidade
+✓ copiarCom sem parâmetros mantém todos os campos iguais
 ```
 
 ### evolucao_test.dart (6 testes)

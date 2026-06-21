@@ -127,5 +127,51 @@ void main() {
         );
       });
     });
+
+    group('formatarMesAno', () {
+      test('deve retornar mês abreviado e ano', () {
+        expect(
+          UtilitariosData.formatarMesAno(DateTime(2026, 6, 15)),
+          equals('Jun 2026'),
+        );
+        expect(
+          UtilitariosData.formatarMesAno(DateTime(2026, 1, 1)),
+          equals('Jan 2026'),
+        );
+        expect(
+          UtilitariosData.formatarMesAno(DateTime(2026, 12, 31)),
+          equals('Dez 2026'),
+        );
+      });
+    });
+
+    group('mesmoMesAno', () {
+      test('deve retornar true para datas no mesmo mês e ano', () {
+        expect(
+          UtilitariosData.mesmoMesAno(
+            DateTime(2026, 6, 1),
+            DateTime(2026, 6, 30),
+          ),
+          isTrue,
+        );
+      });
+
+      test('deve retornar false para meses ou anos diferentes', () {
+        expect(
+          UtilitariosData.mesmoMesAno(
+            DateTime(2026, 6, 1),
+            DateTime(2026, 7, 1),
+          ),
+          isFalse,
+        );
+        expect(
+          UtilitariosData.mesmoMesAno(
+            DateTime(2026, 6, 1),
+            DateTime(2025, 6, 1),
+          ),
+          isFalse,
+        );
+      });
+    });
   });
 }

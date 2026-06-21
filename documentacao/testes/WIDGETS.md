@@ -1,11 +1,11 @@
-# 🎨 Testes de Widget (143 testes)
+# 🎨 Testes de Widget (159 testes)
 
 Testes de componentes visuais: telas, componentes reutilizáveis e utilitários
 de UI, interação do usuário e estados visuais.
 
 ---
 
-## test/widgets/telas/ (125 testes | 10 arquivos)
+## test/widgets/telas/ (138 testes | 12 arquivos)
 
 Cada arquivo de teste representa uma tela da aplicação.
 
@@ -172,6 +172,26 @@ valor e observações.
 > para os caminhos de sucesso, erro e CPF duplicado. Os testes que preenchem
 > todos os campos montam a tela numa superfície alta (1000×4000) para evitar
 > scroll e usam as `Key`s dos campos.
+
+---
+
+### tela_editar_sessao_test.dart (7 testes)
+
+**Tela:** Edição/reagendamento de sessão existente — paciente travado, campos de data/hora/valor editáveis.
+
+```dart
+✓ Pré-preenche campos editáveis com o agendamento (hora, valor, observações)
+✓ Paciente aparece desabilitado (campo travado)
+✓ Salvar atualiza campos e preserva identidade (id/paciente/situação/dataCriação)
+✓ Valor vazio impede salvar (dialog de campos obrigatórios)
+✓ Falha ao atualizar exibe snackbar de erro
+✓ Botão voltar aciona o retorno
+✓ Observação vazia vira null no agendamento salvo
+```
+
+> Usa `FakeRepoEdicaoSessao` (captura o `Agendamento` enviado a `atualizarAgendamento`),
+> `RepoEdicaoSessaoQueFalha` e `AgendamentosComDados`. Verifica o estado desabilitado pelo
+> `TextField.enabled` interno do campo paciente.
 
 ---
 

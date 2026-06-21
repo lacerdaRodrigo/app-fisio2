@@ -97,15 +97,22 @@ class Agendamento {
     };
   }
 
-  Agendamento copiarCom({String? situacao}) {
+  Agendamento copiarCom({
+    DateTime? data,
+    String? horaInicio,
+    String? horaFim,
+    double? valorSessao,
+    String? observacoes,
+    String? situacao,
+  }) {
     return Agendamento(
       idAgendamento: idAgendamento,
       idPaciente: idPaciente,
-      data: data,
-      horaInicio: horaInicio,
-      horaFim: horaFim,
-      valorSessao: valorSessao,
-      observacoes: observacoes,
+      data: data ?? this.data,
+      horaInicio: horaInicio ?? this.horaInicio,
+      horaFim: horaFim ?? this.horaFim,
+      valorSessao: valorSessao ?? this.valorSessao,
+      observacoes: observacoes ?? this.observacoes,
       situacao: situacao ?? this.situacao,
       dataCriacao: dataCriacao,
     );

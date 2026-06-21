@@ -1,5 +1,24 @@
 # Changelog — Fisio Home Care
 
+## [Não lançado] — 2026-06-20
+
+### Funcionalidades
+- **Financeiro simples:** nova tela `tela_financeiro.dart` acessível pela 4ª aba no bottom nav. Mostra resumo mensal com cards de **Faturado** (sessões realizadas), **Previsto** (sessões agendadas) e **Sessões realizadas** (contagem). Filtro por mês via chips horizontais. Lista de sessões do mês com nome do paciente, data, valor e badge de status. Cancelamentos e faltas são ignorados nos totais.
+  - Nova aba "Financeiro" no bottom nav (ícone carteira), FAB oculto nesta aba.
+  - Novos utilitários: `UtilitariosData.formatarMesAno()` e `mesmoMesAno()`.
+  - Novos testes: `tela_financeiro_test.dart` (6) + `utilitarios_data_test.dart` (3 novos) — total **268 testes**.
+- **Editar / reagendar sessão:** nova tela `tela_editar_sessao.dart` acessível pelo menu de ações da sessão (Dashboard e Sessões). Permite alterar data, horário de início/fim, valor e observações. **Paciente e ID ficam travados** (somente leitura). Disponível apenas para sessões com situação "Agendado".
+  - Novo `RepositorioDadosGoogle.atualizarAgendamento()` (reescreve a linha existente na aba `Agenda`, range `A:I`) e `atualizarAgendamentoReal()` no provedor; auditoria `EDITAR_AGENDAMENTO`.
+  - `Agendamento.copiarCom()` expandido para aceitar todos os campos editáveis (data, horaInicio, horaFim, valorSessao, observacoes).
+  - Novo enum `AcaoAgendamento.editarSessao` com handler que navega para a tela de edição.
+  - Menus de ações no Dashboard e Sessões exibem "Editar sessão" apenas quando `situacao == "Agendado"`.
+- Novos testes: `tela_editar_sessao_test.dart` (7) + `agendamento_test.dart` (2 novos) — total **257 testes**.
+
+### Documentação
+- `IMPLEMENTAR.md`: "Editar / reagendar agendamento" marcado como ✅ implementado.
+- Limpeza de branches: removidas `divisao`, `editar_paciente`, `test-mobile` (local + remoto).
+- Correções em CLAUDE.md, WIDGETS.md, VISAO_GERAL.md, README.md: contagens de testes, estrutura de pastas, versão e branch atualizados.
+
 ## [Não lançado] — 2026-06-18
 
 ### Funcionalidades

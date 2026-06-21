@@ -324,6 +324,29 @@ class RepositorioDadosGoogle {
     );
   }
 
+  Future<void> atualizarAgendamento(Agendamento agendamento) async {
+    final id = await obterPlanilhaId();
+    final linhas = await _sheets.lerAba(id, 'Agenda');
+    final indice = linhas.indexWhere(
+      (linha) => linha.isNotEmpty && linha.first == agendamento.idAgendamento,
+    );
+    if (indice == -1) {
+      throw StateError(
+        'Agendamento ${agendamento.idAgendamento} não encontrado.',
+      );
+    }
+
+    await _sheets.atualizarLinha(
+      id,
+      'Agenda!A${indice + 2}:I${indice + 2}',
+      _valoresAgendamento(agendamento),
+    );
+    await registrarAuditoria(
+      'EDITAR_AGENDAMENTO',
+      'Sessão ${agendamento.idAgendamento} atualizada.',
+    );
+  }
+
   Future<void> marcarAgendamentoRealizado(String idAgendamento) async {
     await atualizarSituacaoAgendamento(
       idAgendamento,

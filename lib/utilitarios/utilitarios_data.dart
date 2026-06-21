@@ -36,4 +36,19 @@ class UtilitariosData {
   static String formatarDataBr(DateTime data) {
     return '${data.day.toString().padLeft(2, '0')}/${data.month.toString().padLeft(2, '0')}/${data.year}';
   }
+
+  static const _nomesMes = [
+    'Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun',
+    'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez',
+  ];
+
+  /// Formata mês e ano abreviados (ex: "Jun 2026").
+  static String formatarMesAno(DateTime data) {
+    return '${_nomesMes[data.month - 1]} ${data.year}';
+  }
+
+  /// Verifica se duas datas pertencem ao mesmo mês e ano.
+  static bool mesmoMesAno(DateTime a, DateTime b) {
+    return a.year == b.year && a.month == b.month;
+  }
 }

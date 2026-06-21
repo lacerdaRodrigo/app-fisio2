@@ -62,6 +62,8 @@ Base: Flutter + Riverpod + Google Sheets API + Google Sign-In
 - Deploy Firebase Hosting (web)
 - Editar paciente (tela dedicada com campos de identidade travados, atualização via `atualizarPaciente()`, auditoria `EDITAR_PACIENTE`, popup de campos definitivos no cadastro)
 - CI/CD GitHub Actions (deploy preview em `develop`, deploy produção em `master`)
+- Editar / reagendar sessão (tela dedicada `tela_editar_sessao.dart`, campos de identidade travados, `atualizarAgendamento()` no repositório, auditoria `EDITAR_AGENDAMENTO`, disponível apenas para sessões com situação "Agendado")
+- Financeiro simples (4ª aba no bottom nav, resumo mensal: faturado, previsto, contagem, filtro por mês, lista de sessões)
 
 ---
 
@@ -69,16 +71,14 @@ Base: Flutter + Riverpod + Google Sheets API + Google Sign-In
 
 ### Ordem sugerida de evolução do produto
 1. ~~**Editar paciente**~~ ✅ — implementado em 2026-06-18.
-2. **Editar / reagendar sessão** — evita poluir o histórico com cancelamentos desnecessários quando o paciente apenas muda data, horário, valor ou local.
-3. **Financeiro simples** — transforma a agenda em controle operacional e financeiro básico para uso real no dia a dia.
+2. ~~**Editar / reagendar sessão**~~ ✅ — implementado em 2026-06-20.
+3. ~~**Financeiro simples**~~ ✅ — implementado em 2026-06-20.
 
 ### ~~1. Editar paciente~~ ✅ (implementado em 2026-06-18)
 > Movido para **✅ Já implementado**.
 
-### 2. Editar / reagendar agendamento
-- **Arquivo:** `lib/telas/tela_nova_sessao.dart` — adaptar para aceitar `Agendamento?` opcional
-- **Serviço:** adicionar `atualizarAgendamento()` no repositório para editar data/hora/valor/observações.
-- **Já implementado:** desfechos operacionais (`Cancelado pelo paciente`, `Cancelado pelo profissional`, `Faltou com aviso`, `Faltou sem aviso`) usando `Agenda.Situacao`.
+### ~~2. Editar / reagendar agendamento~~ ✅ (implementado em 2026-06-20)
+> Movido para **✅ Já implementado**.
 
 ### 3. Tela de agenda completa
 - **Arquivo novo:** `lib/telas/tela_agenda.dart`
@@ -88,11 +88,8 @@ Base: Flutter + Riverpod + Google Sheets API + Google Sign-In
   - Ações: editar, cancelar, marcar como realizado
 - **Navegação:** adicionar 4ª aba no bottom nav (Agenda) ou botão no Dashboard
 
-### 4. Financeiro por desfecho
-- **Arquivo:** criar fluxo de relatório financeiro.
-- **Contexto:** `Agenda.Situacao` já diferencia realizado, cancelamentos e faltas.
-- **Próximo passo:** definir regra de cobrança para cancelamento em cima da hora e faltas sem aviso.
-- **Escopo inicial sugerido:** total previsto, total recebido, pendente por paciente e filtro por mês.
+### ~~4. Financeiro por desfecho~~ ✅ (implementado em 2026-06-20)
+> Implementado como "Financeiro simples" — resumo mensal com faturado, previsto e contagem. Cancelamentos/faltas ignorados. Movido para **✅ Já implementado**.
 
 ---
 

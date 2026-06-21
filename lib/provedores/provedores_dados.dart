@@ -262,6 +262,26 @@ Future<void> atualizarEvolucaoReal(WidgetRef ref, Evolucao evolucao) async {
   );
 }
 
+Future<void> atualizarAgendamentoReal(
+  WidgetRef ref,
+  Agendamento agendamentoAtualizado,
+) async {
+  await _repositorio(ref).atualizarAgendamento(agendamentoAtualizado);
+  final agendamentos = ref.read(provedorListaAgendamentos);
+  ref.read(provedorListaAgendamentos.notifier).definir([
+    for (final agendamento in agendamentos)
+      if (agendamento.idAgendamento == agendamentoAtualizado.idAgendamento)
+        agendamentoAtualizado
+      else
+        agendamento,
+  ]);
+  registrarLog(
+    ref,
+    'EDITAR_AGENDAMENTO',
+    'Sessão ${agendamentoAtualizado.idAgendamento} atualizada.',
+  );
+}
+
 Future<void> marcarAgendamentoRealizadoReal(
   WidgetRef ref,
   String idAgendamento,

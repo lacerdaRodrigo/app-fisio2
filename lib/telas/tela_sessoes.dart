@@ -468,24 +468,29 @@ class _CardSessao extends StatelessWidget {
             tooltip: 'Ações da sessão',
             icon: Icon(Icons.more_vert_rounded, color: Colors.grey.shade500),
             onSelected: onAcao,
-            itemBuilder: (context) => const [
-              PopupMenuItem(
+            itemBuilder: (context) => [
+              if (agendamento.estaAgendado)
+                const PopupMenuItem(
+                  value: AcaoAgendamento.editarSessao,
+                  child: Text('Editar sessão'),
+                ),
+              const PopupMenuItem(
                 value: AcaoAgendamento.registrarEvolucao,
                 child: Text('Registrar evolução'),
               ),
-              PopupMenuItem(
+              const PopupMenuItem(
                 value: AcaoAgendamento.faltouComAviso,
                 child: Text('Faltou com aviso'),
               ),
-              PopupMenuItem(
+              const PopupMenuItem(
                 value: AcaoAgendamento.faltouSemAviso,
                 child: Text('Faltou sem aviso'),
               ),
-              PopupMenuItem(
+              const PopupMenuItem(
                 value: AcaoAgendamento.canceladoPaciente,
                 child: Text('Cancelar pelo paciente'),
               ),
-              PopupMenuItem(
+              const PopupMenuItem(
                 value: AcaoAgendamento.canceladoProfissional,
                 child: Text('Cancelar pelo profissional'),
               ),

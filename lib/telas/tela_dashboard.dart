@@ -13,6 +13,7 @@ import 'tela_pacientes.dart';
 import 'tela_nova_sessao.dart';
 import 'tela_sessoes.dart';
 import 'tela_configuracoes.dart';
+import 'tela_financeiro.dart';
 
 class TelaDashboard extends ConsumerStatefulWidget {
   final String nomeUsuario;
@@ -66,6 +67,7 @@ class _TelaDashboardState extends ConsumerState<TelaDashboard> {
         key: ValueKey(_filtroPacientes),
         filtroInicial: _filtroPacientes,
       ),
+      const TelaFinanceiro(),
     ];
 
     return Scaffold(
@@ -143,6 +145,12 @@ class _TelaDashboardState extends ConsumerState<TelaDashboard> {
                           isActive: _indiceSelecionado == 2,
                           onTap: () => setState(() => _indiceSelecionado = 2),
                         ),
+                        _NavItem(
+                          icon: Icons.account_balance_wallet_rounded,
+                          label: 'Financeiro',
+                          isActive: _indiceSelecionado == 3,
+                          onTap: () => setState(() => _indiceSelecionado = 3),
+                        ),
                       ],
                     ),
                   ),
@@ -160,7 +168,9 @@ class _TelaDashboardState extends ConsumerState<TelaDashboard> {
     List<Paciente> pacientes,
     EstadoCarregamentoDados carregamento,
   ) {
-    if (_indiceSelecionado == 0) return const SizedBox.shrink();
+    if (_indiceSelecionado == 0 || _indiceSelecionado == 3) {
+      return const SizedBox.shrink();
+    }
 
     if (!carregamento.carregouComSucesso) return const SizedBox.shrink();
 
@@ -685,24 +695,29 @@ class _TelaDashboardState extends ConsumerState<TelaDashboard> {
             icon: Icon(Icons.more_vert_rounded, color: Colors.grey.shade500),
             onSelected: (acao) =>
                 executarAcaoAgendamento(context, ref, acao, agendamento, paciente),
-            itemBuilder: (context) => const [
-              PopupMenuItem(
+            itemBuilder: (context) => [
+              if (agendamento.estaAgendado)
+                const PopupMenuItem(
+                  value: AcaoAgendamento.editarSessao,
+                  child: Text('Editar sessão'),
+                ),
+              const PopupMenuItem(
                 value: AcaoAgendamento.registrarEvolucao,
                 child: Text('Registrar evolução'),
               ),
-              PopupMenuItem(
+              const PopupMenuItem(
                 value: AcaoAgendamento.faltouComAviso,
                 child: Text('Faltou com aviso'),
               ),
-              PopupMenuItem(
+              const PopupMenuItem(
                 value: AcaoAgendamento.faltouSemAviso,
                 child: Text('Faltou sem aviso'),
               ),
-              PopupMenuItem(
+              const PopupMenuItem(
                 value: AcaoAgendamento.canceladoPaciente,
                 child: Text('Cancelar pelo paciente'),
               ),
-              PopupMenuItem(
+              const PopupMenuItem(
                 value: AcaoAgendamento.canceladoProfissional,
                 child: Text('Cancelar pelo profissional'),
               ),

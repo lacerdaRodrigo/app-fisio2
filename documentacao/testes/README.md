@@ -1,6 +1,6 @@
 # 📚 Documentação de Testes
 
-Guia completo dos 248 testes automatizados do Fisio Home Care.
+Guia completo dos 268 testes automatizados do Fisio Home Care.
 
 ---
 
@@ -35,11 +35,11 @@ flutter test test/unitarios/utilitarios/validadores_test.dart
 | Tipo | Quantidade | % |
 |---|---|---|
 | Unit — Utilitários | 75 | 32% |
-| Unit — Modelos | 22 | 9% |
+| Unit — Modelos | 24 | 9% |
 | Unit — Serviços | 5 | 2% |
-| Widget — Telas | 125 | 50% |
-| Widget — Componentes/Utilitários | 21 | 9% |
-| **TOTAL** | **248** | **100%** |
+| Widget — Telas | 132 | 51% |
+| Widget — Componentes/Utilitários | 21 | 8% |
+| **TOTAL** | **257** | **100%** |
 
 ---
 
