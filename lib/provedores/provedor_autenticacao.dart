@@ -81,21 +81,6 @@ class AutenticacaoNotificador extends Notifier<EstadoAutenticacao> {
       }),
     );
 
-    unawaited(
-      servico.tentarRestaurarSessao().then((sessao) {
-        if (sessao != null) {
-          _autenticarComSessao(sessao);
-        }
-      }).catchError((Object e, StackTrace st) {
-        developer.log(
-          'Falha ao restaurar sessão anterior',
-          error: e,
-          stackTrace: st,
-          name: 'Autenticacao',
-        );
-      }),
-    );
-
     return EstadoAutenticacao();
   }
 
@@ -124,8 +109,17 @@ class AutenticacaoNotificador extends Notifier<EstadoAutenticacao> {
     state = state.copiarCom(estaCarregando: true, mensagemErro: null);
     await Preferencias.limparPlanilhaId();
 
+    final servico = ref.read(provedorServicoAutenticacaoGoogle);
+
     try {
-      final sessao = await ref.read(provedorServicoAutenticacaoGoogle).entrar();
+      // Tenta restaurar sessão anterior (login silencioso) antes do interativo.
+      final sessaoAnterior = await servico.tentarRestaurarSessao();
+      if (sessaoAnterior != null) {
+        _autenticarComSessao(sessaoAnterior);
+        return;
+      }
+
+      final sessao = await servico.entrar();
       state = state.copiarCom(
         estaAutenticado: true,
         estaCarregando: false,
