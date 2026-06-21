@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:table_calendar/table_calendar.dart';
 
 import '../componentes/design_system.dart';
 import '../modelos/agendamento.dart';
@@ -7,6 +8,7 @@ import '../modelos/paciente.dart';
 import '../provedores/provedores_dados.dart';
 import '../utilitarios/utilitarios_data.dart';
 import '../utilitarios/acoes_agendamento.dart';
+import 'tela_nova_sessao.dart';
 
 enum FiltroSessoes {
   todas,
@@ -18,7 +20,7 @@ enum FiltroSessoes {
   realizadas,
 }
 
-enum VisualizacaoSessoes { lista, porPaciente }
+enum VisualizacaoSessoes { lista, porPaciente, calendario }
 
 class TelaSessoes extends ConsumerStatefulWidget {
   const TelaSessoes({super.key});
@@ -32,6 +34,8 @@ class _TelaSessoesState extends ConsumerState<TelaSessoes> {
   VisualizacaoSessoes _visualizacao = VisualizacaoSessoes.lista;
   final _buscaController = TextEditingController();
   String _termoBusca = '';
+  DateTime _diaSelecionado = DateTime.now();
+  DateTime _mesCalendario = DateTime.now();
 
   @override
   void dispose() {
@@ -92,6 +96,28 @@ class _TelaSessoesState extends ConsumerState<TelaSessoes> {
                         label: '${sessoes.length} registros',
                         color: FisioCores.primary,
                       ),
+                      const SizedBox(width: 8),
+                      SizedBox(
+                        height: 34,
+                        child: FilledButton.icon(
+                          key: const Key('btn_nova_sessao_header'),
+                          onPressed: () => Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => const TelaNovaSessao(),
+                            ),
+                          ),
+                          icon: const Icon(Icons.add_rounded, size: 18),
+                          label: const Text(
+                            'Nova',
+                            style: TextStyle(fontSize: 12),
+                          ),
+                          style: FilledButton.styleFrom(
+                            backgroundColor: FisioCores.primary,
+                            padding: const EdgeInsets.symmetric(horizontal: 12),
+                          ),
+                        ),
+                      ),
                     ],
                   ),
                   const SizedBox(height: 14),
@@ -133,14 +159,19 @@ class _TelaSessoesState extends ConsumerState<TelaSessoes> {
               ),
             ),
             Expanded(
-              child: sessoes.isEmpty
-                  ? _EstadoVazio(filtro: _labelFiltro(_filtro))
-                  : FisioResponsiveCenter(
+              child: _visualizacao == VisualizacaoSessoes.calendario
+                  ? FisioResponsiveCenter(
                       maxWidth: 720,
-                      child: _visualizacao == VisualizacaoSessoes.lista
-                          ? _listaSessoes(sessoes, pacientes)
-                          : _listaAgrupada(grupos, pacientes),
-                    ),
+                      child: _vistaCalendario(agendamentos, sessoes, pacientes),
+                    )
+                  : sessoes.isEmpty
+                      ? _EstadoVazio(filtro: _labelFiltro(_filtro))
+                      : FisioResponsiveCenter(
+                          maxWidth: 720,
+                          child: _visualizacao == VisualizacaoSessoes.lista
+                              ? _listaSessoes(sessoes, pacientes)
+                              : _listaAgrupada(grupos, pacientes),
+                        ),
             ),
           ],
         ),
@@ -165,6 +196,12 @@ class _TelaSessoesState extends ConsumerState<TelaSessoes> {
             child: _botaoVisualizacao(
               'Por paciente',
               VisualizacaoSessoes.porPaciente,
+            ),
+          ),
+          Expanded(
+            child: _botaoVisualizacao(
+              'Calendário',
+              VisualizacaoSessoes.calendario,
             ),
           ),
         ],
@@ -251,6 +288,140 @@ class _TelaSessoesState extends ConsumerState<TelaSessoes> {
           ),
         );
       },
+    );
+  }
+
+  Widget _vistaCalendario(
+    List<Agendamento> todosAgendamentos,
+    List<Agendamento> sessoesFiltradas,
+    Map<String, Paciente> pacientes,
+  ) {
+    final sessoesDoDia = sessoesFiltradas
+        .where((a) => UtilitariosData.mesmoDia(a.data, _diaSelecionado))
+        .toList()
+      ..sort((a, b) => a.horaInicio.compareTo(b.horaInicio));
+
+    return ListView(
+      padding: const EdgeInsets.fromLTRB(18, 12, 18, 132),
+      children: [
+        TableCalendar<Agendamento>(
+          key: const Key('calendario_sessoes'),
+          locale: 'pt_BR',
+          firstDay: DateTime.utc(2024, 1, 1),
+          lastDay: DateTime.utc(2030, 12, 31),
+          focusedDay: _mesCalendario,
+          selectedDayPredicate: (day) =>
+              UtilitariosData.mesmoDia(day, _diaSelecionado),
+          onDaySelected: (selectedDay, focusedDay) {
+            setState(() {
+              _diaSelecionado = selectedDay;
+              _mesCalendario = focusedDay;
+            });
+          },
+          onPageChanged: (focusedDay) {
+            _mesCalendario = focusedDay;
+          },
+          eventLoader: (day) => todosAgendamentos
+              .where((a) => UtilitariosData.mesmoDia(a.data, day))
+              .where(_aplicarFiltro)
+              .toList(),
+          calendarStyle: CalendarStyle(
+            todayDecoration: BoxDecoration(
+              color: FisioCores.primaryLight.withValues(alpha: 0.3),
+              shape: BoxShape.circle,
+            ),
+            todayTextStyle: const TextStyle(
+              color: FisioCores.textPrimary,
+              fontWeight: FontWeight.bold,
+            ),
+            selectedDecoration: const BoxDecoration(
+              color: FisioCores.primary,
+              shape: BoxShape.circle,
+            ),
+            markerDecoration: const BoxDecoration(
+              color: FisioCores.primary,
+              shape: BoxShape.circle,
+            ),
+            markerSize: 6,
+            markersMaxCount: 3,
+          ),
+          headerStyle: const HeaderStyle(
+            formatButtonVisible: false,
+            titleCentered: true,
+            titleTextStyle: TextStyle(
+              fontWeight: FontWeight.w800,
+              fontSize: 16,
+              color: FisioCores.textPrimary,
+            ),
+          ),
+          calendarBuilders: CalendarBuilders(
+            markerBuilder: (context, day, events) {
+              if (events.isEmpty) return null;
+              return Row(
+                mainAxisSize: MainAxisSize.min,
+                children: events.take(3).map((a) {
+                  Color cor;
+                  if (a.foiRealizado) {
+                    cor = FisioCores.success;
+                  } else if (a.foiCancelado) {
+                    cor = FisioCores.danger;
+                  } else if (a.foiFalta) {
+                    cor = FisioCores.warning;
+                  } else if (a.estaAtrasado(DateTime.now()) ||
+                      a.pendenteDeDiaAnterior(DateTime.now())) {
+                    cor = FisioCores.warning;
+                  } else {
+                    cor = FisioCores.info;
+                  }
+                  return Container(
+                    width: 6,
+                    height: 6,
+                    margin: const EdgeInsets.symmetric(horizontal: 1),
+                    decoration: BoxDecoration(
+                      color: cor,
+                      shape: BoxShape.circle,
+                    ),
+                  );
+                }).toList(),
+              );
+            },
+          ),
+        ),
+        const SizedBox(height: 16),
+        Padding(
+          padding: const EdgeInsets.only(bottom: 8),
+          child: Text(
+            UtilitariosData.formatarDataBr(_diaSelecionado),
+            style: const TextStyle(
+              fontWeight: FontWeight.w800,
+              fontSize: 16,
+              color: FisioCores.textPrimary,
+            ),
+          ),
+        ),
+        if (sessoesDoDia.isEmpty)
+          const Padding(
+            padding: EdgeInsets.symmetric(vertical: 24),
+            child: Text(
+              'Nenhuma sessão neste dia.',
+              textAlign: TextAlign.center,
+              style: TextStyle(color: FisioCores.textSecondary),
+            ),
+          )
+        else
+          for (final agendamento in sessoesDoDia)
+            _CardSessao(
+              agendamento: agendamento,
+              paciente: pacientes[agendamento.idPaciente],
+              onAcao: (acao) => executarAcaoAgendamento(
+                context,
+                ref,
+                acao,
+                agendamento,
+                pacientes[agendamento.idPaciente],
+              ),
+            ),
+      ],
     );
   }
 

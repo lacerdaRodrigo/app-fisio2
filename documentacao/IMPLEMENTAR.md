@@ -64,6 +64,7 @@ Base: Flutter + Riverpod + Google Sheets API + Google Sign-In
 - CI/CD GitHub Actions (deploy preview em `develop`, deploy produção em `master`)
 - Editar / reagendar sessão (tela dedicada `tela_editar_sessao.dart`, campos de identidade travados, `atualizarAgendamento()` no repositório, auditoria `EDITAR_AGENDAMENTO`, disponível apenas para sessões com situação "Agendado")
 - Financeiro simples (4ª aba no bottom nav, resumo mensal: faturado, previsto, contagem, filtro por mês, lista de sessões)
+- Agenda completa (visão calendário na tela Sessões com marcadores coloridos por status, seleção de dia e lista de sessões do dia)
 
 ---
 
@@ -80,13 +81,8 @@ Base: Flutter + Riverpod + Google Sheets API + Google Sign-In
 ### ~~2. Editar / reagendar agendamento~~ ✅ (implementado em 2026-06-20)
 > Movido para **✅ Já implementado**.
 
-### 3. Tela de agenda completa
-- **Arquivo novo:** `lib/telas/tela_agenda.dart`
-- **Funcionalidades:**
-  - Lista completa de agendamentos (não só hoje)
-  - Filtros: por data (hoje/semana/mês), por paciente, por status
-  - Ações: editar, cancelar, marcar como realizado
-- **Navegação:** adicionar 4ª aba no bottom nav (Agenda) ou botão no Dashboard
+### ~~3. Tela de agenda completa~~ ✅ (implementado em 2026-06-20)
+> Implementado como visão "Calendário" na tela de Sessões (3ª opção no seletor de visualização). Calendário mensal com marcadores coloridos por status, seleção de dia e lista de sessões. Movido para **✅ Já implementado**.
 
 ### ~~4. Financeiro por desfecho~~ ✅ (implementado em 2026-06-20)
 > Implementado como "Financeiro simples" — resumo mensal com faturado, previsto e contagem. Cancelamentos/faltas ignorados. Movido para **✅ Já implementado**.

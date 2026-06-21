@@ -3,6 +3,10 @@
 ## [Não lançado] — 2026-06-20
 
 ### Funcionalidades
+- **Agenda completa (visão calendário):** nova 3ª visualização "Calendário" na tela de Sessões, usando `table_calendar`. Calendário mensal com marcadores coloridos por status (verde=realizado, azul=agendado, laranja=pendente, vermelho=cancelado/falta). Tocar num dia mostra as sessões daquele dia abaixo do calendário. Filtros e busca continuam funcionando na visão calendário.
+  - Nova dependência: `table_calendar: ^3.1.3`
+  - Novos utilitários: `UtilitariosData.mesmoDia()`
+  - Novos testes: validação de data/hora retroativa (6 edge cases), `mesmoDia` (2), `pendenteDeDiaAnterior` (1), calendário widget (3) — total **280 testes**.
 - **Financeiro simples:** nova tela `tela_financeiro.dart` acessível pela 4ª aba no bottom nav. Mostra resumo mensal com cards de **Faturado** (sessões realizadas), **Previsto** (sessões agendadas) e **Sessões realizadas** (contagem). Filtro por mês via chips horizontais. Lista de sessões do mês com nome do paciente, data, valor e badge de status. Cancelamentos e faltas são ignorados nos totais.
   - Nova aba "Financeiro" no bottom nav (ícone carteira), FAB oculto nesta aba.
   - Novos utilitários: `UtilitariosData.formatarMesAno()` e `mesmoMesAno()`.

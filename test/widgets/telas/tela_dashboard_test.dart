@@ -308,12 +308,12 @@ void main() {
       await tester.pumpAndSettle();
 
       // Na aba Início (0) não há FAB.
-      expect(find.text('Nova Sessão'), findsNothing);
       expect(find.text('Novo Paciente'), findsNothing);
 
       await tester.tap(find.text('Sessões'));
       await tester.pumpAndSettle();
-      expect(find.text('Nova Sessão'), findsOneWidget);
+      // Sessões não tem FAB flutuante — botão "Nova" fica no header da tela.
+      expect(find.text('Novo Paciente'), findsNothing);
 
       await tester.tap(find.text('Pacientes'));
       await tester.pumpAndSettle();
@@ -342,22 +342,6 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('Novo Paciente'), findsWidgets);
-      expect(find.byType(TextField), findsWidgets);
-    });
-
-    testWidgets('FAB "Nova Sessão" abre a tela de nova sessão', (tester) async {
-      await _montar(
-        tester,
-        _criarApp(carregamento: _carregado, pacientes: [_paciente()]),
-      );
-      await tester.pumpAndSettle();
-
-      await tester.tap(find.text('Sessões'));
-      await tester.pumpAndSettle();
-
-      await tester.tap(find.text('Nova Sessão'));
-      await tester.pumpAndSettle();
-
       expect(find.byType(TextField), findsWidgets);
     });
   });

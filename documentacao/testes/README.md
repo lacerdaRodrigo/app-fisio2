@@ -1,6 +1,6 @@
 # 📚 Documentação de Testes
 
-Guia completo dos 268 testes automatizados do Fisio Home Care.
+Guia completo dos 280 testes automatizados do Fisio Home Care.
 
 ---
 

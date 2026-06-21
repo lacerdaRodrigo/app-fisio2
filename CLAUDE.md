@@ -26,6 +26,7 @@
 | **Google Sheets API** | v4 | Banco de dados BYODB |
 | **Google Drive API** | v3 | Localizar planilha do usuário |
 | **Google Sign-In** | 6.2.1 | Autenticação OAuth |
+| **Table Calendar** | 3.1.3 | Visão calendário na agenda |
 | **Firebase Hosting** | — | Deploy web |
 
 ---
@@ -86,22 +87,22 @@ fisio-home-care/
 │       └── mensagens_erro_google.dart    # Mapear erros Google
 │
 ├── test/
-│   ├── unitarios/                   # 107 testes — lógica pura
+│   ├── unitarios/                   # 116 testes — lógica pura
 │   │   ├── auxiliares/
 │   │   │   └── fakes.dart           # Mocks reutilizados
 │   │   ├── modelos/
 │   │   │   ├── paciente_test.dart           (9 testes)
-│   │   │   ├── agendamento_test.dart        (9 testes)
+│   │   │   ├── agendamento_test.dart        (10 testes)
 │   │   │   └── evolucao_test.dart           (6 testes)
 │   │   ├── servicos/
 │   │   │   └── preferencias_test.dart       (5 testes)
 │   │   └── utilitarios/
 │   │       ├── validadores_test.dart        (46 testes)
 │   │       ├── validador_cpf_test.dart      (9 testes)
-│   │       ├── utilitarios_data_test.dart   (15 testes)
+│   │       ├── utilitarios_data_test.dart   (23 testes)
 │   │       └── gerador_id_test.dart         (8 testes — 100% cobertura)
 │   │
-│   └── widgets/                     # 161 testes — UI + componentes
+│   └── widgets/                     # 164 testes — UI + componentes
 │       ├── componentes/
 │       │   ├── modal_detalhes_paciente_test.dart   (12 testes)
 │       │   └── rodape_versao_test.dart             (3 testes)
@@ -116,7 +117,7 @@ fisio-home-care/
 │           ├── tela_financeiro_test.dart             (8 testes — resumo financeiro mensal)
 │           ├── tela_pacientes_test.dart              (12 testes — 100% cobertura)
 │           ├── tela_registro_evolucao_test.dart      (23 testes — 100% cobertura; inclui timeline)
-│           ├── tela_sessoes_test.dart                (12 testes — 100% cobertura)
+│           ├── tela_sessoes_test.dart                (15 testes — 100% cobertura)
 │           ├── tela_nova_sessao_test.dart             (9 testes — 100% cobertura)
 │           ├── tela_configuracoes_test.dart          (11 testes — 100% cobertura)
 │           └── tela_historico_geral_evolucoes_test.dart (7 testes — 100% cobertura)
@@ -258,19 +259,19 @@ Paciente.calcularIdade()   // ✓ delega para UtilitariosData
 
 ---
 
-## Testes (268 testes automatizados)
+## Testes (280 testes automatizados)
 
 ### Estrutura
 
 ```
 test/
-├── unitarios/  (107 testes)
+├── unitarios/  (116 testes)
 │   ├── auxiliares/     — fakes.dart (mocks reutilizados)
 │   ├── modelos/        — 22 testes (serialização, transformação)
 │   ├── servicos/       — 5 testes (preferencias)
 │   └── utilitarios/    — 75 testes (validadores, data, CPF, gerador_id)
 │
-└── widgets/    (161 testes)
+└── widgets/    (164 testes)
     ├── telas/        — 12 telas principais (UI, interação)
     ├── componentes/  — modal de detalhes do paciente + rodapé versão
     └── utilitarios/  — ações de agendamento
@@ -303,7 +304,7 @@ flutter test --coverage
 ✅ **Validação de entrada** — 46 testes (CPF, telefone, nome, data)  
 ✅ **Modelos** — 22 testes (serialização, cópia, status)  
 ✅ **Utilitários** — 21 testes (idade, formatação)  
-✅ **UI + Interação** — 161 testes (12 telas principais com 100% de cobertura + componentes/utilitários)  
+✅ **UI + Interação** — 164 testes (12 telas principais com 100% de cobertura + componentes/utilitários)  
 
 ❌ **Não coberto:**
 - Google Sheets API real (usaria quota, seria lento)
@@ -429,7 +430,7 @@ make release-prod  # mescla develop → master → dispara deploy de produção 
 | `documentacao/ESPECIFICACOES_TELAS.md` | Requisitos funcionais das telas | ✅ |
 | `documentacao/SEGURANCA_E_DADOS.md` | LGPD, OAuth, modelo BYODB | ✅ |
 | `documentacao/IMPLEMENTAR.md` | Roadmap priorizado | ✅ |
-| `documentacao/testes/` | 268 testes automatizados | ✅ |
+| `documentacao/testes/` | 280 testes automatizados | ✅ |
 | `documentacao/CI_CD.md` | Pipeline GitHub Actions: fluxo, secrets, uso e troubleshooting | ✅ |
 | `QA/qa.md` | Script QA manual (não é E2E) | ✅ |
 

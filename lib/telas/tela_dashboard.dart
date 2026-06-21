@@ -10,7 +10,6 @@ import '../utilitarios/acoes_agendamento.dart';
 import 'tela_cadastro_paciente.dart';
 import 'tela_historico_geral_evolucoes.dart';
 import 'tela_pacientes.dart';
-import 'tela_nova_sessao.dart';
 import 'tela_sessoes.dart';
 import 'tela_configuracoes.dart';
 import 'tela_financeiro.dart';
@@ -168,15 +167,9 @@ class _TelaDashboardState extends ConsumerState<TelaDashboard> {
     List<Paciente> pacientes,
     EstadoCarregamentoDados carregamento,
   ) {
-    if (_indiceSelecionado == 0 || _indiceSelecionado == 3) {
-      return const SizedBox.shrink();
-    }
+    if (_indiceSelecionado != 2) return const SizedBox.shrink();
 
     if (!carregamento.carregouComSucesso) return const SizedBox.shrink();
-
-    final bool ehAbaPacientes = _indiceSelecionado == 2;
-
-    if (!ehAbaPacientes && pacientes.isEmpty) return const SizedBox.shrink();
 
     return Positioned(
       bottom: 120,
@@ -185,15 +178,9 @@ class _TelaDashboardState extends ConsumerState<TelaDashboard> {
       child: Center(
         child: FloatingActionButton.extended(
           heroTag: 'fab_principal',
-          onPressed: ehAbaPacientes
-              ? () => Navigator.push(context, MaterialPageRoute(builder: (_) => const TelaCadastroPaciente()))
-              : () => Navigator.push(context, MaterialPageRoute(builder: (_) => const TelaNovaSessao())),
-          icon: Icon(
-            ehAbaPacientes
-                ? Icons.person_add_alt_1_rounded
-                : Icons.add_rounded,
-          ),
-          label: Text(ehAbaPacientes ? 'Novo Paciente' : 'Nova Sessão'),
+          onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const TelaCadastroPaciente())),
+          icon: const Icon(Icons.person_add_alt_1_rounded),
+          label: const Text('Novo Paciente'),
           backgroundColor: FisioCores.primary,
           foregroundColor: Colors.white,
           elevation: 6,

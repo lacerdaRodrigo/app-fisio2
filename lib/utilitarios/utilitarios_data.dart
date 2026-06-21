@@ -51,4 +51,9 @@ class UtilitariosData {
   static bool mesmoMesAno(DateTime a, DateTime b) {
     return a.year == b.year && a.month == b.month;
   }
+
+  /// Verifica se duas datas são o mesmo dia (ignora hora).
+  static bool mesmoDia(DateTime a, DateTime b) {
+    return a.year == b.year && a.month == b.month && a.day == b.day;
+  }
 }

@@ -1,6 +1,6 @@
 # 📋 Testes Automatizados — Visão Geral
 
-**Status:** ✅ 268 testes passando | cobertura global ~85%
+**Status:** ✅ 280 testes passando | cobertura global ~85%
 
 ---
 

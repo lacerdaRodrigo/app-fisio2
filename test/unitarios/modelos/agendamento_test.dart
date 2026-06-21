@@ -98,6 +98,22 @@ void main() {
       expect(copia.situacao, agendamento.situacao);
     });
 
+    test('pendenteDeDiaAnterior não ativa no mesmo dia', () {
+      final sessaoHoje = Agendamento(
+        idAgendamento: 'A099',
+        idPaciente: 'P001',
+        data: DateTime(2026, 6, 20),
+        horaInicio: '08:00',
+        horaFim: '09:00',
+        valorSessao: 150.0,
+      );
+      // Mesmo dia 22:00 — é atrasado mas NÃO é pendente de dia anterior
+      expect(sessaoHoje.pendenteDeDiaAnterior(DateTime(2026, 6, 20, 22, 0)), isFalse);
+      expect(sessaoHoje.estaAtrasado(DateTime(2026, 6, 20, 22, 0)), isTrue);
+      // Dia seguinte — agora sim é pendente de dia anterior
+      expect(sessaoHoje.pendenteDeDiaAnterior(DateTime(2026, 6, 21, 8, 0)), isTrue);
+    });
+
     test('cancelamentos e faltas devem ser desfechos', () {
       final canceladoPaciente = agendamento.copiarCom(
         situacao: Agendamento.situacaoCanceladoPaciente,
