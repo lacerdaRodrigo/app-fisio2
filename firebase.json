@@ -23,6 +23,14 @@
     ],
     "rewrites": [
       {
+        "source": "/termos.html",
+        "destination": "/termos.html"
+      },
+      {
+        "source": "/privacidade.html",
+        "destination": "/privacidade.html"
+      },
+      {
         "source": "**",
         "destination": "/index.html"
       }

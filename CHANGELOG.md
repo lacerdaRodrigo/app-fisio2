@@ -9,10 +9,12 @@
   - Novos testes: validação de data/hora retroativa (6 edge cases), `mesmoDia` (2), `pendenteDeDiaAnterior` (1), calendário widget (3) — total **279 testes**.
 
 ### Segurança e LGPD
-- **Documentação formal LGPD/Privacidade:** criadas páginas legais `web/termos.html` e `web/privacidade.html` (acessíveis em produção) com Termos de Uso completos e Política de Privacidade em conformidade com a Lei 13.709/2018.
-  - Termos: aceite, modelo BYODB, responsabilidades, limitações, propriedade intelectual, foro.
-  - Privacidade: papéis LGPD (Controlador/Operador/Titular), dados coletados com base legal, direitos do titular (Art. 18), retenção, segurança, incidentes, DPO.
-- **SEGURANCA_E_DADOS.md** reescrito com tabelas detalhadas de conformidade, medidas técnicas e referências aos documentos legais.
+- **Registro de aceite dos termos na auditoria:** ao fazer login, o aceite dos Termos de Uso e da Política de Privacidade é gravado na aba **Auditoria** da planilha com tipo `ACEITE_TERMOS`, versão dos documentos e e-mail do profissional (rastreabilidade conforme Art. 8º §2 da LGPD). A versão é controlada pela constante `_versaoTermosAceitos` em `lib/provedores/provedores_dados.dart`.
+- **Documentação formal LGPD/Privacidade:** páginas legais `web/termos.html` e `web/privacidade.html` reescritas com Termos de Uso v1.1 e Política de Privacidade v1.1 em conformidade com a Lei 13.709/2018.
+  - Termos: aceite, modelo BYODB, responsabilidades, limitações, propriedade intelectual, lei aplicável e foro (incluída cláusula de novo aceite para mudanças materiais — Art. 8º LGPD).
+  - Privacidade: papéis LGPD (Controlador/Operador/Titular), dados coletados com base legal em tabela (Art. 7º / Art. 11), direitos do titular (Art. 18), retenção (mínimo 20 anos COFFITO), segurança, incidentes/Art. 48, DPO, ANPD.
+- **`firebase.json`:** adicionadas regras explícitas de rewrite para `termos.html` e `privacidade.html` antes do catch-all SPA, garantindo que as páginas estáticas sejam servidas corretamente.
+- **SEGURANCA_E_DADOS.md** reescrito com tabelas detalhadas de conformidade (papéis, base legal por tipo de dado, Art. 18, incidentes, DPO, ANPD) e atualizado para refletir o novo registro de aceite.
 - **Fix login Android:** botão "Entrar com Google" agora desabilitado sem aceitar termos LGPD; restauração silenciosa de sessão só ocorre dentro do fluxo de login (não mais automática ao abrir o app).
 - **Financeiro simples:** nova tela `tela_financeiro.dart` acessível pela 4ª aba no bottom nav. Mostra resumo mensal com cards de **Faturado** (sessões realizadas), **Previsto** (sessões agendadas) e **Sessões realizadas** (contagem). Filtro por mês via chips horizontais. Lista de sessões do mês com nome do paciente, data, valor e badge de status. Cancelamentos e faltas são ignorados nos totais.
   - Nova aba "Financeiro" no bottom nav (ícone carteira), FAB oculto nesta aba.

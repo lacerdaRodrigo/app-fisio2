@@ -23,100 +23,187 @@
       width: 100%;
       box-shadow: 0 20px 60px rgba(0,0,0,0.2);
     }
-    h1 { font-size: 1.8rem; color: #00796B; margin-bottom: 24px; }
+    h1 { font-size: 1.8rem; color: #00796B; margin-bottom: 8px; }
     h2 { font-size: 1.2rem; color: #2C3E50; margin: 24px 0 12px; }
     p { line-height: 1.6; color: #555; margin-bottom: 12px; }
     ul { padding-left: 20px; margin-bottom: 16px; }
     ul li { line-height: 1.6; color: #555; margin-bottom: 6px; }
+    table { width: 100%; border-collapse: collapse; margin-bottom: 16px; font-size: 0.9rem; }
+    th { background: #f1f5f9; color: #2C3E50; padding: 8px 12px; text-align: left; border: 1px solid #e2e8f0; }
+    td { padding: 8px 12px; border: 1px solid #e2e8f0; color: #555; vertical-align: top; }
+    .version { color: #888; font-size: 0.85rem; margin-bottom: 4px; }
     .last-update { color: #888; font-size: 0.9rem; margin-bottom: 24px; }
     .back { display: inline-block; margin-top: 24px; color: #00796B; text-decoration: none; font-weight: 500; }
     .back:hover { text-decoration: underline; }
+    .badge { display: inline-block; background: #e8f5e9; color: #2e7d32; font-size: 0.8rem; padding: 2px 8px; border-radius: 12px; font-weight: 600; }
   </style>
 </head>
 <body>
   <div class="card">
-    <h1>Política de Privacidade - Fisio Home Care</h1>
-    <p class="last-update">Última atualização: junho de 2026</p>
+    <h1>Política de Privacidade</h1>
+    <p class="version">Versão 1.1 <span class="badge">LGPD</span></p>
+    <p class="last-update">Vigência: 29 de junho de 2026</p>
 
     <p>
-      Esta Política de Privacidade explica como o Fisio Home Care trata dados pessoais
-      e dados clínicos cadastrados pelo profissional de fisioterapia. O aplicativo foi
-      desenvolvido para operar no modelo "traga sua própria conta": os dados são
-      gravados em arquivos do Google Drive e Google Sheets pertencentes ao próprio
-      usuário autenticado.
+      Esta Política de Privacidade explica como o <strong>Fisio Home Care</strong> trata dados pessoais
+      e dados clínicos cadastrados pelo profissional de fisioterapia. O aplicativo opera no modelo
+      <em>"traga sua própria conta"</em> (BYODB): os dados são gravados exclusivamente em arquivos
+      do Google Drive e Google Sheets pertencentes ao próprio usuário autenticado.
+      <strong>O desenvolvedor do aplicativo não tem acesso técnico aos dados clínicos dos pacientes.</strong>
     </p>
 
-    <h2>1. Dados coletados</h2>
-    <p>
-      O aplicativo coleta e processa apenas os dados necessários para a gestão dos
-      atendimentos:
-    </p>
+    <h2>1. Papéis sob a LGPD</h2>
+    <p>Em conformidade com a Lei Geral de Proteção de Dados (LGPD — Lei nº 13.709/2018):</p>
     <ul>
-      <li><strong>Dados da conta Google:</strong> nome e e-mail do profissional, usados para autenticação e identificação da sessão.</li>
-      <li><strong>Dados de pacientes:</strong> informações inseridas pelo profissional, como nome, contato, data de nascimento, CPF, endereço e observações de atendimento.</li>
-      <li><strong>Dados de agenda:</strong> datas, horários, status e descrições de sessões.</li>
-      <li><strong>Evoluções clínicas:</strong> registros técnicos e anotações feitas pelo profissional durante ou após os atendimentos.</li>
-      <li><strong>Configurações operacionais:</strong> preferências do app, valor padrão de sessão e identificadores da planilha usada como banco de dados.</li>
+      <li><strong>Controlador dos Dados:</strong> o fisioterapeuta (usuário do aplicativo). Ele decide quais dados coletar, a finalidade do tratamento, o prazo de retenção e como atender às solicitações dos titulares.</li>
+      <li><strong>Operador:</strong> o Google (infraestrutura de Drive e Sheets) e o aplicativo Fisio Home Care (processa dados conforme instruções do controlador, sem acessá-los de forma independente).</li>
+      <li><strong>Titular dos dados:</strong> o paciente atendido pelo profissional.</li>
     </ul>
 
-    <h2>2. Uso da Conta Google</h2>
+    <h2>2. Dados coletados e base legal</h2>
+    <p>O aplicativo coleta e processa apenas os dados necessários para a gestão dos atendimentos:</p>
+    <table>
+      <thead>
+        <tr>
+          <th>Categoria</th>
+          <th>Dados</th>
+          <th>Base legal (LGPD)</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Dados do profissional</td>
+          <td>Nome e e-mail da conta Google, usados para autenticação e auditoria de sessão</td>
+          <td>Consentimento (Art. 7º, I) — aceite explícito no login</td>
+        </tr>
+        <tr>
+          <td>Dados de pacientes</td>
+          <td>Nome, CPF, telefone, data de nascimento, endereço, anamnese clínica</td>
+          <td>Tutela da saúde (Art. 11, II, f) e/ou consentimento do titular (Art. 11, I), obtido pelo profissional</td>
+        </tr>
+        <tr>
+          <td>Dados de agenda</td>
+          <td>Datas, horários, valores, status e observações de sessões</td>
+          <td>Execução de contrato de serviço profissional (Art. 7º, V)</td>
+        </tr>
+        <tr>
+          <td>Evoluções clínicas</td>
+          <td>Registros técnicos, protocolos e notas feitas pelo profissional</td>
+          <td>Tutela da saúde (Art. 11, II, f)</td>
+        </tr>
+        <tr>
+          <td>Configurações e auditoria</td>
+          <td>Preferências do app, valor padrão, logs de operações realizadas</td>
+          <td>Legítimo interesse do controlador (Art. 7º, IX) — rastreabilidade de ações</td>
+        </tr>
+        <tr>
+          <td>Armazenamento local (browser)</td>
+          <td>Identificador da planilha (<em>planilhaId</em>) — código não pessoal do arquivo Google Sheets</td>
+          <td>Legítimo interesse (Art. 7º, IX) — evitar nova autorização a cada acesso</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h2>3. Uso da Conta Google e escopo de acesso</h2>
     <p>
-      O Fisio Home Care solicita autorização para usar o Google Drive com a finalidade
-      de criar, localizar, ler e atualizar a planilha de dados do próprio profissional.
-      O escopo <strong>drive.file</strong> limita o acesso aos arquivos criados ou
-      selecionados pelo aplicativo. A planilha Google usada pelo app fica dentro desse
-      conjunto de arquivos autorizados pelo usuário.
+      O Fisio Home Care solicita autorização para usar o Google Drive com o escopo restrito
+      <strong>drive.file</strong>, que permite criar, localizar, ler e atualizar apenas os arquivos
+      criados ou selecionados pelo próprio aplicativo. O app <strong>não</strong> tem permissão para
+      visualizar outros arquivos, fotos ou pastas pessoais do usuário no Drive.
+    </p>
+    <p>
+      O usuário pode revogar o acesso a qualquer momento em
+      <a href="https://myaccount.google.com/permissions">myaccount.google.com/permissions</a>.
     </p>
 
-    <h2>3. Armazenamento</h2>
+    <h2>4. Armazenamento e retenção de dados</h2>
     <p>
-      O aplicativo não possui servidor próprio para armazenar prontuários ou dados de
-      pacientes. As informações ficam na conta Google do profissional, em arquivos do
-      Google Drive e Google Sheets. A disponibilidade, segurança e permissões desses
-      arquivos também dependem das configurações da própria Conta Google do usuário.
+      O aplicativo não possui servidor próprio para armazenar prontuários ou dados de pacientes.
+      As informações ficam na conta Google do profissional, em arquivos do Google Drive e Google Sheets.
+    </p>
+    <ul>
+      <li><strong>Retenção:</strong> os dados persistem enquanto o profissional mantiver a planilha em seu Google Drive. Não há prazo de retenção imposto pelo desenvolvedor do aplicativo.</li>
+      <li><strong>Exclusão pelo profissional:</strong> o controlador pode excluir pacientes, sessões e evoluções individualmente pelo app, ou deletar a planilha completa diretamente no Google Drive.</li>
+      <li><strong>Após revogação do acesso:</strong> o aplicativo deixa de obter novos tokens e não acessa mais os arquivos. Os dados continuam no Google Drive do profissional, sujeitos às políticas de retenção do Google.</li>
+    </ul>
+
+    <h2>5. Compartilhamento de dados</h2>
+    <p>
+      O Fisio Home Care não vende, aluga ou compartilha dados pessoais com terceiros além dos
+      já mencionados (Google, como operador de infraestrutura). O compartilhamento de arquivos do
+      Drive ou Sheets, caso ocorra, é uma ação externa feita pelo próprio usuário na sua Conta Google.
+    </p>
+    <p>
+      Para informações sobre como o Google trata os dados, consulte a
+      <a href="https://policies.google.com/privacy">Política de Privacidade do Google</a>.
     </p>
 
-    <h2>4. Compartilhamento</h2>
-    <p>
-      O Fisio Home Care não vende, aluga ou compartilha dados pessoais com terceiros.
-      Os dados clínicos cadastrados são controlados pelo profissional que utiliza o app.
-      O compartilhamento de arquivos do Drive ou Sheets, caso ocorra, é uma ação externa
-      feita pelo próprio usuário na sua Conta Google.
-    </p>
-
-    <h2>5. Segurança</h2>
+    <h2>6. Segurança</h2>
     <p>
       A comunicação entre o aplicativo, o navegador e os serviços do Google ocorre por
-      HTTPS/TLS. A autorização é feita por OAuth 2.0, permitindo que o usuário conceda
-      ou revogue permissões pela própria Conta Google. Recomendamos que o profissional
-      mantenha sua conta protegida com senha forte e autenticação em duas etapas.
+      HTTPS/TLS. A autorização é gerenciada por OAuth 2.0. Recomendamos que o profissional
+      mantenha a conta Google protegida com senha forte e autenticação em duas etapas.
     </p>
 
-    <h2>6. Base legal e LGPD</h2>
+    <h2>7. Notificação de incidentes de segurança</h2>
     <p>
-      Em conformidade com a Lei Geral de Proteção de Dados (LGPD - Lei nº 13.709/2018),
-      o profissional usuário é responsável por informar seus pacientes e obter as
-      autorizações necessárias para registrar dados de saúde. Os titulares dos dados
-      podem solicitar ao profissional:
+      Em caso de incidente de segurança que possa causar dano relevante aos titulares de dados
+      (conforme Art. 48 da LGPD), o desenvolvedor do aplicativo comunicará o fato à
+      <strong>Autoridade Nacional de Proteção de Dados (ANPD)</strong> no prazo aplicável.
     </p>
+    <p>
+      Como o profissional é o controlador dos dados de seus pacientes, cabe a ele
+      notificar os titulares afetados pelos meios disponíveis. Incidentes na infraestrutura
+      do Google são cobertos pelas próprias políticas de resposta do Google.
+    </p>
+
+    <h2>8. Direitos dos titulares (Art. 18)</h2>
+    <p>Os pacientes, como titulares dos dados, podem solicitar ao profissional (controlador):</p>
     <ul>
-      <li>Acessar, corrigir ou excluir seus dados pessoais</li>
-      <li>Revogar consentimentos aplicáveis</li>
-      <li>Solicitar portabilidade ou informações sobre o tratamento</li>
-      <li>Receber informações sobre eventual compartilhamento feito pelo controlador dos dados</li>
+      <li>Confirmação da existência e acesso aos dados tratados</li>
+      <li>Correção de dados incompletos, inexatos ou desatualizados</li>
+      <li>Eliminação (exclusão definitiva) dos dados pessoais</li>
+      <li>Portabilidade dos dados para outro controlador</li>
+      <li>Revogação do consentimento e informações sobre as consequências</li>
+      <li>Informação sobre compartilhamento com terceiros</li>
     </ul>
-
-    <h2>7. Revogação de acesso</h2>
     <p>
-      O usuário pode sair da conta no próprio aplicativo e também revogar o acesso do
-      Fisio Home Care na página de permissões da Conta Google. Ao revogar o acesso, o
-      aplicativo deixa de obter novos tokens para acessar os arquivos autorizados no Drive.
+      O profissional pode atender a essas solicitações pelo aplicativo (editar ou excluir
+      registros) ou diretamente na planilha Google Sheets.
+    </p>
+    <p>
+      Os titulares também têm o direito de peticionar junto à
+      <strong>Autoridade Nacional de Proteção de Dados (ANPD)</strong> em
+      <a href="https://www.gov.br/anpd">www.gov.br/anpd</a>.
     </p>
 
-    <h2>8. Contato</h2>
+    <h2>9. Encarregado de Dados (DPO)</h2>
     <p>
-      Para dúvidas sobre esta política ou para exercer seus direitos, entre em contato:
-      <br>
+      Dado o porte e a natureza individual desta ferramenta, voltada a profissionais autônomos
+      de fisioterapia, não há designação formal de Encarregado de Dados (DPO) nos termos do
+      Art. 41 da LGPD. Para o exercício de direitos ou dúvidas sobre esta política, o contato
+      direto com o desenvolvedor está disponível no item 10 abaixo.
+    </p>
+
+    <h2>10. Revogação de acesso e exclusão da conta</h2>
+    <p>
+      O usuário pode sair da conta pelo próprio aplicativo e revogar o acesso do
+      Fisio Home Care em <a href="https://myaccount.google.com/permissions">myaccount.google.com/permissions</a>.
+      Ao revogar, o aplicativo perde o acesso à planilha. Os dados permanecem no Google Drive
+      do profissional e podem ser excluídos manualmente.
+    </p>
+
+    <h2>11. Alterações nesta política</h2>
+    <p>
+      Esta política pode ser atualizada para refletir mudanças legais ou melhorias do
+      aplicativo. A versão vigente, com sua data de vigência, ficará sempre disponível nesta
+      página. Para alterações relevantes que afetem a base legal do tratamento, o consentimento
+      será solicitado novamente no próximo acesso ao aplicativo.
+    </p>
+
+    <h2>12. Contato</h2>
+    <p>
+      Para dúvidas sobre esta política ou para exercer seus direitos:<br>
       E-mail: <a href="mailto:lacerdaa.rodrigo@gmail.com">lacerdaa.rodrigo@gmail.com</a>
     </p>
 

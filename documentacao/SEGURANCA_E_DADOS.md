@@ -77,7 +77,9 @@ Apenas dados estritamente necessários para o acompanhamento clínico e faturame
 | **Revogação** | Paciente solicita ao profissional, que deve eliminar os registros |
 
 ### 4.3. Consentimento
-- Aceite de Termos de Uso e Política de Privacidade é pré-condição para login (checkbox obrigatório).
+- Aceite de Termos de Uso e Política de Privacidade é pré-condição para login (checkbox obrigatório, Art. 8º §3 LGPD).
+- O aceite é gravado na aba **Auditoria** da planilha com tipo `ACEITE_TERMOS`, versão do documento e e-mail do profissional (rastreabilidade conforme Art. 8º §2).
+- A versão vigente dos documentos é controlada pela constante `_versaoTermosAceitos` em `lib/provedores/provedores_dados.dart`. Deve ser atualizada em toda alteração material dos documentos legais.
 - Documentos legais disponíveis em:
   - Termos de Uso: `https://app-fisio-care-2.web.app/termos.html`
   - Política de Privacidade: `https://app-fisio-care-2.web.app/privacidade.html`

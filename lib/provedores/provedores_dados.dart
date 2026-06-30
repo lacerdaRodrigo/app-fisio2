@@ -176,7 +176,18 @@ Future<void> carregarDadosReais(WidgetRef ref) async {
   }
 }
 
+const _versaoTermosAceitos = '2026-06-29';
+
 Future<void> _executarCarregamento(WidgetRef ref) async {
+  final auth = ref.read(provedorAutenticacao);
+  if (auth.termosAceitos) {
+    final email = auth.sessao?.email ?? 'desconhecido';
+    await _repositorio(ref).registrarAuditoria(
+      'ACEITE_TERMOS',
+      'Versao=$_versaoTermosAceitos; Email=$email',
+    );
+  }
+
   final dados = await _repositorio(ref).carregarTudo();
   ref.read(provedorListaPacientes.notifier).definir(dados.pacientes);
   ref.read(provedorListaAgendamentos.notifier).definir(dados.agendamentos);
