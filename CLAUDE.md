@@ -26,6 +26,7 @@
 | **Google Sheets API** | v4 | Banco de dados BYODB |
 | **Google Drive API** | v3 | Localizar planilha do usuário |
 | **Google Sign-In** | 6.2.1 | Autenticação OAuth |
+| **Table Calendar** | 3.1.3 | Visão calendário na agenda |
 | **Firebase Hosting** | — | Deploy web |
 
 ---
@@ -46,15 +47,15 @@ fisio-home-care/
 │   │   ├── tela_sessoes.dart
 │   │   ├── tela_registro_evolucao.dart
 │   │   ├── tela_historico_evolucoes.dart
-│   │   ├── tela_configuracoes.dart
-│   │   └── (telas principais — todas com testes de widget)
+│   │   ├── tela_editar_sessao.dart
+│   │   ├── tela_financeiro.dart
+│   │   ├── tela_historico_geral_evolucoes.dart
+│   │   └── tela_configuracoes.dart
 │   │
 │   ├── componentes/
 │   │   ├── design_system.dart       # 🔑 Design tokens, cores, tipografia
-│   │   ├── cards.dart
-│   │   ├── dialogs.dart
-│   │   ├── bottom_sheets.dart
-│   │   └── (widgets reutilizáveis)
+│   │   ├── modal_detalhes_paciente.dart  # Bottom sheet detalhes paciente
+│   │   └── rodape_versao.dart       # Overlay de versão do app
 │   │
 │   ├── provedores/                  # Riverpod state management
 │   │   ├── provedor_autenticacao.dart    # Login Google
@@ -71,9 +72,10 @@ fisio-home-care/
 │   │   ├── servico_autenticacao_google.dart    # Google Sign-In wrapper
 │   │   ├── servico_repositorio_dados.dart      # Google Sheets CRUD
 │   │   ├── servico_google_drive.dart           # Localizar planilha
-│   │   ├── servico_preferencias.dart           # SharedPreferences
-│   │   ├── versao_esquema.dart                 # Versionamento de schema
-│   │   └── (integração com APIs externas)
+│   │   ├── servico_google_sheets.dart          # Wrapper Google Sheets API
+│   │   ├── cliente_google_autenticado.dart     # HTTP client autenticado
+│   │   ├── preferencias.dart                   # SharedPreferences
+│   │   └── versao_esquema.dart                 # Versionamento de schema
 │   │
 │   └── utilitarios/
 │       ├── validadores.dart         # CPF, telefone, nome, data, email
@@ -81,28 +83,29 @@ fisio-home-care/
 │       ├── utilitarios_data.dart    # Cálculo de idade, formatação
 │       ├── acoes_agendamento.dart   # Lógica de desfechos
 │       ├── gerador_id.dart          # Geração de IDs sequenciais (max+1)
-│       ├── mensagens_erro_google.dart    # Mapear erros Google
-│       └── (constantes, helpers)
+│       ├── formatters.dart          # Formatadores de entrada (máscaras)
+│       └── mensagens_erro_google.dart    # Mapear erros Google
 │
 ├── test/
-│   ├── unitarios/                   # 102 testes — lógica pura
+│   ├── unitarios/                   # 116 testes — lógica pura
 │   │   ├── auxiliares/
 │   │   │   └── fakes.dart           # Mocks reutilizados
 │   │   ├── modelos/
 │   │   │   ├── paciente_test.dart           (9 testes)
-│   │   │   ├── agendamento_test.dart        (7 testes)
+│   │   │   ├── agendamento_test.dart        (10 testes)
 │   │   │   └── evolucao_test.dart           (6 testes)
 │   │   ├── servicos/
 │   │   │   └── preferencias_test.dart       (5 testes)
 │   │   └── utilitarios/
 │   │       ├── validadores_test.dart        (46 testes)
 │   │       ├── validador_cpf_test.dart      (9 testes)
-│   │       ├── utilitarios_data_test.dart   (12 testes)
+│   │       ├── utilitarios_data_test.dart   (23 testes)
 │   │       └── gerador_id_test.dart         (8 testes — 100% cobertura)
 │   │
-│   └── widgets/                     # 143 testes — UI + componentes
+│   └── widgets/                     # 164 testes — UI + componentes
 │       ├── componentes/
-│       │   └── modal_detalhes_paciente_test.dart   (12 testes)
+│       │   ├── modal_detalhes_paciente_test.dart   (12 testes)
+│       │   └── rodape_versao_test.dart             (3 testes)
 │       ├── utilitarios/
 │       │   └── acoes_agendamento_test.dart         (6 testes)
 │       └── telas/
@@ -110,9 +113,11 @@ fisio-home-care/
 │           ├── tela_dashboard_test.dart              (16 testes — 100% cobertura)
 │           ├── tela_cadastro_paciente_test.dart      (23 testes — 100% cobertura)
 │           ├── tela_editar_paciente_test.dart        (6 testes — campos travados + atualização)
+│           ├── tela_editar_sessao_test.dart          (7 testes — editar/reagendar sessão)
+│           ├── tela_financeiro_test.dart             (8 testes — resumo financeiro mensal)
 │           ├── tela_pacientes_test.dart              (12 testes — 100% cobertura)
 │           ├── tela_registro_evolucao_test.dart      (23 testes — 100% cobertura; inclui timeline)
-│           ├── tela_sessoes_test.dart                (12 testes — 100% cobertura)
+│           ├── tela_sessoes_test.dart                (15 testes — 100% cobertura)
 │           ├── tela_nova_sessao_test.dart             (9 testes — 100% cobertura)
 │           ├── tela_configuracoes_test.dart          (11 testes — 100% cobertura)
 │           └── tela_historico_geral_evolucoes_test.dart (7 testes — 100% cobertura)
@@ -254,21 +259,21 @@ Paciente.calcularIdade()   // ✓ delega para UtilitariosData
 
 ---
 
-## Testes (248 testes automatizados)
+## Testes (280 testes automatizados)
 
 ### Estrutura
 
 ```
 test/
-├── unitarios/  (102 testes)
+├── unitarios/  (116 testes)
 │   ├── auxiliares/     — fakes.dart (mocks reutilizados)
 │   ├── modelos/        — 22 testes (serialização, transformação)
 │   ├── servicos/       — 5 testes (preferencias)
 │   └── utilitarios/    — 75 testes (validadores, data, CPF, gerador_id)
 │
-└── widgets/    (143 testes)
-    ├── telas/        — 9 telas principais (UI, interação)
-    ├── componentes/  — modal de detalhes do paciente
+└── widgets/    (164 testes)
+    ├── telas/        — 12 telas principais (UI, interação)
+    ├── componentes/  — modal de detalhes do paciente + rodapé versão
     └── utilitarios/  — ações de agendamento
 ```
 
@@ -299,7 +304,7 @@ flutter test --coverage
 ✅ **Validação de entrada** — 46 testes (CPF, telefone, nome, data)  
 ✅ **Modelos** — 22 testes (serialização, cópia, status)  
 ✅ **Utilitários** — 21 testes (idade, formatação)  
-✅ **UI + Interação** — 143 testes (10 telas principais com 100% de cobertura + componentes/utilitários)  
+✅ **UI + Interação** — 164 testes (12 telas principais com 100% de cobertura + componentes/utilitários)  
 
 ❌ **Não coberto:**
 - Google Sheets API real (usaria quota, seria lento)
@@ -361,7 +366,7 @@ flutter run
 | Parsers `_pacienteDeLinha`/`_agendamentoDeLinha` usavam índices literais | Resolvido (usam `indicesColunas`) | ✅ |
 | IDs agendamento/evolução/auditoria por `length + 1` (race condition) | Resolvido (`GeradorId.proximo` usa max+1) | ✅ |
 | `BackdropFilter` reimplementado inline em telas | Consolidar em FisioGlass | 🟡 Média |
-| Lógica de popup duplicada em dashboard/sessoes | Centralizar em utilitarios | 🟡 Média |
+| Lógica de popup duplicada em dashboard/sessoes | Resolvido (centralizado em `acoes_agendamento.dart`) | ✅ |
 | Todas as telas principais possuem testes de widget | — | ✅ |
 
 ---
@@ -425,7 +430,7 @@ make release-prod  # mescla develop → master → dispara deploy de produção 
 | `documentacao/ESPECIFICACOES_TELAS.md` | Requisitos funcionais das telas | ✅ |
 | `documentacao/SEGURANCA_E_DADOS.md` | LGPD, OAuth, modelo BYODB | ✅ |
 | `documentacao/IMPLEMENTAR.md` | Roadmap priorizado | ✅ |
-| `documentacao/testes/` | 248 testes automatizados | ✅ |
+| `documentacao/testes/` | 280 testes automatizados | ✅ |
 | `documentacao/CI_CD.md` | Pipeline GitHub Actions: fluxo, secrets, uso e troubleshooting | ✅ |
 | `QA/qa.md` | Script QA manual (não é E2E) | ✅ |
 
@@ -464,12 +469,12 @@ make lint      # Sem warnings
 
 ## Contato e Contexto
 
-Este projeto é desenvolvido por **Rodrigo Lacerda** (rodrigo@example.com).
+Este projeto é desenvolvido por **Rodrigo Lacerda** (lacerdaa.rodrigo@gmail.com).
 
 Para questões sobre estrutura, padrões ou decisões técnicas, **SEMPRE consulte este arquivo primeiro**.
 
 ---
 
-**Última atualização:** 2026-06-18  
-**Versão:** 1.0.6  
-**Branch ativo:** test-mobile
+**Última atualização:** 2026-06-20  
+**Versão:** 1.0.10  
+**Branches:** master, develop

@@ -113,20 +113,21 @@ void main() {
     });
 
     testWidgets(
-      'entrar sem aceitar os termos exibe mensagem de erro e não chama o serviço',
+      'entrar sem aceitar os termos mantém botão desabilitado e não chama o serviço',
       (tester) async {
         final servico = ServicoAutenticacaoGoogleControlavel();
         await tester.pumpWidget(criarAppTeste(servico));
         await tester.pumpAndSettle();
 
+        // Botão está desabilitado sem os termos aceitos.
+        final botao = tester.widget<ElevatedButton>(
+          find.byType(ElevatedButton),
+        );
+        expect(botao.onPressed, isNull);
+
+        // Mesmo com tap, o serviço não é chamado.
         await tester.tap(find.byType(ElevatedButton));
         await tester.pumpAndSettle();
-
-        expect(
-          find.text('Você precisa aceitar os Termos de Uso e LGPD.'),
-          findsOneWidget,
-        );
-        expect(find.byIcon(Icons.error_outline), findsOneWidget);
         expect(servico.entrarFoiChamado, isFalse);
       },
     );

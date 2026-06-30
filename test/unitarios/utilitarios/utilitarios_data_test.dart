@@ -127,5 +127,128 @@ void main() {
         );
       });
     });
+
+    group('formatarMesAno', () {
+      test('deve retornar mês abreviado e ano', () {
+        expect(
+          UtilitariosData.formatarMesAno(DateTime(2026, 6, 15)),
+          equals('Jun 2026'),
+        );
+        expect(
+          UtilitariosData.formatarMesAno(DateTime(2026, 1, 1)),
+          equals('Jan 2026'),
+        );
+        expect(
+          UtilitariosData.formatarMesAno(DateTime(2026, 12, 31)),
+          equals('Dez 2026'),
+        );
+      });
+    });
+
+    group('mesmoMesAno', () {
+      test('deve retornar true para datas no mesmo mês e ano', () {
+        expect(
+          UtilitariosData.mesmoMesAno(
+            DateTime(2026, 6, 1),
+            DateTime(2026, 6, 30),
+          ),
+          isTrue,
+        );
+      });
+
+      test('deve retornar false para meses ou anos diferentes', () {
+        expect(
+          UtilitariosData.mesmoMesAno(
+            DateTime(2026, 6, 1),
+            DateTime(2026, 7, 1),
+          ),
+          isFalse,
+        );
+        expect(
+          UtilitariosData.mesmoMesAno(
+            DateTime(2026, 6, 1),
+            DateTime(2025, 6, 1),
+          ),
+          isFalse,
+        );
+      });
+    });
+
+    group('ehDataRetroativa — edge cases', () {
+      test('mesmo dia, 1 minuto no passado é retroativo', () {
+        final agora = DateTime(2026, 6, 20, 21, 6);
+        final selecionada = DateTime(2026, 6, 20, 21, 5);
+        expect(
+          UtilitariosData.ehDataRetroativa(selecionada, agora: agora),
+          isTrue,
+        );
+      });
+
+      test('mesmo dia, 1 minuto no futuro NÃO é retroativo', () {
+        final agora = DateTime(2026, 6, 20, 21, 6);
+        final selecionada = DateTime(2026, 6, 20, 21, 7);
+        expect(
+          UtilitariosData.ehDataRetroativa(selecionada, agora: agora),
+          isFalse,
+        );
+      });
+
+      test('mesmo exato instante NÃO é retroativo', () {
+        final agora = DateTime(2026, 6, 20, 21, 6);
+        expect(
+          UtilitariosData.ehDataRetroativa(agora, agora: agora),
+          isFalse,
+        );
+      });
+
+      test('ontem qualquer hora é retroativo', () {
+        final agora = DateTime(2026, 6, 20, 8, 0);
+        final ontem = DateTime(2026, 6, 19, 23, 59);
+        expect(
+          UtilitariosData.ehDataRetroativa(ontem, agora: agora),
+          isTrue,
+        );
+      });
+
+      test('amanhã 00:00 NÃO é retroativo', () {
+        final agora = DateTime(2026, 6, 20, 23, 59);
+        final amanha = DateTime(2026, 6, 21, 0, 0);
+        expect(
+          UtilitariosData.ehDataRetroativa(amanha, agora: agora),
+          isFalse,
+        );
+      });
+
+      test('mesmo dia meia-noite é retroativo se hora atual é posterior', () {
+        final agora = DateTime(2026, 6, 20, 14, 0);
+        final meiaNoite = DateTime(2026, 6, 20, 0, 0);
+        expect(
+          UtilitariosData.ehDataRetroativa(meiaNoite, agora: agora),
+          isTrue,
+        );
+      });
+    });
+
+    group('mesmoDia', () {
+      test('mesmo dia com horários diferentes retorna true', () {
+        expect(
+          UtilitariosData.mesmoDia(
+            DateTime(2026, 6, 20, 8, 0),
+            DateTime(2026, 6, 20, 22, 30),
+          ),
+          isTrue,
+        );
+      });
+
+      test('dias diferentes retorna false', () {
+        expect(
+          UtilitariosData.mesmoDia(
+            DateTime(2026, 6, 20),
+            DateTime(2026, 6, 21),
+          ),
+          isFalse,
+        );
+      });
+    });
   });
 }

@@ -1,3 +1,4 @@
+import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../modelos/agendamento.dart';
@@ -9,9 +10,9 @@ import '../utilitarios/acoes_agendamento.dart';
 import 'tela_cadastro_paciente.dart';
 import 'tela_historico_geral_evolucoes.dart';
 import 'tela_pacientes.dart';
-import 'tela_nova_sessao.dart';
 import 'tela_sessoes.dart';
 import 'tela_configuracoes.dart';
+import 'tela_financeiro.dart';
 
 class TelaDashboard extends ConsumerStatefulWidget {
   final String nomeUsuario;
@@ -65,75 +66,126 @@ class _TelaDashboardState extends ConsumerState<TelaDashboard> {
         key: ValueKey(_filtroPacientes),
         filtroInicial: _filtroPacientes,
       ),
-      const TelaConfiguracoes(),
+      const TelaFinanceiro(),
     ];
 
     return Scaffold(
-      body: telas[_indiceSelecionado.clamp(0, telas.length - 1)],
-      floatingActionButton: _construirFab(context, pacientes, carregamento),
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
-      bottomNavigationBar: NavigationBar(
-        selectedIndex: _indiceSelecionado,
-        onDestinationSelected: (index) =>
-            setState(() => _indiceSelecionado = index),
-        indicatorColor: FisioCores.primary.withValues(alpha: 0.12),
-        destinations: const [
-          NavigationDestination(
-            icon: Icon(Icons.home_outlined),
-            selectedIcon: Icon(Icons.home_rounded),
-            label: 'Início',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.event_note_outlined),
-            selectedIcon: Icon(Icons.event_note_rounded),
-            label: 'Sessões',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.people_outline),
-            selectedIcon: Icon(Icons.people_alt_rounded),
-            label: 'Pacientes',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.settings_outlined),
-            selectedIcon: Icon(Icons.settings_rounded),
-            label: 'Config',
-          ),
+      body: Stack(
+        children: [
+          telas[_indiceSelecionado.clamp(0, telas.length - 1)],
+          _construirNavFlutuante(context, pacientes, carregamento),
+          _construirFab(context, pacientes, carregamento),
         ],
       ),
     );
   }
 
-  Widget? _construirFab(
+  Widget _construirNavFlutuante(
     BuildContext context,
     List<Paciente> pacientes,
     EstadoCarregamentoDados carregamento,
   ) {
-    if (_indiceSelecionado == 3) return null;
-
-    if (!carregamento.carregouComSucesso) return null;
-
-    final bool ehAbaPacientes = _indiceSelecionado == 2;
-
-    if (!ehAbaPacientes && pacientes.isEmpty) return null;
-
-    return FloatingActionButton.extended(
-      heroTag: 'fab_principal',
-      onPressed: ehAbaPacientes
-          ? () => Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => const TelaCadastroPaciente()),
-              )
-          : () => Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => const TelaNovaSessao()),
+    return Positioned(
+      bottom: 24,
+      left: 16,
+      right: 16,
+      child: SizedBox(
+        height: 86,
+        child: Stack(
+          clipBehavior: Clip.none,
+          alignment: Alignment.topCenter,
+          children: [
+            Positioned(
+              top: 14,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(32),
+                child: BackdropFilter(
+                  filter: ui.ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 18,
+                      vertical: 10,
+                    ),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withValues(alpha: 0.9),
+                      borderRadius: BorderRadius.circular(32),
+                      border: Border.all(
+                        color: Colors.white.withValues(alpha: 0.65),
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.08),
+                          blurRadius: 24,
+                          offset: const Offset(0, 8),
+                        ),
+                      ],
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceAround,
+                      children: [
+                        _NavItem(
+                          icon: Icons.home_rounded,
+                          label: 'Início',
+                          isActive: _indiceSelecionado == 0,
+                          onTap: () => setState(() => _indiceSelecionado = 0),
+                        ),
+                        _NavItem(
+                          icon: Icons.event_note_rounded,
+                          label: 'Sessões',
+                          isActive: _indiceSelecionado == 1,
+                          onTap: () => setState(() => _indiceSelecionado = 1),
+                        ),
+                        _NavItem(
+                          icon: Icons.people_alt_rounded,
+                          label: 'Pacientes',
+                          isActive: _indiceSelecionado == 2,
+                          onTap: () => setState(() => _indiceSelecionado = 2),
+                        ),
+                        _NavItem(
+                          icon: Icons.account_balance_wallet_rounded,
+                          label: 'Financeiro',
+                          isActive: _indiceSelecionado == 3,
+                          onTap: () => setState(() => _indiceSelecionado = 3),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
               ),
-      icon: Icon(
-        ehAbaPacientes ? Icons.person_add_alt_1_rounded : Icons.add_rounded,
+            ),
+          ],
+        ),
       ),
-      label: Text(ehAbaPacientes ? 'Novo Paciente' : 'Nova Sessão'),
-      backgroundColor: FisioCores.primary,
-      foregroundColor: Colors.white,
-      elevation: 2,
+    );
+  }
+
+  Widget _construirFab(
+    BuildContext context,
+    List<Paciente> pacientes,
+    EstadoCarregamentoDados carregamento,
+  ) {
+    if (_indiceSelecionado != 2) return const SizedBox.shrink();
+
+    if (!carregamento.carregouComSucesso) return const SizedBox.shrink();
+
+    return Positioned(
+      bottom: 120,
+      left: 0,
+      right: 0,
+      child: Center(
+        child: FloatingActionButton.extended(
+          heroTag: 'fab_principal',
+          onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const TelaCadastroPaciente())),
+          icon: const Icon(Icons.person_add_alt_1_rounded),
+          label: const Text('Novo Paciente'),
+          backgroundColor: FisioCores.primary,
+          foregroundColor: Colors.white,
+          elevation: 6,
+        ),
+      ),
     );
   }
 
@@ -160,40 +212,83 @@ class _TelaDashboardState extends ConsumerState<TelaDashboard> {
     return CustomScrollView(
       controller: _dashboardScrollController,
       slivers: [
+        // Cabeçalho
         SliverToBoxAdapter(
           child: Container(
-            padding: EdgeInsets.fromLTRB(
-              FisioEspacamentos.xl,
-              FisioEspacamentos.xxxl,
-              FisioEspacamentos.xl,
-              FisioEspacamentos.xxl,
-            ),
+            padding: const EdgeInsets.fromLTRB(24, 48, 24, 32),
             decoration: BoxDecoration(
               color: FisioCores.primary,
-              borderRadius: BorderRadius.only(
-                bottomLeft: Radius.circular(FisioRaios.lg),
-                bottomRight: Radius.circular(FisioRaios.lg),
+              borderRadius: const BorderRadius.only(
+                bottomLeft: Radius.circular(40),
+                bottomRight: Radius.circular(40),
               ),
-              boxShadow: FisioSombras.card,
+              boxShadow: [
+                BoxShadow(
+                  color: FisioCores.primary.withValues(alpha: 0.18),
+                  blurRadius: 26,
+                  offset: const Offset(0, 12),
+                ),
+              ],
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  '$saudacao,',
-                  style: theme.textTheme.titleMedium?.copyWith(
-                    color: Colors.white.withValues(alpha: 0.75),
-                  ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          '$saudacao,',
+                          style: theme.textTheme.titleMedium?.copyWith(
+                            color: Colors.white.withValues(alpha: 0.75),
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          widget.nomeUsuario,
+                          style: theme.textTheme.headlineSmall?.copyWith(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
+                    ),
+                    GestureDetector(
+                      onTap: () => Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => const TelaConfiguracoes(),
+                        ),
+                      ),
+                      child: Container(
+                        width: 48,
+                        height: 48,
+                        decoration: BoxDecoration(
+                          color: Colors.white.withValues(alpha: 0.15),
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(
+                            color: Colors.white.withValues(alpha: 0.3),
+                          ),
+                        ),
+                        child: Center(
+                          child: Text(
+                            widget.nomeUsuario.isNotEmpty
+                                ? widget.nomeUsuario[0].toUpperCase()
+                                : '?',
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
-                const SizedBox(height: FisioEspacamentos.xs),
-                Text(
-                  widget.nomeUsuario,
-                  style: theme.textTheme.headlineSmall?.copyWith(
-                    color: Colors.white,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-                const SizedBox(height: FisioEspacamentos.md),
+                const SizedBox(height: 12),
                 Row(
                   children: [
                     Icon(
@@ -215,22 +310,18 @@ class _TelaDashboardState extends ConsumerState<TelaDashboard> {
           ),
         ),
 
+        // Cards de Resumo
         SliverPadding(
-          padding: EdgeInsets.fromLTRB(
-            FisioEspacamentos.lg,
-            FisioEspacamentos.lg,
-            FisioEspacamentos.lg,
-            0,
-          ),
+          padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
           sliver: SliverLayoutBuilder(
             builder: (context, constraints) {
               final largura = constraints.crossAxisExtent;
               return SliverGrid(
                 gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: largura > FisioPontoQuebra.tablet ? 4 : 2,
+                  crossAxisCount: largura > 620 ? 4 : 2,
                   mainAxisExtent: 156,
-                  crossAxisSpacing: FisioEspacamentos.md,
-                  mainAxisSpacing: FisioEspacamentos.md,
+                  crossAxisSpacing: 12,
+                  mainAxisSpacing: 12,
                 ),
                 delegate: SliverChildListDelegate([
                   _construirCard(
@@ -274,12 +365,7 @@ class _TelaDashboardState extends ConsumerState<TelaDashboard> {
 
         if (pendenciasAnteriores.isNotEmpty) ...[
           SliverPadding(
-            padding: EdgeInsets.fromLTRB(
-              FisioEspacamentos.xl,
-              FisioEspacamentos.xl,
-              FisioEspacamentos.xl,
-              FisioEspacamentos.sm,
-            ),
+            padding: const EdgeInsets.fromLTRB(24, 24, 24, 8),
             sliver: SliverToBoxAdapter(
               child: _construirTituloSecaoComBadge(
                 context,
@@ -290,7 +376,7 @@ class _TelaDashboardState extends ConsumerState<TelaDashboard> {
             ),
           ),
           SliverPadding(
-            padding: EdgeInsets.symmetric(horizontal: FisioEspacamentos.base),
+            padding: const EdgeInsets.symmetric(horizontal: 16),
             sliver: SliverList.builder(
               itemCount: pendenciasAnteriores.length,
               itemBuilder: (context, index) => _construirCardAgenda(
@@ -302,13 +388,9 @@ class _TelaDashboardState extends ConsumerState<TelaDashboard> {
           ),
         ],
 
+        // Título da Seção Agenda
         SliverPadding(
-          padding: EdgeInsets.fromLTRB(
-            FisioEspacamentos.xl,
-            FisioEspacamentos.xl,
-            FisioEspacamentos.xl,
-            FisioEspacamentos.sm,
-          ),
+          padding: const EdgeInsets.fromLTRB(24, 24, 24, 8),
           sliver: SliverToBoxAdapter(
             child: _construirTituloSecaoComBadge(
               context,
@@ -320,7 +402,7 @@ class _TelaDashboardState extends ConsumerState<TelaDashboard> {
         ),
 
         SliverPadding(
-          padding: EdgeInsets.symmetric(horizontal: FisioEspacamentos.base),
+          padding: const EdgeInsets.symmetric(horizontal: 16),
           sliver: agendamentosHojePendentes.isEmpty
               ? SliverToBoxAdapter(child: _construirAgendaVazia())
               : SliverList.builder(
@@ -363,15 +445,24 @@ class _TelaDashboardState extends ConsumerState<TelaDashboard> {
     return Material(
       color: Colors.transparent,
       child: InkWell(
-        borderRadius: BorderRadius.circular(FisioRaios.base),
+        borderRadius: BorderRadius.circular(24),
         onTap: onTap,
         child: Ink(
-          padding: EdgeInsets.all(FisioEspacamentos.lg),
+          padding: const EdgeInsets.all(20),
           decoration: FisioDecoracoes.card(),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              FisioIconBox(icon: icone, color: cor, size: 48, iconSize: 22),
+              Container(
+                width: 48,
+                height: 48,
+                decoration: BoxDecoration(
+                  color: cor.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: cor.withValues(alpha: 0.14)),
+                ),
+                child: Icon(icone, color: cor, size: 22),
+              ),
               const Spacer(),
               Row(
                 crossAxisAlignment: CrossAxisAlignment.end,
@@ -381,7 +472,7 @@ class _TelaDashboardState extends ConsumerState<TelaDashboard> {
                       valor,
                       style: const TextStyle(
                         fontSize: 26,
-                        fontWeight: FontWeight.w700,
+                        fontWeight: FontWeight.bold,
                         color: FisioCores.textPrimary,
                       ),
                     ),
@@ -413,7 +504,7 @@ class _TelaDashboardState extends ConsumerState<TelaDashboard> {
 
   Widget _construirAgendaVazia() {
     return Container(
-      padding: EdgeInsets.all(FisioEspacamentos.xxl),
+      padding: const EdgeInsets.all(32),
       decoration: FisioDecoracoes.card(),
       child: Column(
         children: [
@@ -422,16 +513,16 @@ class _TelaDashboardState extends ConsumerState<TelaDashboard> {
             size: 48,
             color: Colors.grey.shade300,
           ),
-          const SizedBox(height: FisioEspacamentos.md),
+          const SizedBox(height: 12),
           const Text(
             'Tudo limpo!',
             style: TextStyle(
-              fontWeight: FontWeight.w600,
+              fontWeight: FontWeight.bold,
               color: FisioCores.textPrimary,
               fontSize: 16,
             ),
           ),
-          const SizedBox(height: FisioEspacamentos.xs),
+          const SizedBox(height: 4),
           Text(
             'Nenhum atendimento agendado para hoje.',
             textAlign: TextAlign.center,
@@ -454,24 +545,21 @@ class _TelaDashboardState extends ConsumerState<TelaDashboard> {
         Text(
           titulo,
           style: Theme.of(context).textTheme.titleMedium?.copyWith(
-            fontWeight: FontWeight.w700,
+            fontWeight: FontWeight.w800,
             color: FisioCores.textPrimary,
           ),
         ),
         Container(
-          padding: EdgeInsets.symmetric(
-            horizontal: FisioEspacamentos.md,
-            vertical: FisioEspacamentos.xs,
-          ),
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
           decoration: BoxDecoration(
             color: cor.withValues(alpha: 0.1),
-            borderRadius: BorderRadius.circular(FisioRaios.lg),
+            borderRadius: BorderRadius.circular(20),
           ),
           child: Text(
             badge,
             style: TextStyle(
               fontSize: 11,
-              fontWeight: FontWeight.w600,
+              fontWeight: FontWeight.bold,
               color: cor,
             ),
           ),
@@ -491,7 +579,12 @@ class _TelaDashboardState extends ConsumerState<TelaDashboard> {
     );
     final paciente = indicePaciente == -1 ? null : pacientes[indicePaciente];
     final iniciais = paciente != null
-        ? fisioIniciais(paciente.nome)
+        ? paciente.nome
+              .split(' ')
+              .map((n) => n.isNotEmpty ? n[0] : '')
+              .take(2)
+              .join()
+              .toUpperCase()
         : '??';
     final cor = paciente != null
         ? fisioAvatarColor(paciente.nome)
@@ -508,8 +601,8 @@ class _TelaDashboardState extends ConsumerState<TelaDashboard> {
         : 'Agendado';
 
     return Container(
-      margin: EdgeInsets.only(bottom: FisioEspacamentos.md),
-      padding: EdgeInsets.all(FisioEspacamentos.base),
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(16),
       decoration: FisioDecoracoes.card(),
       child: Row(
         children: [
@@ -518,14 +611,14 @@ class _TelaDashboardState extends ConsumerState<TelaDashboard> {
             height: 56,
             decoration: BoxDecoration(
               color: cor.withValues(alpha: 0.14),
-              borderRadius: BorderRadius.circular(FisioRaios.base),
+              borderRadius: BorderRadius.circular(16),
               border: Border.all(color: cor.withValues(alpha: 0.16)),
             ),
             child: Center(
               child: Text(
                 iniciais,
                 style: TextStyle(
-                  fontWeight: FontWeight.w600,
+                  fontWeight: FontWeight.bold,
                   fontSize: 18,
                   color: cor,
                 ),
@@ -545,9 +638,9 @@ class _TelaDashboardState extends ConsumerState<TelaDashboard> {
                     color: FisioCores.textPrimary,
                   ),
                 ),
-                const SizedBox(height: FisioEspacamentos.xs),
+                const SizedBox(height: 4),
                 Wrap(
-                  spacing: FisioEspacamentos.sm,
+                  spacing: 8,
                   runSpacing: 6,
                   crossAxisAlignment: WrapCrossAlignment.center,
                   children: [
@@ -562,20 +655,20 @@ class _TelaDashboardState extends ConsumerState<TelaDashboard> {
                         label: UtilitariosData.formatarDataBr(agendamento.data),
                       ),
                     Container(
-                      padding: EdgeInsets.symmetric(
-                        horizontal: FisioEspacamentos.sm,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
                         vertical: 3,
                       ),
                       decoration: BoxDecoration(
                         color: statusCor.withValues(alpha: 0.12),
-                        borderRadius: BorderRadius.circular(FisioRaios.pill),
+                        borderRadius: BorderRadius.circular(999),
                       ),
                       child: Text(
                         statusTexto,
                         style: TextStyle(
                           color: statusCor,
                           fontSize: 11,
-                          fontWeight: FontWeight.w700,
+                          fontWeight: FontWeight.w800,
                         ),
                       ),
                     ),
@@ -589,24 +682,29 @@ class _TelaDashboardState extends ConsumerState<TelaDashboard> {
             icon: Icon(Icons.more_vert_rounded, color: Colors.grey.shade500),
             onSelected: (acao) =>
                 executarAcaoAgendamento(context, ref, acao, agendamento, paciente),
-            itemBuilder: (context) => const [
-              PopupMenuItem(
+            itemBuilder: (context) => [
+              if (agendamento.estaAgendado)
+                const PopupMenuItem(
+                  value: AcaoAgendamento.editarSessao,
+                  child: Text('Editar sessão'),
+                ),
+              const PopupMenuItem(
                 value: AcaoAgendamento.registrarEvolucao,
                 child: Text('Registrar evolução'),
               ),
-              PopupMenuItem(
+              const PopupMenuItem(
                 value: AcaoAgendamento.faltouComAviso,
                 child: Text('Faltou com aviso'),
               ),
-              PopupMenuItem(
+              const PopupMenuItem(
                 value: AcaoAgendamento.faltouSemAviso,
                 child: Text('Faltou sem aviso'),
               ),
-              PopupMenuItem(
+              const PopupMenuItem(
                 value: AcaoAgendamento.canceladoPaciente,
                 child: Text('Cancelar pelo paciente'),
               ),
-              PopupMenuItem(
+              const PopupMenuItem(
                 value: AcaoAgendamento.canceladoProfissional,
                 child: Text('Cancelar pelo profissional'),
               ),
@@ -630,7 +728,7 @@ class _TelaDashboardState extends ConsumerState<TelaDashboard> {
                 theme.colorScheme.primary,
               ),
             ),
-            const SizedBox(height: FisioEspacamentos.xl),
+            const SizedBox(height: 24),
             Text(
               'Carregando dados...',
               style: theme.textTheme.titleMedium?.copyWith(
@@ -649,7 +747,7 @@ class _TelaDashboardState extends ConsumerState<TelaDashboard> {
     return SafeArea(
       child: Center(
         child: Padding(
-          padding: EdgeInsets.all(FisioEspacamentos.xl),
+          padding: const EdgeInsets.all(24),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
@@ -658,15 +756,15 @@ class _TelaDashboardState extends ConsumerState<TelaDashboard> {
                 size: 56,
                 color: Colors.red.shade300,
               ),
-              const SizedBox(height: FisioEspacamentos.base),
+              const SizedBox(height: 16),
               Text(
                 'Não foi possível carregar os dados.',
                 textAlign: TextAlign.center,
                 style: theme.textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.w600,
+                  fontWeight: FontWeight.bold,
                 ),
               ),
-              const SizedBox(height: FisioEspacamentos.sm),
+              const SizedBox(height: 8),
               Text(
                 mensagemErro ??
                     'Verifique sua conexão e as permissões da planilha.',
@@ -675,7 +773,7 @@ class _TelaDashboardState extends ConsumerState<TelaDashboard> {
                   color: Colors.grey.shade600,
                 ),
               ),
-              const SizedBox(height: FisioEspacamentos.xl),
+              const SizedBox(height: 24),
               FilledButton.icon(
                 onPressed: () => carregarDadosReais(ref),
                 icon: const Icon(Icons.refresh_rounded),
@@ -683,6 +781,46 @@ class _TelaDashboardState extends ConsumerState<TelaDashboard> {
               ),
             ],
           ),
+        ),
+      ),
+    );
+  }
+}
+
+class _NavItem extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final bool isActive;
+  final VoidCallback onTap;
+
+  const _NavItem({
+    required this.icon,
+    required this.label,
+    required this.isActive,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final cor = isActive ? FisioCores.primary : FisioCores.textMuted;
+    return GestureDetector(
+      onTap: onTap,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, color: cor, size: 22),
+            const SizedBox(height: 2),
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 10,
+                fontWeight: FontWeight.bold,
+                color: cor,
+              ),
+            ),
+          ],
         ),
       ),
     );
@@ -701,7 +839,7 @@ class _MetaAgenda extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       children: [
         Icon(icon, size: 14, color: FisioCores.textMuted),
-        const SizedBox(width: FisioEspacamentos.xs),
+        const SizedBox(width: 4),
         Text(
           label,
           style: const TextStyle(color: FisioCores.textSecondary, fontSize: 13),

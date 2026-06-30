@@ -175,6 +175,26 @@ valor e observações.
 
 ---
 
+### tela_editar_sessao_test.dart (7 testes)
+
+**Tela:** Edição/reagendamento de sessão existente — paciente travado, campos de data/hora/valor editáveis.
+
+```dart
+✓ Pré-preenche campos editáveis com o agendamento (hora, valor, observações)
+✓ Paciente aparece desabilitado (campo travado)
+✓ Salvar atualiza campos e preserva identidade (id/paciente/situação/dataCriação)
+✓ Valor vazio impede salvar (dialog de campos obrigatórios)
+✓ Falha ao atualizar exibe snackbar de erro
+✓ Botão voltar aciona o retorno
+✓ Observação vazia vira null no agendamento salvo
+```
+
+> Usa `FakeRepoEdicaoSessao` (captura o `Agendamento` enviado a `atualizarAgendamento`),
+> `RepoEdicaoSessaoQueFalha` e `AgendamentosComDados`. Verifica o estado desabilitado pelo
+> `TextField.enabled` interno do campo paciente.
+
+---
+
 ### tela_pacientes_test.dart (12 testes — 100% de cobertura)
 
 **Tela:** Lista de pacientes com filtros (Todos/Ativos/Arquivados), busca e
@@ -437,13 +457,15 @@ flutter test test/widgets/telas/tela_pacientes_test.dart
 |---|---|---|---|
 | Login | ✅ | 6 | Termos LGPD, login Google |
 | Dashboard | ✅ | 16 | 100% |
-| Cadastro Paciente | ✅ | 22 | 100% |
+| Cadastro Paciente | ✅ | 23 | 100% |
 | Lista Pacientes | ✅ | 12 | 100% |
 | Nova Sessão | ✅ | 9 | 100% |
 | Registro Evolução | ✅ | 23 | 100% |
 | Sessões/Agenda | ✅ | 12 | 100% |
 | Configurações | ✅ | 11 | 100% |
 | Histórico Evoluções | ✅ | 7 | 100% |
-| Modal Detalhes Paciente | ✅ | 11 | 93,9% |
+| Editar Paciente | ✅ | 6 | Campos travados + atualização |
+| Modal Detalhes Paciente | ✅ | 12 | 93,9% |
+| Rodapé Versão | ✅ | 3 | Overlay de versão |
 | Ações de Agendamento | ✅ | 6 | 96,2% |
-| **Total** | **✅** | **135** | Telas principais + componentes/utilitários |
+| **Total** | **✅** | **146** | Telas principais + componentes/utilitários |

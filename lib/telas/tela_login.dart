@@ -212,7 +212,8 @@ class TelaLogin extends ConsumerWidget {
                                     estadoAuth,
                                   )
                                 : ElevatedButton(
-                                    onPressed: estadoAuth.estaCarregando
+                                    onPressed: (estadoAuth.estaCarregando ||
+                                            !estadoAuth.termosAceitos)
                                         ? null
                                         : () => ref
                                               .read(

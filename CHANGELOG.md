@@ -1,5 +1,35 @@
 # Changelog — Fisio Home Care
 
+## [Não lançado] — 2026-06-20
+
+### Funcionalidades
+- **Agenda completa (visão calendário):** nova 3ª visualização "Calendário" na tela de Sessões, usando `table_calendar`. Calendário mensal com marcadores coloridos por status (verde=realizado, azul=agendado, laranja=pendente, vermelho=cancelado/falta). Tocar num dia mostra as sessões daquele dia abaixo do calendário. Filtros e busca continuam funcionando na visão calendário.
+  - Nova dependência: `table_calendar: ^3.1.3`
+  - Novos utilitários: `UtilitariosData.mesmoDia()`
+  - Novos testes: validação de data/hora retroativa (6 edge cases), `mesmoDia` (2), `pendenteDeDiaAnterior` (1), calendário widget (3) — total **279 testes**.
+
+### Segurança e LGPD
+- **Documentação formal LGPD/Privacidade:** criadas páginas legais `web/termos.html` e `web/privacidade.html` (acessíveis em produção) com Termos de Uso completos e Política de Privacidade em conformidade com a Lei 13.709/2018.
+  - Termos: aceite, modelo BYODB, responsabilidades, limitações, propriedade intelectual, foro.
+  - Privacidade: papéis LGPD (Controlador/Operador/Titular), dados coletados com base legal, direitos do titular (Art. 18), retenção, segurança, incidentes, DPO.
+- **SEGURANCA_E_DADOS.md** reescrito com tabelas detalhadas de conformidade, medidas técnicas e referências aos documentos legais.
+- **Fix login Android:** botão "Entrar com Google" agora desabilitado sem aceitar termos LGPD; restauração silenciosa de sessão só ocorre dentro do fluxo de login (não mais automática ao abrir o app).
+- **Financeiro simples:** nova tela `tela_financeiro.dart` acessível pela 4ª aba no bottom nav. Mostra resumo mensal com cards de **Faturado** (sessões realizadas), **Previsto** (sessões agendadas) e **Sessões realizadas** (contagem). Filtro por mês via chips horizontais. Lista de sessões do mês com nome do paciente, data, valor e badge de status. Cancelamentos e faltas são ignorados nos totais.
+  - Nova aba "Financeiro" no bottom nav (ícone carteira), FAB oculto nesta aba.
+  - Novos utilitários: `UtilitariosData.formatarMesAno()` e `mesmoMesAno()`.
+  - Novos testes: `tela_financeiro_test.dart` (6) + `utilitarios_data_test.dart` (3 novos) — total **268 testes**.
+- **Editar / reagendar sessão:** nova tela `tela_editar_sessao.dart` acessível pelo menu de ações da sessão (Dashboard e Sessões). Permite alterar data, horário de início/fim, valor e observações. **Paciente e ID ficam travados** (somente leitura). Disponível apenas para sessões com situação "Agendado".
+  - Novo `RepositorioDadosGoogle.atualizarAgendamento()` (reescreve a linha existente na aba `Agenda`, range `A:I`) e `atualizarAgendamentoReal()` no provedor; auditoria `EDITAR_AGENDAMENTO`.
+  - `Agendamento.copiarCom()` expandido para aceitar todos os campos editáveis (data, horaInicio, horaFim, valorSessao, observacoes).
+  - Novo enum `AcaoAgendamento.editarSessao` com handler que navega para a tela de edição.
+  - Menus de ações no Dashboard e Sessões exibem "Editar sessão" apenas quando `situacao == "Agendado"`.
+- Novos testes: `tela_editar_sessao_test.dart` (7) + `agendamento_test.dart` (2 novos) — total **257 testes**.
+
+### Documentação
+- `IMPLEMENTAR.md`: "Editar / reagendar agendamento" marcado como ✅ implementado.
+- Limpeza de branches: removidas `divisao`, `editar_paciente`, `test-mobile` (local + remoto).
+- Correções em CLAUDE.md, WIDGETS.md, VISAO_GERAL.md, README.md: contagens de testes, estrutura de pastas, versão e branch atualizados.
+
 ## [Não lançado] — 2026-06-18
 
 ### Funcionalidades

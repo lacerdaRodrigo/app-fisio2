@@ -18,8 +18,9 @@ Esta tela é o painel central de controle do fisioterapeuta, apresentando um res
     4. **Total de Evoluções:** Contagem acumulada de evoluções clínicas registradas na aba `Evolucoes`. Ao clicar, abre a tela de histórico geral de evoluções.
 * **Pendências:** Exibe sessões de dias anteriores que continuam com `Situacao = "Agendado"`, permitindo que o profissional defina o desfecho sem misturar atendimentos antigos com a agenda do dia.
 * **Agenda de Hoje:** Exibe somente sessões do dia atual com `Situacao = "Agendado"`. Ao virar o dia, sessões antigas sem desfecho saem desta lista e entram em `Pendências`.
-* **Navegação Inferior:** O rodapé possui três áreas principais: `Início`, `Sessões` e `Pacientes`. O botão central `+` é contextual:
-    * Em `Início` e `Sessões`, abre `TelaNovaSessao`.
+* **Navegação Inferior:** O rodapé possui quatro áreas principais: `Início`, `Sessões`, `Pacientes` e `Financeiro`. O botão central `+` é contextual:
+    * Em `Início` e `Financeiro`, o FAB não é exibido.
+    * Em `Sessões`, abre `TelaNovaSessao`.
     * Em `Pacientes`, abre `TelaCadastroPaciente`.
 * **Card de Atendimento da Agenda:**
     * Apresenta o nome do paciente, horário, badge de estado (`Agendado`, `Atrasado` ou `Pendente`) e, quando necessário, a data do agendamento.
@@ -71,6 +72,30 @@ Esta tela permite ao profissional agendar um novo atendimento domiciliar, garant
 3. Selecionar paciente, definir data/hora, inserir valor e observação.
 4. Validar preenchimento e regra de horário retroativo.
 5. Confirmar agendamento -> Persistir no Google Sheets -> Retornar à Tela de Início.
+
+---
+
+# Especificação da Tela: Edição de Sessão
+
+Permite reagendar ou ajustar os dados de uma sessão existente sem cancelar e recriar. Implementada em `lib/telas/tela_editar_sessao.dart`.
+
+## 1. Requisitos Funcionais
+* **Acesso:** No menu de ações da sessão (Dashboard e Sessões), opção **"Editar sessão"** aparece apenas para sessões com `situacao == "Agendado"`. Sessões finalizadas (Realizado, Cancelado, Faltou) não exibem esta opção.
+* **Campos travados (não editáveis):** **Paciente** — exibido preenchido porém desabilitado (com ícone de cadeado). Regra de negócio: a sessão permanece vinculada ao mesmo paciente.
+* **Campos editáveis:** Data (DatePicker), Hora de início e término (TimePicker), Valor da sessão e Observações.
+* **Campos preservados automaticamente:** `ID_Agendamento`, `ID_Paciente`, `Situacao`, `Data_Criacao` — mantidos do agendamento original.
+* **Validação de data retroativa:** Data e horário selecionados não podem ser anteriores ao momento atual.
+* **Campo obrigatório:** Valor da sessão (não pode ficar vazio).
+
+## 2. Implementação Técnica
+* **Persistência:** `atualizarAgendamentoReal(ref, agendamento)` (provedor) → `RepositorioDadosGoogle.atualizarAgendamento(agendamento)` reescreve a linha existente na aba `Agenda` (range `A:I`, 9 colunas). Registra auditoria `EDITAR_AGENDAMENTO`.
+* **Construção do objeto:** a tela constrói o `Agendamento` diretamente preservando identidade (`idAgendamento`, `idPaciente`, `situacao`, `dataCriacao`) do agendamento original.
+
+## 3. Fluxo de Navegação
+1. Dashboard/Sessões → menu de ações → "Editar sessão".
+2. Abrir `TelaEditarSessao` com dados pré-preenchidos.
+3. Alterar campos editáveis → "Salvar Alterações".
+4. Atualizar a linha no Google Sheets → Retornar para a tela anterior.
 
 ---
 
@@ -229,6 +254,28 @@ Esta tela consolida todas as evoluções registradas, independentemente do pacie
 * **Dados:** Usa `provedorListaEvolucoes` e `provedorListaPacientes` para cruzar `ID_Paciente` com o nome do paciente.
 * **Persistência:** Não grava dados. É uma tela somente leitura.
 * **Ordenação:** A lista geral e os grupos por paciente mantêm as evoluções mais recentes no topo.
+
+---
+
+# Especificação da Tela: Financeiro
+
+Esta tela exibe o resumo financeiro mensal do fisioterapeuta, mostrando faturamento realizado e previsto com base nas sessões da aba `Agenda`. Implementada em `lib/telas/tela_financeiro.dart`.
+
+## 1. Requisitos Funcionais
+* **Acesso:** 4ª aba do bottom nav ("Financeiro", ícone carteira). O FAB não é exibido nesta aba.
+* **Cards de Resumo (topo):**
+    * **Faturado:** soma dos valores das sessões com `Situacao = "Realizado"` no mês selecionado.
+    * **Previsto:** soma dos valores das sessões com `Situacao = "Agendado"` no mês selecionado.
+    * **Sessões Realizadas:** contagem de sessões realizadas no mês.
+* **Filtro por Mês:** chips horizontais com os meses que possuem sessões (padrão: mês atual). Ao trocar o chip, os cards e a lista são atualizados.
+* **Lista de Sessões:** exibe as sessões realizadas e agendadas do mês selecionado, ordenadas por data decrescente. Cada card mostra nome do paciente, data, horário, valor e badge de status (Realizado/Agendado).
+* **Cancelamentos e Faltas:** são ignorados — não entram nos totais nem na lista.
+* **Estado Vazio:** quando não há sessões no mês selecionado, exibe mensagem "Nenhuma sessão neste mês."
+
+## 2. Implementação Técnica
+* **Dados:** usa `provedorListaAgendamentos` e `provedorListaPacientes` para calcular os totais e exibir nomes.
+* **Persistência:** tela somente leitura, não grava dados.
+* **Utilitários:** `UtilitariosData.formatarMesAno()` e `mesmoMesAno()` para formatação e comparação de meses.
 
 ---
 

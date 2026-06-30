@@ -11,7 +11,7 @@ Toda a documentação técnica, de segurança e de arquitetura do sistema foi mo
 * **Especificações Técnicas:** `ESPECIFICACOES_TELAS.md`, `LOGIN_SCREEN_SPEC.md`, `PACIENTES_SPEC.md`
 * **Modelo de Dados & Segurança:** `MODELO_DADOS.md`, `SEGURANCA_E_DADOS.md`, `chaves.md`
 * **Arquitetura Visual:** `DIAGRAMA_FLUXOS.md`
-* **Testes & QA:** Arquivos `CASOS_DE_TESTE_*.md`
+* **Testes & QA:** `testes/` (VISAO_GERAL, UNITARIOS, WIDGETS) + `../../QA/qa.md`
 
 ### Estrutura do Aplicativo (`/lib`)
 * `/telas`: Telas principais do aplicativo (Login, Dashboard, Pacientes, etc.)
