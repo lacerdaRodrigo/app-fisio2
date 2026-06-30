@@ -31,23 +31,23 @@ class FisioHomeCareApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(
           seedColor: FisioCores.primary,
           primary: FisioCores.primary,
-          secondary: FisioCores.primaryLight,
+          secondary: FisioCores.secondary,
           surface: FisioCores.surface,
           error: FisioCores.danger,
         ),
-        textTheme: GoogleFonts.outfitTextTheme(Theme.of(context).textTheme)
+        textTheme: GoogleFonts.interTextTheme(Theme.of(context).textTheme)
             .copyWith(
               headlineMedium: const TextStyle(
                 color: FisioCores.textPrimary,
-                fontWeight: FontWeight.w800,
+                fontWeight: FontWeight.w700,
               ),
               titleLarge: const TextStyle(
                 color: FisioCores.textPrimary,
-                fontWeight: FontWeight.w800,
+                fontWeight: FontWeight.w600,
               ),
               titleMedium: const TextStyle(
                 color: FisioCores.textPrimary,
-                fontWeight: FontWeight.w700,
+                fontWeight: FontWeight.w600,
               ),
               bodyLarge: const TextStyle(color: FisioCores.textPrimary),
               bodyMedium: const TextStyle(color: FisioCores.textPrimary),
@@ -66,21 +66,21 @@ class FisioHomeCareApp extends StatelessWidget {
         ),
         elevatedButtonTheme: ElevatedButtonThemeData(
           style: ElevatedButton.styleFrom(
-            elevation: 4,
+            elevation: 1,
             padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
             shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(18),
+              borderRadius: BorderRadius.circular(FisioRaios.base),
             ),
             backgroundColor: FisioCores.primary,
             foregroundColor: Colors.white,
-            shadowColor: FisioCores.primary.withValues(alpha: 0.28),
+            shadowColor: FisioCores.primary.withValues(alpha: 0.18),
           ),
         ),
         filledButtonTheme: FilledButtonThemeData(
           style: FilledButton.styleFrom(
             padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 16),
             shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(18),
+              borderRadius: BorderRadius.circular(FisioRaios.base),
             ),
             backgroundColor: FisioCores.primary,
             foregroundColor: Colors.white,
@@ -90,35 +90,35 @@ class FisioHomeCareApp extends StatelessWidget {
           style: TextButton.styleFrom(
             foregroundColor: FisioCores.primary,
             shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(14),
+              borderRadius: BorderRadius.circular(FisioRaios.md),
             ),
           ),
         ),
         inputDecorationTheme: InputDecorationTheme(
           filled: true,
-          fillColor: const Color(0xFFF1F5F9),
+          fillColor: FisioCores.inputFill,
           contentPadding: const EdgeInsets.symmetric(
-            horizontal: 16,
-            vertical: 16,
+            horizontal: FisioEspacamentos.base,
+            vertical: FisioEspacamentos.base,
           ),
           border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(18),
+            borderRadius: BorderRadius.circular(FisioRaios.base),
             borderSide: BorderSide.none,
           ),
           enabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(18),
-            borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+            borderRadius: BorderRadius.circular(FisioRaios.base),
+            borderSide: const BorderSide(color: FisioCores.border),
           ),
           focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(18),
+            borderRadius: BorderRadius.circular(FisioRaios.base),
             borderSide: const BorderSide(color: FisioCores.primary, width: 2),
           ),
           errorBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(18),
+            borderRadius: BorderRadius.circular(FisioRaios.base),
             borderSide: const BorderSide(color: FisioCores.danger),
           ),
           focusedErrorBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(18),
+            borderRadius: BorderRadius.circular(FisioRaios.base),
             borderSide: const BorderSide(color: FisioCores.danger, width: 2),
           ),
           labelStyle: const TextStyle(
@@ -133,34 +133,34 @@ class FisioHomeCareApp extends StatelessWidget {
           elevation: 0,
           shadowColor: Colors.transparent,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(24),
+            borderRadius: BorderRadius.circular(FisioRaios.base),
           ),
         ),
         chipTheme: ChipThemeData(
           backgroundColor: FisioCores.primary.withValues(alpha: 0.1),
           selectedColor: FisioCores.primary,
-          labelStyle: const TextStyle(fontWeight: FontWeight.w700),
+          labelStyle: const TextStyle(fontWeight: FontWeight.w600),
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(999),
+            borderRadius: BorderRadius.circular(FisioRaios.pill),
           ),
           side: BorderSide(color: FisioCores.primary.withValues(alpha: 0.12)),
         ),
         dialogTheme: DialogThemeData(
           backgroundColor: Colors.white,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(28),
+            borderRadius: BorderRadius.circular(FisioRaios.lg),
           ),
         ),
         snackBarTheme: SnackBarThemeData(
           behavior: SnackBarBehavior.floating,
-          backgroundColor: FisioCores.primaryDark,
+          backgroundColor: FisioCores.primary,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: BorderRadius.circular(FisioRaios.base),
           ),
         ),
-        bottomSheetTheme: const BottomSheetThemeData(
+        bottomSheetTheme: BottomSheetThemeData(
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
+            borderRadius: BorderRadius.vertical(top: Radius.circular(FisioRaios.lg)),
           ),
           backgroundColor: Colors.transparent,
         ),

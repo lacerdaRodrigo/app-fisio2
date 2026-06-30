@@ -20,11 +20,13 @@ graph TD
     SessoesScreen["Tela de Sessões"]
     PacientesScreen["Tela de Pacientes"]
     ConfiguracoesScreen["Tela de Configurações"]
+    FinanceiroScreen["Tela de Financeiro"]
     
     %% Subfluxos do Dashboard
     NovaSessaoScreen["Tela: Nova Sessão"]
     PendenciasAgenda["Seção: Pendências"]
     AcoesSessao["Menu: Desfecho da Sessão"]
+    EditarSessao["Tela: Editar Sessão"]
     HistoricoGeral["Tela: Histórico Geral de Evoluções"]
     DateValidator{"Data Futura?"}
     GoogleSheets[("Google Sheets Backend")]
@@ -59,6 +61,7 @@ graph TD
     %% Navegação Principal (Menu Inferior)
     Dashboard <-->|Menu Inferior| SessoesScreen
     Dashboard <-->|Menu Inferior| PacientesScreen
+    Dashboard <-->|Menu Inferior| FinanceiroScreen
     Dashboard -.->|Configurações fora da navegação principal| ConfiguracoesScreen
     
     %% Fluxo Nova Sessão
@@ -75,6 +78,7 @@ graph TD
     SessoesScreen -->|Resolver sessão| AcoesSessao
     PendenciasAgenda -->|Resolver sessão| AcoesSessao
     Dashboard -->|Card Total de Evoluções| HistoricoGeral
+    AcoesSessao -->|Editar sessão (só Agendado)| EditarSessao
     AcoesSessao -->|Registrar evolução| EvolucaoScreen
     AcoesSessao -->|Falta ou cancelamento| GoogleSheets
     
@@ -105,6 +109,10 @@ graph TD
     EvolucaoScreen -->|Salvar Evolução| GoogleSheets
     GoogleSheets -->|Grava evolução & Agenda.Situacao Realizado| PacientesScreen
 
+    %% Fluxo Editar Sessão
+    EditarSessao -->|Salvar Alterações| GoogleSheets
+    GoogleSheets -->|Atualiza linha na aba Agenda| Dashboard
+
     %% Fluxo Editar Paciente
     EditarPaciente -->|Salvar Alterações| GoogleSheets
     GoogleSheets -->|Atualiza linha na aba Pacientes| PacientesScreen
@@ -125,7 +133,7 @@ graph TD
     %% Aplicação das classes nos elementos correspondentes
     class Start startEnd;
     
-    class LoginScreen,TermsModal,Dashboard,SessoesScreen,PacientesScreen,NovaSessaoScreen,CadastroPaciente,EditarPaciente,DetailsModal,TimelineScreen,EvolucaoScreen,ConfiguracoesScreen,HistoricoGeral screen;
+    class LoginScreen,TermsModal,Dashboard,SessoesScreen,PacientesScreen,NovaSessaoScreen,CadastroPaciente,EditarPaciente,EditarSessao,DetailsModal,TimelineScreen,EvolucaoScreen,ConfiguracoesScreen,HistoricoGeral,FinanceiroScreen screen;
     
     class Splash,CheckboxLGPD,DbLoading,DateValidator,CpfValidator,ConfirmacaoCampos,SpeechToText,RouteSelection,LogoutAction,AcoesSessao,PendenciasAgenda action;
     

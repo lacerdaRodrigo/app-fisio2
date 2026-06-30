@@ -219,8 +219,8 @@ class _TelaRegistroEvolucaoState extends ConsumerState<TelaRegistroEvolucao> {
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: const Color(0xFFE2E8F0)),
+        borderRadius: BorderRadius.circular(FisioRaios.base),
+        border: Border.all(color: FisioCores.border),
         boxShadow: FisioSombras.card,
       ),
       child: Column(
@@ -243,7 +243,7 @@ class _TelaRegistroEvolucaoState extends ConsumerState<TelaRegistroEvolucao> {
                     Text(
                       widget.paciente.nome,
                       style: theme.textTheme.titleLarge?.copyWith(
-                        fontWeight: FontWeight.w800,
+                        fontWeight: FontWeight.w700,
                       ),
                     ),
                     Text(
@@ -467,7 +467,7 @@ class _TelaRegistroEvolucaoState extends ConsumerState<TelaRegistroEvolucao> {
                   ),
                   color: _ouvindo
                       ? const Color(0xFFE11D48)
-                      : const Color(0xFF0D9488),
+                      : FisioCores.primary,
                 ),
               )
             : null,

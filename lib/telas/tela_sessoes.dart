@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:table_calendar/table_calendar.dart';
 
 import '../componentes/design_system.dart';
 import '../modelos/agendamento.dart';
@@ -7,6 +8,7 @@ import '../modelos/paciente.dart';
 import '../provedores/provedores_dados.dart';
 import '../utilitarios/utilitarios_data.dart';
 import '../utilitarios/acoes_agendamento.dart';
+import 'tela_nova_sessao.dart';
 
 enum FiltroSessoes {
   todas,
@@ -18,7 +20,7 @@ enum FiltroSessoes {
   realizadas,
 }
 
-enum VisualizacaoSessoes { lista, porPaciente }
+enum VisualizacaoSessoes { lista, porPaciente, calendario }
 
 class TelaSessoes extends ConsumerStatefulWidget {
   const TelaSessoes({super.key});
@@ -32,6 +34,8 @@ class _TelaSessoesState extends ConsumerState<TelaSessoes> {
   VisualizacaoSessoes _visualizacao = VisualizacaoSessoes.lista;
   final _buscaController = TextEditingController();
   String _termoBusca = '';
+  DateTime _diaSelecionado = DateTime.now();
+  DateTime _mesCalendario = DateTime.now();
 
   @override
   void dispose() {
@@ -61,17 +65,11 @@ class _TelaSessoesState extends ConsumerState<TelaSessoes> {
               padding: const EdgeInsets.fromLTRB(20, 18, 20, 18),
               decoration: BoxDecoration(
                 color: Colors.white,
-                borderRadius: const BorderRadius.only(
-                  bottomLeft: Radius.circular(32),
-                  bottomRight: Radius.circular(32),
+                borderRadius: BorderRadius.only(
+                  bottomLeft: Radius.circular(FisioRaios.lg),
+                  bottomRight: Radius.circular(FisioRaios.lg),
                 ),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.055),
-                    blurRadius: 20,
-                    offset: const Offset(0, 10),
-                  ),
-                ],
+                boxShadow: FisioSombras.card,
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -83,7 +81,7 @@ class _TelaSessoesState extends ConsumerState<TelaSessoes> {
                           'Sessões',
                           style: TextStyle(
                             fontSize: 22,
-                            fontWeight: FontWeight.w800,
+                            fontWeight: FontWeight.w700,
                             color: FisioCores.textPrimary,
                           ),
                         ),
@@ -91,6 +89,28 @@ class _TelaSessoesState extends ConsumerState<TelaSessoes> {
                       FisioBadge(
                         label: '${sessoes.length} registros',
                         color: FisioCores.primary,
+                      ),
+                      const SizedBox(width: 8),
+                      SizedBox(
+                        height: 34,
+                        child: FilledButton.icon(
+                          key: const Key('btn_nova_sessao_header'),
+                          onPressed: () => Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => const TelaNovaSessao(),
+                            ),
+                          ),
+                          icon: const Icon(Icons.add_rounded, size: 18),
+                          label: const Text(
+                            'Nova',
+                            style: TextStyle(fontSize: 12),
+                          ),
+                          style: FilledButton.styleFrom(
+                            backgroundColor: FisioCores.primary,
+                            padding: const EdgeInsets.symmetric(horizontal: 12),
+                          ),
+                        ),
                       ),
                     ],
                   ),
@@ -133,14 +153,19 @@ class _TelaSessoesState extends ConsumerState<TelaSessoes> {
               ),
             ),
             Expanded(
-              child: sessoes.isEmpty
-                  ? _EstadoVazio(filtro: _labelFiltro(_filtro))
-                  : FisioResponsiveCenter(
+              child: _visualizacao == VisualizacaoSessoes.calendario
+                  ? FisioResponsiveCenter(
                       maxWidth: 720,
-                      child: _visualizacao == VisualizacaoSessoes.lista
-                          ? _listaSessoes(sessoes, pacientes)
-                          : _listaAgrupada(grupos, pacientes),
-                    ),
+                      child: _vistaCalendario(agendamentos, sessoes, pacientes),
+                    )
+                  : sessoes.isEmpty
+                      ? _EstadoVazio(filtro: _labelFiltro(_filtro))
+                      : FisioResponsiveCenter(
+                          maxWidth: 720,
+                          child: _visualizacao == VisualizacaoSessoes.lista
+                              ? _listaSessoes(sessoes, pacientes)
+                              : _listaAgrupada(grupos, pacientes),
+                        ),
             ),
           ],
         ),
@@ -152,9 +177,9 @@ class _TelaSessoesState extends ConsumerState<TelaSessoes> {
     return Container(
       padding: const EdgeInsets.all(4),
       decoration: BoxDecoration(
-        color: const Color(0xFFF1F5F9),
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: const Color(0xFFE2E8F0)),
+        color: FisioCores.inputFill,
+        borderRadius: BorderRadius.circular(FisioRaios.base),
+        border: Border.all(color: FisioCores.border),
       ),
       child: Row(
         children: [
@@ -165,6 +190,12 @@ class _TelaSessoesState extends ConsumerState<TelaSessoes> {
             child: _botaoVisualizacao(
               'Por paciente',
               VisualizacaoSessoes.porPaciente,
+            ),
+          ),
+          Expanded(
+            child: _botaoVisualizacao(
+              'Calendário',
+              VisualizacaoSessoes.calendario,
             ),
           ),
         ],
@@ -182,7 +213,7 @@ class _TelaSessoesState extends ConsumerState<TelaSessoes> {
         padding: const EdgeInsets.symmetric(vertical: 9),
         decoration: BoxDecoration(
           color: selecionado ? Colors.white : Colors.transparent,
-          borderRadius: BorderRadius.circular(14),
+          borderRadius: BorderRadius.circular(FisioRaios.md),
           boxShadow: selecionado ? FisioSombras.card : null,
         ),
         child: Text(
@@ -190,7 +221,7 @@ class _TelaSessoesState extends ConsumerState<TelaSessoes> {
           textAlign: TextAlign.center,
           style: TextStyle(
             color: selecionado ? FisioCores.primary : FisioCores.textSecondary,
-            fontWeight: FontWeight.w800,
+            fontWeight: FontWeight.w600,
             fontSize: 12,
           ),
         ),
@@ -254,6 +285,140 @@ class _TelaSessoesState extends ConsumerState<TelaSessoes> {
     );
   }
 
+  Widget _vistaCalendario(
+    List<Agendamento> todosAgendamentos,
+    List<Agendamento> sessoesFiltradas,
+    Map<String, Paciente> pacientes,
+  ) {
+    final sessoesDoDia = sessoesFiltradas
+        .where((a) => UtilitariosData.mesmoDia(a.data, _diaSelecionado))
+        .toList()
+      ..sort((a, b) => a.horaInicio.compareTo(b.horaInicio));
+
+    return ListView(
+      padding: const EdgeInsets.fromLTRB(18, 12, 18, 132),
+      children: [
+        TableCalendar<Agendamento>(
+          key: const Key('calendario_sessoes'),
+          locale: 'pt_BR',
+          firstDay: DateTime.utc(2024, 1, 1),
+          lastDay: DateTime.utc(2030, 12, 31),
+          focusedDay: _mesCalendario,
+          selectedDayPredicate: (day) =>
+              UtilitariosData.mesmoDia(day, _diaSelecionado),
+          onDaySelected: (selectedDay, focusedDay) {
+            setState(() {
+              _diaSelecionado = selectedDay;
+              _mesCalendario = focusedDay;
+            });
+          },
+          onPageChanged: (focusedDay) {
+            _mesCalendario = focusedDay;
+          },
+          eventLoader: (day) => todosAgendamentos
+              .where((a) => UtilitariosData.mesmoDia(a.data, day))
+              .where(_aplicarFiltro)
+              .toList(),
+          calendarStyle: CalendarStyle(
+            todayDecoration: BoxDecoration(
+              color: FisioCores.primary.withValues(alpha: 0.3),
+              shape: BoxShape.circle,
+            ),
+            todayTextStyle: const TextStyle(
+              color: FisioCores.textPrimary,
+              fontWeight: FontWeight.bold,
+            ),
+            selectedDecoration: const BoxDecoration(
+              color: FisioCores.primary,
+              shape: BoxShape.circle,
+            ),
+            markerDecoration: const BoxDecoration(
+              color: FisioCores.primary,
+              shape: BoxShape.circle,
+            ),
+            markerSize: 6,
+            markersMaxCount: 3,
+          ),
+          headerStyle: const HeaderStyle(
+            formatButtonVisible: false,
+            titleCentered: true,
+            titleTextStyle: TextStyle(
+              fontWeight: FontWeight.w800,
+              fontSize: 16,
+              color: FisioCores.textPrimary,
+            ),
+          ),
+          calendarBuilders: CalendarBuilders(
+            markerBuilder: (context, day, events) {
+              if (events.isEmpty) return null;
+              return Row(
+                mainAxisSize: MainAxisSize.min,
+                children: events.take(3).map((a) {
+                  Color cor;
+                  if (a.foiRealizado) {
+                    cor = FisioCores.success;
+                  } else if (a.foiCancelado) {
+                    cor = FisioCores.danger;
+                  } else if (a.foiFalta) {
+                    cor = FisioCores.warning;
+                  } else if (a.estaAtrasado(DateTime.now()) ||
+                      a.pendenteDeDiaAnterior(DateTime.now())) {
+                    cor = FisioCores.warning;
+                  } else {
+                    cor = FisioCores.info;
+                  }
+                  return Container(
+                    width: 6,
+                    height: 6,
+                    margin: const EdgeInsets.symmetric(horizontal: 1),
+                    decoration: BoxDecoration(
+                      color: cor,
+                      shape: BoxShape.circle,
+                    ),
+                  );
+                }).toList(),
+              );
+            },
+          ),
+        ),
+        const SizedBox(height: 16),
+        Padding(
+          padding: const EdgeInsets.only(bottom: 8),
+          child: Text(
+            UtilitariosData.formatarDataBr(_diaSelecionado),
+            style: const TextStyle(
+              fontWeight: FontWeight.w800,
+              fontSize: 16,
+              color: FisioCores.textPrimary,
+            ),
+          ),
+        ),
+        if (sessoesDoDia.isEmpty)
+          const Padding(
+            padding: EdgeInsets.symmetric(vertical: 24),
+            child: Text(
+              'Nenhuma sessão neste dia.',
+              textAlign: TextAlign.center,
+              style: TextStyle(color: FisioCores.textSecondary),
+            ),
+          )
+        else
+          for (final agendamento in sessoesDoDia)
+            _CardSessao(
+              agendamento: agendamento,
+              paciente: pacientes[agendamento.idPaciente],
+              onAcao: (acao) => executarAcaoAgendamento(
+                context,
+                ref,
+                acao,
+                agendamento,
+                pacientes[agendamento.idPaciente],
+              ),
+            ),
+      ],
+    );
+  }
+
   Widget _chipFiltro(String label, FiltroSessoes filtro) {
     final selecionado = _filtro == filtro;
 
@@ -266,13 +431,13 @@ class _TelaSessoesState extends ConsumerState<TelaSessoes> {
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
           decoration: BoxDecoration(
             color: selecionado
-                ? FisioCores.primaryDark
-                : const Color(0xFFF1F5F9),
-            borderRadius: BorderRadius.circular(20),
+                ? FisioCores.primary
+                : FisioCores.inputFill,
+            borderRadius: BorderRadius.circular(FisioRaios.lg),
             border: Border.all(
               color: selecionado
-                  ? FisioCores.primaryDark
-                  : const Color(0xFFE2E8F0),
+                  ? FisioCores.primary
+                  : FisioCores.border,
             ),
           ),
           child: Text(
@@ -422,7 +587,7 @@ class _CardSessao extends StatelessWidget {
                 paciente == null ? '??' : fisioIniciais(paciente!.nome),
                 style: TextStyle(
                   color: cor,
-                  fontWeight: FontWeight.w800,
+                  fontWeight: FontWeight.w700,
                   fontSize: 18,
                 ),
               ),
@@ -439,7 +604,7 @@ class _CardSessao extends StatelessWidget {
                   overflow: TextOverflow.ellipsis,
                   style: const TextStyle(
                     color: FisioCores.textPrimary,
-                    fontWeight: FontWeight.w800,
+                    fontWeight: FontWeight.w700,
                     fontSize: 15,
                   ),
                 ),
@@ -468,24 +633,29 @@ class _CardSessao extends StatelessWidget {
             tooltip: 'Ações da sessão',
             icon: Icon(Icons.more_vert_rounded, color: Colors.grey.shade500),
             onSelected: onAcao,
-            itemBuilder: (context) => const [
-              PopupMenuItem(
+            itemBuilder: (context) => [
+              if (agendamento.estaAgendado)
+                const PopupMenuItem(
+                  value: AcaoAgendamento.editarSessao,
+                  child: Text('Editar sessão'),
+                ),
+              const PopupMenuItem(
                 value: AcaoAgendamento.registrarEvolucao,
                 child: Text('Registrar evolução'),
               ),
-              PopupMenuItem(
+              const PopupMenuItem(
                 value: AcaoAgendamento.faltouComAviso,
                 child: Text('Faltou com aviso'),
               ),
-              PopupMenuItem(
+              const PopupMenuItem(
                 value: AcaoAgendamento.faltouSemAviso,
                 child: Text('Faltou sem aviso'),
               ),
-              PopupMenuItem(
+              const PopupMenuItem(
                 value: AcaoAgendamento.canceladoPaciente,
                 child: Text('Cancelar pelo paciente'),
               ),
-              PopupMenuItem(
+              const PopupMenuItem(
                 value: AcaoAgendamento.canceladoProfissional,
                 child: Text('Cancelar pelo profissional'),
               ),
@@ -531,7 +701,7 @@ class _GrupoPacienteSessoes extends StatelessWidget {
       padding: const EdgeInsets.only(bottom: 12),
       child: Material(
         color: FisioCores.card,
-        borderRadius: BorderRadius.circular(24),
+        borderRadius: BorderRadius.circular(FisioRaios.base),
         elevation: 2,
         shadowColor: Colors.black.withValues(alpha: 0.08),
         child: Theme(
@@ -555,7 +725,7 @@ class _GrupoPacienteSessoes extends StatelessWidget {
                   paciente == null ? '??' : fisioIniciais(paciente!.nome),
                   style: TextStyle(
                     color: cor,
-                    fontWeight: FontWeight.w800,
+                    fontWeight: FontWeight.w700,
                     fontSize: 16,
                   ),
                 ),
@@ -565,7 +735,7 @@ class _GrupoPacienteSessoes extends StatelessWidget {
               nome,
               style: const TextStyle(
                 color: FisioCores.textPrimary,
-                fontWeight: FontWeight.w800,
+                fontWeight: FontWeight.w700,
               ),
             ),
             subtitle: Text(

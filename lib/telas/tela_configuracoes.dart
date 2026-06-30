@@ -95,22 +95,8 @@ class _TelaConfiguracoesState extends ConsumerState<TelaConfiguracoes> {
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(16),
                             ),
-                            hoverColor: const Color(0xFFF8FAFC),
-                            leading: Container(
-                              width: 40,
-                              height: 40,
-                              decoration: BoxDecoration(
-                                color: theme.colorScheme.primary.withValues(
-                                  alpha: 0.1,
-                                ),
-                                borderRadius: BorderRadius.circular(20),
-                              ),
-                              child: Icon(
-                                Icons.table_chart_outlined,
-                                color: theme.colorScheme.primary,
-                                size: 20,
-                              ),
-                            ),
+                            hoverColor: FisioCores.surface,
+                            leading: FisioIconBox(icon: Icons.table_chart_outlined, color: theme.colorScheme.primary, size: 40, iconSize: 20),
                             title: const Text('Visualizar Planilha de Dados'),
                             subtitle: const Text(
                               'Abre o Google Sheets no navegador.',
@@ -123,22 +109,8 @@ class _TelaConfiguracoesState extends ConsumerState<TelaConfiguracoes> {
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(16),
                             ),
-                            hoverColor: const Color(0xFFF8FAFC),
-                            leading: Container(
-                              width: 40,
-                              height: 40,
-                              decoration: BoxDecoration(
-                                color: theme.colorScheme.primary.withValues(
-                                  alpha: 0.1,
-                                ),
-                                borderRadius: BorderRadius.circular(20),
-                              ),
-                              child: Icon(
-                                Icons.article_outlined,
-                                color: theme.colorScheme.primary,
-                                size: 20,
-                              ),
-                            ),
+                            hoverColor: FisioCores.surface,
+                            leading: FisioIconBox(icon: Icons.article_outlined, color: theme.colorScheme.primary, size: 40, iconSize: 20),
                             title: const Text('Visualizar Termos de Uso'),
                             subtitle: const Text(
                               'Releia a declaração LGPD aceita no login.',
@@ -157,20 +129,8 @@ class _TelaConfiguracoesState extends ConsumerState<TelaConfiguracoes> {
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(16),
                         ),
-                        hoverColor: const Color(0xFFF8FAFC),
-                        leading: Container(
-                          width: 40,
-                          height: 40,
-                          decoration: BoxDecoration(
-                            color: Colors.red.withValues(alpha: 0.1),
-                            borderRadius: BorderRadius.circular(20),
-                          ),
-                          child: const Icon(
-                            Icons.logout_rounded,
-                            color: Colors.red,
-                            size: 20,
-                          ),
-                        ),
+                        hoverColor: FisioCores.surface,
+                        leading: const FisioIconBox(icon: Icons.logout_rounded, color: Colors.red, size: 40, iconSize: 20),
                         title: const Text(
                           'Sair da conta',
                           style: TextStyle(color: Colors.red),
@@ -347,18 +307,7 @@ class _CartaoSecao extends StatelessWidget {
         children: [
           Row(
             children: [
-              Container(
-                width: 40,
-                height: 40,
-                decoration: BoxDecoration(
-                  color: theme.colorScheme.primary.withValues(alpha: 0.12),
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(
-                    color: theme.colorScheme.primary.withValues(alpha: 0.14),
-                  ),
-                ),
-                child: Icon(icone, color: theme.colorScheme.primary, size: 20),
-              ),
+              FisioIconBox(icon: icone, color: theme.colorScheme.primary, size: 40, iconSize: 20),
               const SizedBox(width: 8),
               Text(
                 titulo,

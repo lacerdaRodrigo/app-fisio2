@@ -70,6 +70,50 @@ void main() {
       );
     });
 
+    test('copiarCom altera campos editáveis e preserva identidade', () {
+      final editado = agendamento.copiarCom(
+        data: DateTime(2026, 7, 10),
+        horaInicio: '09:00',
+        horaFim: '10:00',
+        valorSessao: 200.0,
+        observacoes: 'Nova obs',
+      );
+      expect(editado.idAgendamento, 'A001');
+      expect(editado.idPaciente, 'P001');
+      expect(editado.situacao, 'Agendado');
+      expect(editado.data, DateTime(2026, 7, 10));
+      expect(editado.horaInicio, '09:00');
+      expect(editado.horaFim, '10:00');
+      expect(editado.valorSessao, 200.0);
+      expect(editado.observacoes, 'Nova obs');
+    });
+
+    test('copiarCom sem parâmetros mantém todos os campos iguais', () {
+      final copia = agendamento.copiarCom();
+      expect(copia.idAgendamento, agendamento.idAgendamento);
+      expect(copia.data, agendamento.data);
+      expect(copia.horaInicio, agendamento.horaInicio);
+      expect(copia.valorSessao, agendamento.valorSessao);
+      expect(copia.observacoes, agendamento.observacoes);
+      expect(copia.situacao, agendamento.situacao);
+    });
+
+    test('pendenteDeDiaAnterior não ativa no mesmo dia', () {
+      final sessaoHoje = Agendamento(
+        idAgendamento: 'A099',
+        idPaciente: 'P001',
+        data: DateTime(2026, 6, 20),
+        horaInicio: '08:00',
+        horaFim: '09:00',
+        valorSessao: 150.0,
+      );
+      // Mesmo dia 22:00 — é atrasado mas NÃO é pendente de dia anterior
+      expect(sessaoHoje.pendenteDeDiaAnterior(DateTime(2026, 6, 20, 22, 0)), isFalse);
+      expect(sessaoHoje.estaAtrasado(DateTime(2026, 6, 20, 22, 0)), isTrue);
+      // Dia seguinte — agora sim é pendente de dia anterior
+      expect(sessaoHoje.pendenteDeDiaAnterior(DateTime(2026, 6, 21, 8, 0)), isTrue);
+    });
+
     test('cancelamentos e faltas devem ser desfechos', () {
       final canceladoPaciente = agendamento.copiarCom(
         situacao: Agendamento.situacaoCanceladoPaciente,

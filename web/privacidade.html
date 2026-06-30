@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Política de Privacidade (LGPD) — Fisio Home Care</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; line-height: 1.7; color: #1e293b; background: #f8fafc; padding: 24px; }
+    .container { max-width: 720px; margin: 0 auto; background: #fff; border-radius: 16px; padding: 40px 32px; box-shadow: 0 4px 24px rgba(0,0,0,0.06); }
+    h1 { font-size: 1.6rem; color: #00796b; margin-bottom: 8px; }
+    h2 { font-size: 1.15rem; color: #00796b; margin-top: 28px; margin-bottom: 8px; }
+    h3 { font-size: 1rem; color: #334155; margin-top: 16px; margin-bottom: 6px; }
+    p, li { font-size: 0.95rem; margin-bottom: 8px; }
+    ul { padding-left: 20px; }
+    .meta { font-size: 0.85rem; color: #64748b; margin-bottom: 24px; }
+    strong { color: #0f172a; }
+    table { width: 100%; border-collapse: collapse; margin: 12px 0; }
+    th, td { border: 1px solid #e2e8f0; padding: 10px 12px; text-align: left; font-size: 0.9rem; }
+    th { background: #f1f5f9; font-weight: 700; color: #00796b; }
+  </style>
+</head>
+<body>
+<div class="container">
+  <h1>Política de Privacidade e Proteção de Dados</h1>
+  <p class="meta">Fisio Home Care &mdash; Em conformidade com a LGPD (Lei 13.709/2018) &mdash; Atualizado em 20 de junho de 2026</p>
+
+  <h2>1. Introdução</h2>
+  <p>Esta Política descreve como o aplicativo Fisio Home Care ("App") coleta, utiliza, armazena e protege dados pessoais e dados pessoais sensíveis (dados de saúde), em conformidade com a Lei Geral de Proteção de Dados Pessoais (LGPD — Lei nº 13.709/2018).</p>
+
+  <h2>2. Definições e Papéis</h2>
+  <table>
+    <tr><th>Papel LGPD</th><th>Quem é</th><th>Responsabilidade</th></tr>
+    <tr><td><strong>Controlador</strong></td><td>O fisioterapeuta (Usuário do App)</td><td>Decide quais dados coletar, por quanto tempo reter e como tratar. Responde diretamente ao paciente (Titular).</td></tr>
+    <tr><td><strong>Operador</strong></td><td>Google LLC (infraestrutura) e o App (processamento)</td><td>Processa dados conforme instruções do Controlador. O App apenas lê e escreve na planilha do Controlador.</td></tr>
+    <tr><td><strong>Titular</strong></td><td>O paciente</td><td>Pessoa cujos dados pessoais e de saúde são tratados.</td></tr>
+  </table>
+
+  <h2>3. Dados Coletados</h2>
+
+  <h3>3.1. Dados do Profissional (Usuário)</h3>
+  <ul>
+    <li><strong>Nome e e-mail:</strong> obtidos automaticamente pelo Google Sign-In para identificação na interface;</li>
+    <li><strong>Token de acesso OAuth:</strong> temporário, usado para autenticar chamadas à API Google. Não é armazenado de forma persistente pelo App.</li>
+  </ul>
+
+  <h3>3.2. Dados dos Pacientes (Titulares)</h3>
+  <p>Os dados abaixo são registrados pelo profissional na planilha Google Sheets:</p>
+  <table>
+    <tr><th>Categoria</th><th>Dados</th><th>Finalidade</th></tr>
+    <tr><td>Identificação</td><td>Nome, CPF, telefone, data de nascimento, gênero, endereço</td><td>Identificação do paciente e contato para atendimento domiciliar</td></tr>
+    <tr><td>Dados de Saúde (sensíveis)</td><td>Queixa principal, histórico clínico, comorbidades, medicamentos, alergias, cirurgias, escala de dor, evolução clínica, sinais vitais</td><td>Acompanhamento fisioterapêutico e prontuário clínico</td></tr>
+    <tr><td>Operacionais</td><td>Agendamentos, valores de sessão, status de presença, logs de auditoria</td><td>Gestão de agenda e controle financeiro</td></tr>
+  </table>
+
+  <h3>3.3. Base Legal para Tratamento (Art. 7º e 11 da LGPD)</h3>
+  <ul>
+    <li><strong>Dados de saúde (sensíveis):</strong> tratados com base no Art. 11, II, "f" — tutela da saúde, exclusivamente, em procedimento realizado por profissional de saúde;</li>
+    <li><strong>Dados pessoais comuns:</strong> tratados com base no Art. 7º, V — execução de contrato (prestação de serviço de fisioterapia);</li>
+    <li><strong>Consentimento adicional:</strong> o aceite dos Termos de Uso e desta Política na tela de login constitui manifestação inequívoca de consentimento pelo profissional para uso do App como ferramenta de registro.</li>
+  </ul>
+
+  <h2>4. Onde os Dados São Armazenados</h2>
+  <p><strong>Todos os dados ficam na conta Google do profissional.</strong> O App não possui servidor próprio, banco de dados central ou qualquer infraestrutura que armazene dados de pacientes. A planilha <code>__saas_fisio_db__</code> é criada no Google Drive do profissional e só pode ser acessada por ele.</p>
+  <ul>
+    <li><strong>Infraestrutura:</strong> Google Cloud Platform (servidores do Google);</li>
+    <li><strong>Localização:</strong> conforme a política de residência de dados da conta Google do profissional;</li>
+    <li><strong>Criptografia:</strong> dados em trânsito protegidos por HTTPS/TLS; dados em repouso protegidos pela criptografia nativa do Google.</li>
+  </ul>
+
+  <h2>5. Compartilhamento de Dados</h2>
+  <p>O App <strong>não compartilha</strong> dados de pacientes com terceiros. Especificamente:</p>
+  <ul>
+    <li>Não envia dados para servidores do desenvolvedor;</li>
+    <li>Não utiliza serviços de analytics que processem dados de pacientes;</li>
+    <li>Não vende, aluga ou comercializa dados;</li>
+    <li>O Firebase Hosting hospeda apenas o código do App (páginas estáticas), não dados clínicos.</li>
+  </ul>
+
+  <h2>6. Direitos do Titular (Paciente)</h2>
+  <p>O paciente pode exercer os seguintes direitos perante o fisioterapeuta (Controlador), conforme Art. 18 da LGPD:</p>
+  <table>
+    <tr><th>Direito</th><th>Como é atendido</th></tr>
+    <tr><td><strong>Acesso</strong></td><td>O profissional pode exportar ou mostrar os dados do paciente diretamente da planilha ou do App.</td></tr>
+    <tr><td><strong>Correção</strong></td><td>Dados editáveis (telefone, endereço, anamnese) podem ser corrigidos pela tela "Editar Paciente". Dados de identidade (Nome, CPF) são travados por segurança.</td></tr>
+    <tr><td><strong>Eliminação</strong></td><td>O profissional pode arquivar o paciente no App ou excluir a linha diretamente na planilha Google Sheets.</td></tr>
+    <tr><td><strong>Portabilidade</strong></td><td>A planilha Google Sheets pode ser exportada em CSV, XLSX ou PDF pelo próprio Google Drive.</td></tr>
+    <tr><td><strong>Revogação de consentimento</strong></td><td>O paciente pode solicitar ao profissional que pare de tratar seus dados. O profissional deve atender e eliminar os registros.</td></tr>
+  </table>
+
+  <h2>7. Retenção e Exclusão</h2>
+  <ul>
+    <li><strong>Retenção:</strong> os dados permanecem na planilha enquanto o profissional julgar necessário para o acompanhamento clínico e obrigações legais (prontuário: mínimo 20 anos conforme Resolução COFFITO);</li>
+    <li><strong>Exclusão:</strong> ao desinstalar o App, os dados permanecem na planilha do Google Drive (o App não apaga dados automaticamente). O profissional pode excluir a planilha a qualquer momento.</li>
+  </ul>
+
+  <h2>8. Segurança</h2>
+  <ul>
+    <li><strong>Autenticação:</strong> OAuth 2.0 via Google Sign-In (o App nunca acessa a senha do usuário);</li>
+    <li><strong>Escopo restrito:</strong> <code>drive.file</code> — o App só acessa arquivos que ele mesmo criou;</li>
+    <li><strong>Validação de entrada:</strong> CPF, telefone, datas e campos clínicos são validados antes da gravação;</li>
+    <li><strong>Logs de auditoria:</strong> toda operação crítica (cadastro, edição, arquivamento) é registrada na aba "Auditoria" da planilha;</li>
+    <li><strong>Sem dados no dispositivo:</strong> dados clínicos ficam em memória apenas durante a sessão ativa. Ao sair do App, o estado é descartado.</li>
+  </ul>
+
+  <h2>9. Incidentes de Segurança</h2>
+  <p>Em caso de incidente que possa acarretar risco ou dano aos Titulares, o desenvolvedor se compromete a:</p>
+  <ul>
+    <li>Comunicar a Autoridade Nacional de Proteção de Dados (ANPD) e os Titulares afetados em prazo razoável;</li>
+    <li>Descrever a natureza dos dados afetados, os riscos envolvidos e as medidas adotadas.</li>
+  </ul>
+
+  <h2>10. Cookies e Rastreamento</h2>
+  <p>O App <strong>não utiliza cookies de rastreamento, pixels de terceiros ou ferramentas de analytics</strong> que processem dados de pacientes.</p>
+
+  <h2>11. Menores de Idade</h2>
+  <p>O App é destinado a profissionais de fisioterapia. Dados de pacientes menores de idade são registrados sob responsabilidade do profissional, que deve obter consentimento do responsável legal conforme Art. 14 da LGPD.</p>
+
+  <h2>12. Alterações nesta Política</h2>
+  <p>Esta Política pode ser atualizada para refletir mudanças no App ou na legislação. A data de atualização no topo indica a versão vigente. O uso continuado do App após alterações constitui aceite da nova versão.</p>
+
+  <h2>13. Encarregado de Dados (DPO)</h2>
+  <p>Para exercer seus direitos, esclarecer dúvidas ou reportar incidentes relacionados a dados pessoais:</p>
+  <p><strong>Rodrigo Lacerda</strong><br>E-mail: <strong>lacerdaa.rodrigo@gmail.com</strong></p>
+
+  <h2>14. Autoridade Nacional</h2>
+  <p>O Titular pode apresentar reclamação à Autoridade Nacional de Proteção de Dados (ANPD) pelo site <strong>www.gov.br/anpd</strong>.</p>
+</div>
+</body>
+</html>

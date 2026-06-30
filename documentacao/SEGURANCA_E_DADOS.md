@@ -1,62 +1,133 @@
-# Segurança, Privacidade e Arquitetura de Dados
+# Segurança, Privacidade e Conformidade LGPD
 
-Este documento descreve as diretrizes de segurança da informação, a arquitetura técnica de integração com o Google Sheets e as políticas de conformidade com a Lei Geral de Proteção de Dados (LGPD - Lei nº 13.709/2018) adotadas no aplicativo de Fisioterapia Domiciliar.
+Este documento descreve a arquitetura de segurança, as políticas de privacidade e a conformidade com a Lei Geral de Proteção de Dados (LGPD — Lei nº 13.709/2018) do aplicativo Fisio Home Care.
 
 ---
 
-## 1. Arquitetura de Dados (Modelo Soberano)
+## 1. Arquitetura de Dados (Modelo BYODB — Soberano)
 
-Para garantir máxima privacidade e conformidade com a LGPD, o aplicativo adota um modelo de **Banco de Dados Soberano**. 
+O App adota o modelo **Bring Your Own Database**: todos os dados são armazenados na conta Google do profissional.
 
-* **Sem Servidor Central:** O aplicativo **não** envia dados clínicos dos pacientes para servidores de terceiros ou bancos de dados centralizados pertencentes ao desenvolvedor da ferramenta.
-* **Propriedade do Profissional:** Toda a estrutura de dados (planilhas) é criada e armazenada diretamente na conta pessoal do **Google Drive do fisioterapeuta**.
-* **Isolamento de Contas:** Cada fisioterapeuta possui sua própria planilha. É impossível que um profissional acesse ou visualize a base de pacientes de outro através do aplicativo.
+| Aspecto | Implementação |
+|---|---|
+| **Servidor central** | Não existe. Dados nunca saem da conta Google do profissional. |
+| **Banco de dados** | Planilha Google Sheets (`__saas_fisio_db__`) no Google Drive do profissional. |
+| **Isolamento** | Cada profissional tem sua própria planilha. Impossível acessar dados de outro profissional. |
+| **Hospedagem web** | Firebase Hosting serve apenas código estático (HTML/JS/CSS). Nenhum dado clínico passa pelo Firebase. |
 
 ```
-+------------------+                   +--------------------------+
-|  Dispositivo do  |   OAuth 2.0 API   |   Google Cloud Server    |
-|  Fisioterapeuta  | =================>| (Planilha Pessoal do App |
-| (App Flutter)    |   (HTTPS TLS)     | no Drive do Profissional)|
-+------------------+                   +--------------------------+
+┌──────────────────┐                    ┌──────────────────────────┐
+│  Dispositivo do  │   OAuth 2.0 API    │   Google Cloud (Drive)   │
+│  Fisioterapeuta  │ ═══════════════>   │  Planilha pessoal do     │
+│  (App Flutter)   │   HTTPS / TLS      │  profissional            │
+└──────────────────┘                    └──────────────────────────┘
 ```
 
 ---
 
-## 2. Autenticação e Autorização (OAuth 2.0)
+## 2. Autenticação e Autorização
 
-O acesso à planilha do Google Sheets é regido por padrões de segurança do setor:
-
-* **Google Sign-In:** A autenticação é delegada inteiramente ao Google. O aplicativo nunca tem acesso à senha do usuário.
-* **Escopo Restrito (`drive.file`):** Ao solicitar acesso ao Google Drive, o aplicativo exige o escopo limitado `https://www.googleapis.com/auth/drive.file`.
-  * *O que isso significa:* O app só pode ler e escrever em arquivos que ele mesmo criou (a planilha `__saas_fisio_db__`). O aplicativo **não** tem permissão para visualizar outros arquivos pessoais, fotos ou pastas do Drive do usuário.
-* **Tokens de Acesso:** Na versão atual, os tokens são obtidos pelo fluxo Google Sign-In e usados para chamadas HTTPS à API. O app não implementa armazenamento persistente próprio de token de atualização.
-
----
-
-## 3. Segurança Física dos Dados no Dispositivo
-
-Na versão atual, o aplicativo depende de conectividade para carregar e persistir dados no Google Sheets:
-
-* **Cache de Tela:** O Riverpod mantém dados em memória apenas durante a sessão para atualizar a interface.
-* **Sem Modo Offline Persistente:** Ainda não há banco local criptografado, fila de sincronização offline ou reconciliação automática.
-* **Logout:** Ao sair, a sessão Google é encerrada e o estado em memória é descartado.
+| Camada | Mecanismo |
+|---|---|
+| **Login** | Google Sign-In (OAuth 2.0). O App nunca acessa a senha do usuário. |
+| **Escopo** | `drive.file` — o App só lê/escreve arquivos que ele mesmo criou. Não acessa outros arquivos, fotos ou pastas do Drive. |
+| **Token** | Access token temporário obtido via Google Sign-In. Não é armazenado de forma persistente pelo App. |
+| **Consentimento de termos** | Checkbox obrigatório na tela de login. Botão "Entrar com Google" fica desabilitado sem aceitar. |
+| **Verificação de escopos** | No Android, após o login o App verifica se os escopos foram concedidos e solicita se necessário. |
 
 ---
 
-## 4. Conformidade com a LGPD (Lei Geral de Proteção de Dados)
+## 3. Dados Coletados
 
-O aplicativo foi projetado desde a base sob os conceitos de *Privacy by Design* e *Privacy by Default*:
+### 3.1. Dados do Profissional
+- **Nome e e-mail:** do Google Sign-In, para identificação na interface.
+- **Token OAuth:** temporário, usado para chamadas à API. Descartado ao sair.
 
-### A. Papéis na LGPD
-* **Controlador dos Dados:** O fisioterapeuta (usuário do aplicativo). Ele decide quais dados coletar, por quanto tempo reter e como tratar.
-* **Operador dos Dados:** O Google (provedor de infraestrutura da planilha) e o aplicativo (que apenas processa as requisições solicitadas pelo controlador).
+### 3.2. Dados dos Pacientes (Titulares)
 
-### B. Atendimento aos Direitos do Titular (Paciente)
-A escolha do Google Sheets como backend facilita o cumprimento imediato dos direitos dos pacientes:
-* **Direito de Acesso e Retificação:** O paciente pode solicitar a correção de dados incorretos. O profissional pode corrigir pelo app (tela "Editar Paciente" — telefone, endereço e anamnese; campos de identidade como Nome, CPF, Data de Nascimento e Gênero são travados após o cadastro) ou diretamente na própria planilha.
-* **Direito ao Esquecimento (Eliminação):** Se o paciente solicitar a exclusão de seu prontuário, o fisioterapeuta pode apagá-lo diretamente pelo aplicativo ou deletar a linha correspondente de forma definitiva na planilha do Google Sheets.
-* **Minimização de Dados:** Apenas os dados estritamente necessários para o acompanhamento clínico e faturamento de sessões domiciliares são coletados.
+| Categoria | Dados | Base Legal (LGPD) |
+|---|---|---|
+| **Identificação** | Nome, CPF, telefone, data de nascimento, gênero, endereço | Art. 7º, V — execução de contrato |
+| **Dados de saúde (sensíveis)** | Queixa, histórico clínico, comorbidades, medicamentos, alergias, cirurgias, escala de dor, evolução clínica, sinais vitais | Art. 11, II, "f" — tutela da saúde por profissional de saúde |
+| **Operacionais** | Agendamentos, valores, status de presença, logs de auditoria | Art. 7º, V — execução de contrato |
 
-### C. Registro de Consentimento
-* O acesso ao login e uso do aplicativo é condicionado ao aceite do **Termo de Consentimento para Tratamento de Dados Pessoais e de Saúde**.
-* A aceitação é usada como pré-condição para iniciar o login. A gravação formal desse aceite na planilha ainda deve ser implementada como melhoria de auditoria.
+### 3.3. Minimização de Dados
+Apenas dados estritamente necessários para o acompanhamento clínico e faturamento são coletados. Campos de anamnese são opcionais.
+
+---
+
+## 4. Conformidade LGPD
+
+### 4.1. Papéis
+
+| Papel | Quem | Responsabilidade |
+|---|---|---|
+| **Controlador** | Fisioterapeuta (Usuário) | Decide quais dados coletar, por quanto tempo reter e como tratar. Responde ao paciente. |
+| **Operador** | Google LLC + App | Processa dados conforme instruções do Controlador. |
+| **Titular** | Paciente | Pessoa cujos dados são tratados. |
+
+### 4.2. Direitos do Titular (Art. 18)
+
+| Direito | Como é atendido |
+|---|---|
+| **Acesso** | Exportar dados da planilha ou mostrar pelo App |
+| **Correção** | Tela "Editar Paciente" (telefone, endereço, anamnese). Campos de identidade travados por segurança. |
+| **Eliminação** | Arquivar no App ou excluir linha diretamente na planilha |
+| **Portabilidade** | Planilha exportável em CSV, XLSX ou PDF pelo Google Drive |
+| **Revogação** | Paciente solicita ao profissional, que deve eliminar os registros |
+
+### 4.3. Consentimento
+- Aceite de Termos de Uso e Política de Privacidade é pré-condição para login (checkbox obrigatório).
+- Documentos legais disponíveis em:
+  - Termos de Uso: `https://app-fisio-care-2.web.app/termos.html`
+  - Política de Privacidade: `https://app-fisio-care-2.web.app/privacidade.html`
+
+### 4.4. Retenção e Exclusão
+- **Retenção:** dados permanecem enquanto o profissional julgar necessário (prontuário: mínimo 20 anos conforme Resolução COFFITO).
+- **Exclusão:** ao desinstalar o App, dados permanecem na planilha. O profissional pode excluir a planilha a qualquer momento.
+
+### 4.5. Incidentes de Segurança
+Em caso de incidente, o desenvolvedor se compromete a comunicar a ANPD e os Titulares afetados em prazo razoável, descrevendo natureza dos dados, riscos e medidas adotadas.
+
+---
+
+## 5. Segurança Técnica
+
+| Medida | Implementação |
+|---|---|
+| **Criptografia em trânsito** | HTTPS/TLS em todas as chamadas à API Google |
+| **Criptografia em repouso** | Nativa do Google Cloud (AES-256) |
+| **Validação de entrada** | CPF, telefone, datas, escala de dor — validados antes da gravação |
+| **Logging estruturado** | `developer.log()` com nome da classe. `print()` proibido por lint. |
+| **Auditoria** | Toda operação crítica (cadastro, edição, arquivamento, agendamento) registrada na aba "Auditoria" com timestamp. |
+| **Sem dados persistentes no dispositivo** | Dados clínicos ficam em memória durante a sessão. Ao sair, estado descartado. |
+| **Credenciais fora do git** | `.env`, `google-services.json`, `chaves.md` no `.gitignore`. |
+| **Lint rigoroso** | `analysis_options.yaml` com regras de segurança (`cancel_subscriptions`, `close_sinks`, `unawaited_futures`). |
+
+---
+
+## 6. O que NÃO é feito
+
+- **Não** há cookies de rastreamento, pixels ou analytics que processem dados de pacientes.
+- **Não** há compartilhamento de dados com terceiros.
+- **Não** há venda, aluguel ou comercialização de dados.
+- **Não** há cache offline persistente de dados clínicos (planejado para versão futura).
+- **Não** há backup automático (o profissional pode copiar a planilha pelo Google Drive).
+
+---
+
+## 7. Documentos Legais
+
+| Documento | URL | Descrição |
+|---|---|---|
+| Termos de Uso | [termos.html](https://app-fisio-care-2.web.app/termos.html) | Condições de uso do App |
+| Política de Privacidade | [privacidade.html](https://app-fisio-care-2.web.app/privacidade.html) | Tratamento de dados pessoais e de saúde conforme LGPD |
+
+---
+
+## 8. Contato (DPO / Encarregado)
+
+**Rodrigo Lacerda**
+E-mail: lacerdaa.rodrigo@gmail.com
+
+O Titular pode apresentar reclamação à Autoridade Nacional de Proteção de Dados (ANPD) pelo site **www.gov.br/anpd**.

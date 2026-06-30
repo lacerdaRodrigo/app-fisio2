@@ -3,11 +3,13 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../modelos/agendamento.dart';
 import '../modelos/paciente.dart';
+import '../telas/tela_editar_sessao.dart';
 import '../telas/tela_registro_evolucao.dart';
 import '../provedores/provedores_dados.dart';
 import '../componentes/design_system.dart';
 
 enum AcaoAgendamento {
+  editarSessao,
   registrarEvolucao,
   faltouComAviso,
   faltouSemAviso,
@@ -22,6 +24,20 @@ Future<void> executarAcaoAgendamento(
   Agendamento agendamento,
   Paciente? paciente,
 ) async {
+  if (acao == AcaoAgendamento.editarSessao) {
+    if (paciente == null) return;
+    await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => TelaEditarSessao(
+          agendamento: agendamento,
+          nomePaciente: paciente.nome,
+        ),
+      ),
+    );
+    return;
+  }
+
   if (acao == AcaoAgendamento.registrarEvolucao) {
     if (paciente == null) return;
     await Navigator.push(
@@ -44,6 +60,7 @@ Future<void> executarAcaoAgendamento(
     AcaoAgendamento.canceladoProfissional =>
       Agendamento.situacaoCanceladoProfissional,
     AcaoAgendamento.registrarEvolucao => Agendamento.situacaoAgendado,
+    AcaoAgendamento.editarSessao => Agendamento.situacaoAgendado,
   };
 
   final confirmou = await showDialog<bool>(

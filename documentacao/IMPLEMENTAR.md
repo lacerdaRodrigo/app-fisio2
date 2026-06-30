@@ -34,7 +34,7 @@ Base: Flutter + Riverpod + Google Sheets API + Google Sign-In
 - Duplicação de popup: centralizado em `lib/utilitarios/acoes_agendamento.dart`
 
 ### Para atingir 9/10
-- [ ] Documentação formal de LGPD/Privacidade
+- [x] Documentação formal de LGPD/Privacidade — implementado em 2026-06-20 (termos.html, privacidade.html, SEGURANCA_E_DADOS.md)
 - [x] CI/CD pipeline (GitHub Actions) — implementado em 2026-06-17
 - [ ] Validação end-to-end Sheets API com fallbacks
 - [ ] Backup automático para Google Drive
@@ -60,15 +60,20 @@ Base: Flutter + Riverpod + Google Sheets API + Google Sign-In
 - Configurações (valor padrão, link planilha, logs de auditoria)
 - Persistência completa no Google Sheets (5 abas)
 - Deploy Firebase Hosting (web)
+- Editar paciente (tela dedicada com campos de identidade travados, atualização via `atualizarPaciente()`, auditoria `EDITAR_PACIENTE`, popup de campos definitivos no cadastro)
+- CI/CD GitHub Actions (deploy preview em `develop`, deploy produção em `master`)
+- Editar / reagendar sessão (tela dedicada `tela_editar_sessao.dart`, campos de identidade travados, `atualizarAgendamento()` no repositório, auditoria `EDITAR_AGENDAMENTO`, disponível apenas para sessões com situação "Agendado")
+- Financeiro simples (4ª aba no bottom nav, resumo mensal: faturado, previsto, contagem, filtro por mês, lista de sessões)
+- Agenda completa (visão calendário na tela Sessões com marcadores coloridos por status, seleção de dia e lista de sessões do dia)
 
 ---
 
 ## 🔴 Alta prioridade
 
 ### Ordem sugerida de evolução do produto
-1. **Editar paciente** — essencial para corrigir dados cadastrais, endereço, telefone, anamnese e informações clínicas sem recriar o paciente.
-2. **Editar / reagendar sessão** — evita poluir o histórico com cancelamentos desnecessários quando o paciente apenas muda data, horário, valor ou local.
-3. **Financeiro simples** — transforma a agenda em controle operacional e financeiro básico para uso real no dia a dia.
+1. ~~**Editar paciente**~~ ✅ — implementado em 2026-06-18.
+2. ~~**Editar / reagendar sessão**~~ ✅ — implementado em 2026-06-20.
+3. ~~**Financeiro simples**~~ ✅ — implementado em 2026-06-20.
 
 ### 1. Editar paciente ✅ (implementado em 2026-06-18)
 - **Arquivo:** `lib/telas/tela_editar_paciente.dart` (tela dedicada que recebe `Paciente`).
@@ -77,24 +82,14 @@ Base: Flutter + Riverpod + Google Sheets API + Google Sign-In
 - **Serviço:** `RepositorioDadosGoogle.atualizarPaciente()` + `atualizarPacienteReal()` no provedor (auditoria `EDITAR_PACIENTE`).
 - **Melhoria relacionada:** popup de confirmação no cadastro avisando que os campos de identidade não poderão ser alterados depois.
 
-### 2. Editar / reagendar agendamento
-- **Arquivo:** `lib/telas/tela_nova_sessao.dart` — adaptar para aceitar `Agendamento?` opcional
-- **Serviço:** adicionar `atualizarAgendamento()` no repositório para editar data/hora/valor/observações.
-- **Já implementado:** desfechos operacionais (`Cancelado pelo paciente`, `Cancelado pelo profissional`, `Faltou com aviso`, `Faltou sem aviso`) usando `Agenda.Situacao`.
+### ~~2. Editar / reagendar agendamento~~ ✅ (implementado em 2026-06-20)
+> Movido para **✅ Já implementado**.
 
-### 3. Tela de agenda completa
-- **Arquivo novo:** `lib/telas/tela_agenda.dart`
-- **Funcionalidades:**
-  - Lista completa de agendamentos (não só hoje)
-  - Filtros: por data (hoje/semana/mês), por paciente, por status
-  - Ações: editar, cancelar, marcar como realizado
-- **Navegação:** adicionar 4ª aba no bottom nav (Agenda) ou botão no Dashboard
+### ~~3. Tela de agenda completa~~ ✅ (implementado em 2026-06-20)
+> Implementado como visão "Calendário" na tela de Sessões (3ª opção no seletor de visualização). Calendário mensal com marcadores coloridos por status, seleção de dia e lista de sessões. Movido para **✅ Já implementado**.
 
-### 4. Financeiro por desfecho
-- **Arquivo:** criar fluxo de relatório financeiro.
-- **Contexto:** `Agenda.Situacao` já diferencia realizado, cancelamentos e faltas.
-- **Próximo passo:** definir regra de cobrança para cancelamento em cima da hora e faltas sem aviso.
-- **Escopo inicial sugerido:** total previsto, total recebido, pendente por paciente e filtro por mês.
+### ~~4. Financeiro por desfecho~~ ✅ (implementado em 2026-06-20)
+> Implementado como "Financeiro simples" — resumo mensal com faturado, previsto e contagem. Cancelamentos/faltas ignorados. Movido para **✅ Já implementado**.
 
 ---
 
