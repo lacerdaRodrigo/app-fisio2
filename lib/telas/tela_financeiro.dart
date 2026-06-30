@@ -25,338 +25,497 @@ class _TelaFinanceiroState extends ConsumerState<TelaFinanceiro> {
     _mesSelecionado = DateTime(agora.year, agora.month);
   }
 
+  void _mudarMes(int delta) {
+    setState(() {
+      _mesSelecionado =
+          DateTime(_mesSelecionado.year, _mesSelecionado.month + delta);
+    });
+  }
+
+  // --------- helpers de dados ---------
+
+  double _faturadoDoMes(List<Agendamento> ags, DateTime mes) => ags
+      .where((a) => a.foiRealizado && UtilitariosData.mesmoMesAno(a.data, mes))
+      .fold(0.0, (s, a) => s + a.valorSessao);
+
+  List<DateTime> _ultimosSeisMeses() => List.generate(
+        6,
+        (i) => DateTime(_mesSelecionado.year, _mesSelecionado.month - (5 - i)),
+      );
+
   @override
   Widget build(BuildContext context) {
     final agendamentos = ref.watch(provedorListaAgendamentos);
     final pacientes = ref.watch(provedorListaPacientes);
 
-    final mesesDisponiveis = _extrairMeses(agendamentos);
-    if (mesesDisponiveis.isEmpty) {
-      final agora = DateTime.now();
-      mesesDisponiveis.add(DateTime(agora.year, agora.month));
-    }
-    if (!mesesDisponiveis.any((m) => UtilitariosData.mesmoMesAno(m, _mesSelecionado))) {
-      mesesDisponiveis.add(_mesSelecionado);
-      mesesDisponiveis.sort((a, b) => b.compareTo(a));
-    }
-
-    final sessoesDoMes = agendamentos.where(
-      (a) => UtilitariosData.mesmoMesAno(a.data, _mesSelecionado) &&
-          (a.foiRealizado || a.estaAgendado),
-    ).toList()
+    final sessoesDoMes = agendamentos
+        .where((a) =>
+            UtilitariosData.mesmoMesAno(a.data, _mesSelecionado) &&
+            (a.foiRealizado || a.estaAgendado))
+        .toList()
       ..sort((a, b) => b.data.compareTo(a.data));
 
-    final faturado = agendamentos
-        .where((a) => a.foiRealizado && UtilitariosData.mesmoMesAno(a.data, _mesSelecionado))
-        .fold(0.0, (soma, a) => soma + a.valorSessao);
+    final faturado = _faturadoDoMes(agendamentos, _mesSelecionado);
 
     final previsto = agendamentos
-        .where((a) => a.estaAgendado && UtilitariosData.mesmoMesAno(a.data, _mesSelecionado))
-        .fold(0.0, (soma, a) => soma + a.valorSessao);
+        .where((a) =>
+            a.estaAgendado &&
+            UtilitariosData.mesmoMesAno(a.data, _mesSelecionado))
+        .fold(0.0, (s, a) => s + a.valorSessao);
 
-    final realizadas = agendamentos
-        .where((a) => a.foiRealizado && UtilitariosData.mesmoMesAno(a.data, _mesSelecionado))
+    final realizadasLista = agendamentos
+        .where((a) =>
+            a.foiRealizado &&
+            UtilitariosData.mesmoMesAno(a.data, _mesSelecionado))
+        .toList();
+    final realizadas = realizadasLista.length;
+    final agendadas = agendamentos
+        .where((a) =>
+            a.estaAgendado &&
+            UtilitariosData.mesmoMesAno(a.data, _mesSelecionado))
         .length;
+    final ticketMedio =
+        realizadas > 0 ? faturado / realizadas : 0.0;
 
-    final mapaPacientes = {
-      for (final p in pacientes) p.idPaciente: p.nome,
+    final mesesGrafico = _ultimosSeisMeses();
+    final faturadoPorMes = {
+      for (final m in mesesGrafico)
+        m: _faturadoDoMes(agendamentos, m),
     };
 
-    return SafeArea(
+    final mesAnterior =
+        DateTime(_mesSelecionado.year, _mesSelecionado.month - 1);
+    final faturadoAnterior = _faturadoDoMes(agendamentos, mesAnterior);
+
+    final mapaPacientes = {for (final p in pacientes) p.idPaciente: p.nome};
+
+    return ColoredBox(
+      color: FisioCores.surface,
       child: FisioResponsiveCenter(
         maxWidth: 620,
-        child: CustomScrollView(
-          slivers: [
-            SliverToBoxAdapter(
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(20, 18, 20, 0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        Container(
-                          width: 42,
-                          height: 42,
-                          decoration: FisioDecoracoes.tinted(FisioCores.primary),
-                          child: const Icon(
-                            Icons.account_balance_wallet_rounded,
-                            color: FisioCores.primary,
-                            size: 22,
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: Text(
-                            'Financeiro',
-                            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                              fontWeight: FontWeight.w800,
-                              color: FisioCores.textPrimary,
-                            ),
-                          ),
-                        ),
-                        FisioBadge(
-                          label: UtilitariosData.formatarMesAno(_mesSelecionado),
-                          color: FisioCores.primary,
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 20),
-                  ],
-                ),
-              ),
-            ),
-
-            // Cards de resumo
-            SliverToBoxAdapter(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: _construirCardResumo(
-                        'Faturado',
-                        _formatarValor(faturado),
-                        Icons.check_circle_rounded,
-                        FisioCores.success,
-                      ),
-                    ),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: _construirCardResumo(
-                        'Previsto',
-                        _formatarValor(previsto),
-                        Icons.schedule_rounded,
-                        FisioCores.info,
-                      ),
-                    ),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: _construirCardResumo(
-                        'Realizadas',
-                        '$realizadas',
-                        Icons.event_available_rounded,
-                        FisioCores.primary,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-
-            // Chips de mês + seletor de visualização
-            SliverToBoxAdapter(
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
-                child: Column(
-                  children: [
-                    SizedBox(
-                      height: 36,
-                      child: ListView(
-                        scrollDirection: Axis.horizontal,
-                        children: [
-                          for (final mes in mesesDisponiveis)
-                            _chipMes(mes),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    _seletorVisualizacao(),
-                    const SizedBox(height: 12),
-                  ],
-                ),
-              ),
-            ),
-
-            // Lista de sessões
-            if (sessoesDoMes.isEmpty)
-              const SliverFillRemaining(
-                hasScrollBody: false,
-                child: _EstadoVazio(),
-              )
-            else if (_visualizacao == VisualizacaoFinanceiro.lista)
-              SliverPadding(
-                padding: const EdgeInsets.fromLTRB(20, 0, 20, 120),
-                sliver: SliverList(
-                  delegate: SliverChildBuilderDelegate(
-                    (context, index) {
-                      final sessao = sessoesDoMes[index];
-                      final nome = mapaPacientes[sessao.idPaciente] ?? 'Paciente não encontrado';
-                      return _construirCardSessao(sessao, nome);
-                    },
-                    childCount: sessoesDoMes.length,
-                  ),
-                ),
-              )
-            else
-              SliverPadding(
-                padding: const EdgeInsets.fromLTRB(20, 0, 20, 120),
-                sliver: SliverList(
-                  delegate: SliverChildBuilderDelegate(
-                    (context, index) {
-                      final grupos = _agruparPorPaciente(sessoesDoMes);
-                      final idsPacientes = grupos.keys.toList()
-                        ..sort((a, b) {
-                          final nomeA = mapaPacientes[a] ?? a;
-                          final nomeB = mapaPacientes[b] ?? b;
-                          return nomeA.compareTo(nomeB);
-                        });
-                      final idPaciente = idsPacientes[index];
-                      final sessoesPaciente = grupos[idPaciente]!;
-                      final nome = mapaPacientes[idPaciente] ?? 'Paciente não encontrado';
-                      final totalPaciente = sessoesPaciente.fold(
-                        0.0,
-                        (soma, a) => soma + a.valorSessao,
-                      );
-
-                      return _GrupoPacienteFinanceiro(
-                        nome: nome,
-                        sessoes: sessoesPaciente,
-                        totalPaciente: totalPaciente,
-                        itemBuilder: (sessao) => _construirCardSessao(sessao, nome),
-                      );
-                    },
-                    childCount: _agruparPorPaciente(sessoesDoMes).length,
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.only(bottom: 110),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              _header(faturado, faturadoAnterior),
+              Transform.translate(
+                offset: const Offset(0, -52),
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(18, 0, 18, 0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      _tiles(previsto, agendadas, realizadas, ticketMedio),
+                      const SizedBox(height: 12),
+                      _cardGrafico(mesesGrafico, faturadoPorMes),
+                      const SizedBox(height: 16),
+                      _seletorVisualizacao(),
+                      const SizedBox(height: 14),
+                      if (sessoesDoMes.isEmpty)
+                        const _EstadoVazio()
+                      else if (_visualizacao == VisualizacaoFinanceiro.lista)
+                        ...sessoesDoMes.map((s) => _cardSessao(
+                              s,
+                              mapaPacientes[s.idPaciente] ?? 'Paciente',
+                            ))
+                      else
+                        ..._gruposPorPaciente(sessoesDoMes, mapaPacientes),
+                    ],
                   ),
                 ),
               ),
-          ],
+            ],
+          ),
         ),
       ),
     );
   }
 
-  Widget _seletorVisualizacao() {
+  // --------- header ---------
+
+  Widget _header(double faturado, double faturadoAnterior) {
     return Container(
-      padding: const EdgeInsets.all(4),
-      decoration: BoxDecoration(
-        color: const Color(0xFFF1F5F9),
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: const Color(0xFFE2E8F0)),
+      padding: const EdgeInsets.fromLTRB(22, 58, 22, 78),
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [Color(0xFF5A7888), FisioCores.primary, Color(0xFF3E5663)],
+          stops: [0.0, 0.46, 1.0],
+        ),
+        borderRadius: BorderRadius.only(
+          bottomLeft: Radius.circular(34),
+          bottomRight: Radius.circular(34),
+        ),
       ),
-      child: Row(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Expanded(
-            child: _botaoVisualizacao('Lista', VisualizacaoFinanceiro.lista),
+          Row(
+            children: [
+              Container(
+                width: 44,
+                height: 44,
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.16),
+                  borderRadius: BorderRadius.circular(14),
+                  border:
+                      Border.all(color: Colors.white.withValues(alpha: 0.22)),
+                ),
+                child: const Icon(Icons.account_balance_wallet_rounded,
+                    color: Color(0xFFEAF1F0), size: 22),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'VISÃO GERAL',
+                      style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w600,
+                        letterSpacing: 1.4,
+                        color: Colors.white.withValues(alpha: 0.66),
+                      ),
+                    ),
+                    const SizedBox(height: 1),
+                    const Text(
+                      'Financeiro',
+                      style: TextStyle(
+                        fontSize: 21,
+                        fontWeight: FontWeight.w800,
+                        color: Colors.white,
+                        letterSpacing: -0.4,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              _navMes(Icons.chevron_left_rounded, () => _mudarMes(-1)),
+              const SizedBox(width: 6),
+              Container(
+                constraints: const BoxConstraints(minWidth: 86),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.16),
+                  borderRadius: BorderRadius.circular(11),
+                  border:
+                      Border.all(color: Colors.white.withValues(alpha: 0.22)),
+                ),
+                child: Text(
+                  UtilitariosData.formatarMesAno(_mesSelecionado),
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w700,
+                    color: Colors.white,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 6),
+              _navMes(Icons.chevron_right_rounded, () => _mudarMes(1)),
+            ],
           ),
-          Expanded(
-            child: _botaoVisualizacao('Por paciente', VisualizacaoFinanceiro.porPaciente),
-          ),
+          const SizedBox(height: 26),
+          _hero(faturado, faturadoAnterior),
         ],
       ),
     );
   }
 
-  Widget _botaoVisualizacao(String label, VisualizacaoFinanceiro visualizacao) {
-    final selecionado = _visualizacao == visualizacao;
-
+  Widget _navMes(IconData icon, VoidCallback onTap) {
     return GestureDetector(
-      onTap: () => setState(() => _visualizacao = visualizacao),
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 160),
-        padding: const EdgeInsets.symmetric(vertical: 9),
+      onTap: onTap,
+      child: Container(
+        width: 34,
+        height: 34,
         decoration: BoxDecoration(
-          color: selecionado ? Colors.white : Colors.transparent,
-          borderRadius: BorderRadius.circular(14),
-          boxShadow: selecionado ? FisioSombras.card : null,
+          color: Colors.white.withValues(alpha: 0.14),
+          borderRadius: BorderRadius.circular(11),
+          border: Border.all(color: Colors.white.withValues(alpha: 0.18)),
+        ),
+        child: Icon(icon, color: Colors.white, size: 22),
+      ),
+    );
+  }
+
+  Widget _hero(double faturado, double faturadoAnterior) {
+    Widget delta;
+    if (faturadoAnterior > 0) {
+      final pct = ((faturado - faturadoAnterior) / faturadoAnterior) * 100;
+      final up = pct >= 0;
+      delta = Container(
+        padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 3),
+        decoration: BoxDecoration(
+          color: (up ? FisioCores.secondary : FisioCores.danger)
+              .withValues(alpha: 0.30),
+          borderRadius: BorderRadius.circular(999),
         ),
         child: Text(
-          label,
-          textAlign: TextAlign.center,
+          '${up ? '↑' : '↓'} ${pct.abs().toStringAsFixed(0)}% vs mês anterior',
           style: TextStyle(
-            color: selecionado ? FisioCores.primary : FisioCores.textSecondary,
-            fontWeight: FontWeight.w800,
             fontSize: 12,
+            fontWeight: FontWeight.w700,
+            color: up ? const Color(0xFFC8EBDD) : const Color(0xFFF4CDD0),
           ),
         ),
-      ),
-    );
-  }
-
-  Map<String, List<Agendamento>> _agruparPorPaciente(List<Agendamento> sessoes) {
-    final grupos = <String, List<Agendamento>>{};
-    for (final sessao in sessoes) {
-      grupos.putIfAbsent(sessao.idPaciente, () => []).add(sessao);
-    }
-    return grupos;
-  }
-
-  List<DateTime> _extrairMeses(List<Agendamento> agendamentos) {
-    final meses = <String, DateTime>{};
-    for (final a in agendamentos) {
-      final chave = '${a.data.year}-${a.data.month}';
-      meses.putIfAbsent(chave, () => DateTime(a.data.year, a.data.month));
-    }
-    final lista = meses.values.toList()..sort((a, b) => b.compareTo(a));
-    return lista;
-  }
-
-  Widget _chipMes(DateTime mes) {
-    final selecionado = UtilitariosData.mesmoMesAno(mes, _mesSelecionado);
-    return Padding(
-      padding: const EdgeInsets.only(right: 8),
-      child: GestureDetector(
-        onTap: () => setState(() => _mesSelecionado = mes),
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 160),
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
-          decoration: BoxDecoration(
-            color: selecionado ? FisioCores.primary : const Color(0xFFF1F5F9),
-            borderRadius: BorderRadius.circular(20),
-            border: Border.all(
-              color: selecionado ? FisioCores.primary : const Color(0xFFE2E8F0),
-            ),
-          ),
-          child: Text(
-            UtilitariosData.formatarMesAno(mes),
+      );
+    } else {
+      delta = Container(
+        padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 3),
+        decoration: BoxDecoration(
+          color: Colors.white.withValues(alpha: 0.16),
+          borderRadius: BorderRadius.circular(999),
+        ),
+        child: const Text('novo período',
             style: TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.bold,
-              color: selecionado ? Colors.white : FisioCores.textSecondary,
-            ),
-          ),
+                fontSize: 12,
+                fontWeight: FontWeight.w700,
+                color: Color(0xFFEAF1F0))),
+      );
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Text('Faturado no mês',
+                style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.white.withValues(alpha: 0.72))),
+            const SizedBox(width: 10),
+            Flexible(child: delta),
+          ],
         ),
-      ),
+        const SizedBox(height: 4),
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.baseline,
+          textBaseline: TextBaseline.alphabetic,
+          children: [
+            Text('R\$ ',
+                style: TextStyle(
+                    fontSize: 22,
+                    fontWeight: FontWeight.w700,
+                    color: Colors.white.withValues(alpha: 0.82))),
+            Text(
+              _formatarNumero(faturado),
+              style: const TextStyle(
+                fontSize: 44,
+                fontWeight: FontWeight.w800,
+                color: Colors.white,
+                letterSpacing: -1.2,
+                height: 1,
+                fontFeatures: [FontFeature.tabularFigures()],
+              ),
+            ),
+          ],
+        ),
+      ],
     );
   }
 
-  Widget _construirCardResumo(
-    String titulo,
-    String valor,
-    IconData icone,
-    Color cor,
-  ) {
+  // --------- tiles ---------
+
+  Widget _tiles(
+      double previsto, int agendadas, int realizadas, double ticket) {
+    return Row(
+      children: [
+        Expanded(
+          child: _tile(
+            icone: Icons.schedule_rounded,
+            cor: FisioCores.info,
+            titulo: 'Previsto',
+            valor: _formatarValor(previsto),
+            sub: '$agendadas sessões agendadas',
+          ),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: _tile(
+            icone: Icons.check_rounded,
+            cor: FisioCores.success,
+            titulo: 'Realizadas',
+            valor: '$realizadas',
+            sub: 'ticket médio ${_formatarValor(ticket)}',
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _tile({
+    required IconData icone,
+    required Color cor,
+    required String titulo,
+    required String valor,
+    required String sub,
+  }) {
     return Container(
-      padding: const EdgeInsets.all(14),
-      decoration: FisioDecoracoes.card(),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: FisioCores.card,
+        borderRadius: BorderRadius.circular(22),
+        border: Border.all(color: const Color(0xFFE8EEF2)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.05),
+            blurRadius: 24,
+            offset: const Offset(0, 12),
+          ),
+        ],
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Container(
-            width: 36,
-            height: 36,
-            decoration: FisioDecoracoes.tinted(cor, radius: 12),
-            child: Icon(icone, color: cor, size: 18),
+          Row(
+            children: [
+              Container(
+                width: 30,
+                height: 30,
+                decoration: BoxDecoration(
+                  color: cor.withValues(alpha: 0.13),
+                  borderRadius: BorderRadius.circular(9),
+                ),
+                child: Icon(icone, color: cor, size: 17),
+              ),
+              const SizedBox(width: 8),
+              Text(titulo,
+                  style: const TextStyle(
+                      fontSize: 12.5,
+                      fontWeight: FontWeight.w600,
+                      color: FisioCores.textSecondary)),
+            ],
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 11),
           FittedBox(
             fit: BoxFit.scaleDown,
             alignment: Alignment.centerLeft,
             child: Text(
               valor,
               style: const TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
+                fontSize: 23,
+                fontWeight: FontWeight.w800,
                 color: FisioCores.textPrimary,
+                letterSpacing: -0.5,
+                fontFeatures: [FontFeature.tabularFigures()],
               ),
             ),
           ),
           const SizedBox(height: 2),
-          Text(
-            titulo,
-            style: const TextStyle(
-              fontSize: 11,
-              color: FisioCores.textSecondary,
+          Text(sub,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(
+                  fontSize: 11.5,
+                  fontWeight: FontWeight.w500,
+                  color: FisioCores.textMuted)),
+        ],
+      ),
+    );
+  }
+
+  // --------- gráfico ---------
+
+  Widget _cardGrafico(
+      List<DateTime> meses, Map<DateTime, double> faturadoPorMes) {
+    final valores = meses.map((m) => faturadoPorMes[m] ?? 0).toList();
+    final maxV = valores.fold<double>(0, (a, b) => b > a ? b : a);
+    final media = valores.isEmpty
+        ? 0.0
+        : valores.fold<double>(0, (a, b) => a + b) / valores.length;
+    const alturaArea = 150.0;
+    const alturaMaxBarra = 96.0;
+
+    return Container(
+      padding: const EdgeInsets.fromLTRB(18, 18, 18, 14),
+      decoration: BoxDecoration(
+        color: FisioCores.card,
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: const Color(0xFFE8EEF2)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.05),
+            blurRadius: 28,
+            offset: const Offset(0, 14),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('Faturamento por mês',
+                      style: TextStyle(
+                          fontSize: 14.5,
+                          fontWeight: FontWeight.w800,
+                          color: FisioCores.textPrimary)),
+                  SizedBox(height: 1),
+                  Text('Últimos 6 meses',
+                      style: TextStyle(
+                          fontSize: 11.5,
+                          fontWeight: FontWeight.w500,
+                          color: FisioCores.textMuted)),
+                ],
+              ),
+              Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                decoration: BoxDecoration(
+                  color: FisioCores.secondary.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(999),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      width: 7,
+                      height: 7,
+                      decoration: const BoxDecoration(
+                          color: FisioCores.secondary,
+                          shape: BoxShape.circle),
+                    ),
+                    const SizedBox(width: 5),
+                    Text('média ${_formatarValor(media)}',
+                        style: const TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w700,
+                            color: FisioCores.primary)),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 18),
+          SizedBox(
+            height: alturaArea,
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                for (var i = 0; i < meses.length; i++)
+                  Expanded(
+                    child: _barra(
+                      mes: meses[i],
+                      valor: faturadoPorMes[meses[i]] ?? 0,
+                      altura: maxV > 0
+                          ? (((faturadoPorMes[meses[i]] ?? 0) / maxV) *
+                                  alturaMaxBarra)
+                              .clamp(8.0, alturaMaxBarra)
+                          : 8.0,
+                      selecionado: UtilitariosData.mesmoMesAno(
+                          meses[i], _mesSelecionado),
+                    ),
+                  ),
+              ],
             ),
           ),
         ],
@@ -364,50 +523,188 @@ class _TelaFinanceiroState extends ConsumerState<TelaFinanceiro> {
     );
   }
 
-  Widget _construirCardSessao(Agendamento sessao, String nomePaciente) {
+  Widget _barra({
+    required DateTime mes,
+    required double valor,
+    required double altura,
+    required bool selecionado,
+  }) {
+    return GestureDetector(
+      onTap: () =>
+          setState(() => _mesSelecionado = DateTime(mes.year, mes.month)),
+      behavior: HitTestBehavior.opaque,
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.end,
+        children: [
+          Text(
+            _formatarCurto(valor),
+            style: TextStyle(
+              fontSize: 10.5,
+              fontWeight: FontWeight.w700,
+              color:
+                  selecionado ? FisioCores.primary : const Color(0xFFB6C2CC),
+              fontFeatures: const [FontFeature.tabularFigures()],
+            ),
+          ),
+          const SizedBox(height: 8),
+          AnimatedContainer(
+            duration: const Duration(milliseconds: 320),
+            curve: Curves.easeOutCubic,
+            width: 24,
+            height: altura,
+            decoration: BoxDecoration(
+              gradient: selecionado
+                  ? const LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [FisioCores.secondary, Color(0xFF5E9D8B)],
+                    )
+                  : null,
+              color: selecionado ? null : const Color(0xFFDDE6EC),
+              borderRadius: const BorderRadius.vertical(
+                top: Radius.circular(9),
+                bottom: Radius.circular(5),
+              ),
+              boxShadow: selecionado
+                  ? [
+                      BoxShadow(
+                        color: FisioCores.secondary.withValues(alpha: 0.5),
+                        blurRadius: 14,
+                        offset: const Offset(0, 8),
+                      ),
+                    ]
+                  : null,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            UtilitariosData.formatarMesAno(mes).split(' ').first,
+            style: TextStyle(
+              fontSize: 11,
+              fontWeight: FontWeight.w700,
+              color: selecionado
+                  ? FisioCores.primary
+                  : FisioCores.textSecondary,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // --------- seletor ---------
+
+  Widget _seletorVisualizacao() {
+    return Container(
+      padding: const EdgeInsets.all(5),
+      decoration: BoxDecoration(
+        color: const Color(0xFFE8EEF2),
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Row(
+        children: [
+          Expanded(child: _botaoSeletor('Lista', VisualizacaoFinanceiro.lista)),
+          Expanded(
+              child: _botaoSeletor(
+                  'Por paciente', VisualizacaoFinanceiro.porPaciente)),
+        ],
+      ),
+    );
+  }
+
+  Widget _botaoSeletor(String label, VisualizacaoFinanceiro v) {
+    final sel = _visualizacao == v;
+    return GestureDetector(
+      onTap: () => setState(() => _visualizacao = v),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 160),
+        padding: const EdgeInsets.symmetric(vertical: 10),
+        decoration: BoxDecoration(
+          color: sel ? FisioCores.card : Colors.transparent,
+          borderRadius: BorderRadius.circular(12),
+          boxShadow: sel
+              ? [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.10),
+                    blurRadius: 10,
+                    offset: const Offset(0, 4),
+                  ),
+                ]
+              : null,
+        ),
+        child: Text(
+          label,
+          textAlign: TextAlign.center,
+          style: TextStyle(
+            fontSize: 13,
+            fontWeight: FontWeight.w700,
+            color: sel ? FisioCores.primary : FisioCores.textSecondary,
+          ),
+        ),
+      ),
+    );
+  }
+
+  // --------- cards de sessão ---------
+
+  Widget _cardSessao(Agendamento sessao, String nome) {
     final cor = sessao.foiRealizado ? FisioCores.success : FisioCores.info;
     final status = sessao.foiRealizado ? 'Realizado' : 'Agendado';
+    final corAvatar = fisioAvatarColor(nome);
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 10),
       child: Container(
-        padding: const EdgeInsets.all(16),
-        decoration: FisioDecoracoes.card(),
+        padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
+        decoration: BoxDecoration(
+          color: FisioCores.card,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: const Color(0xFFEBF0F3)),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.04),
+              blurRadius: 16,
+              offset: const Offset(0, 8),
+            ),
+          ],
+        ),
         child: Row(
           children: [
-            CircleAvatar(
-              radius: 20,
-              backgroundColor: fisioAvatarColor(nomePaciente).withValues(alpha: 0.15),
+            Container(
+              width: 44,
+              height: 44,
+              decoration: BoxDecoration(
+                color: corAvatar.withValues(alpha: 0.13),
+                borderRadius: BorderRadius.circular(14),
+              ),
+              alignment: Alignment.center,
               child: Text(
-                fisioIniciais(nomePaciente),
+                fisioIniciais(nome),
                 style: TextStyle(
-                  color: fisioAvatarColor(nomePaciente),
-                  fontWeight: FontWeight.bold,
-                  fontSize: 13,
-                ),
+                    color: corAvatar,
+                    fontWeight: FontWeight.w800,
+                    fontSize: 14),
               ),
             ),
-            const SizedBox(width: 12),
+            const SizedBox(width: 13),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    nomePaciente,
-                    style: const TextStyle(
-                      fontWeight: FontWeight.w600,
-                      color: FisioCores.textPrimary,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
+                  Text(nome,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                          fontSize: 14.5,
+                          fontWeight: FontWeight.w700,
+                          color: FisioCores.textPrimary)),
                   const SizedBox(height: 2),
                   Text(
-                    '${UtilitariosData.formatarDataBr(sessao.data)} • ${sessao.horaInicio}',
+                    '${UtilitariosData.formatarDataBr(sessao.data)} · ${sessao.horaInicio}',
                     style: const TextStyle(
-                      fontSize: 12,
-                      color: FisioCores.textSecondary,
-                    ),
+                        fontSize: 12,
+                        fontWeight: FontWeight.w500,
+                        color: FisioCores.textMuted),
                   ),
                 ],
               ),
@@ -417,13 +714,39 @@ class _TelaFinanceiroState extends ConsumerState<TelaFinanceiro> {
               children: [
                 Text(
                   _formatarValor(sessao.valorSessao),
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    color: cor,
+                  style: const TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w800,
+                    color: FisioCores.textPrimary,
+                    fontFeatures: [FontFeature.tabularFigures()],
                   ),
                 ),
-                const SizedBox(height: 4),
-                FisioBadge(label: status, color: cor),
+                const SizedBox(height: 5),
+                Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 9, vertical: 3),
+                  decoration: BoxDecoration(
+                    color: cor.withValues(alpha: 0.12),
+                    borderRadius: BorderRadius.circular(999),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Container(
+                        width: 6,
+                        height: 6,
+                        decoration:
+                            BoxDecoration(color: cor, shape: BoxShape.circle),
+                      ),
+                      const SizedBox(width: 5),
+                      Text(status,
+                          style: TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w700,
+                              color: cor)),
+                    ],
+                  ),
+                ),
               ],
             ),
           ],
@@ -432,77 +755,147 @@ class _TelaFinanceiroState extends ConsumerState<TelaFinanceiro> {
     );
   }
 
-  String _formatarValor(double valor) {
-    return 'R\$ ${valor.toStringAsFixed(2).replaceAll('.', ',')}';
-  }
-}
+  // --------- visão por paciente ---------
 
-class _GrupoPacienteFinanceiro extends StatelessWidget {
-  final String nome;
-  final List<Agendamento> sessoes;
-  final double totalPaciente;
-  final Widget Function(Agendamento sessao) itemBuilder;
+  List<Widget> _gruposPorPaciente(
+      List<Agendamento> sessoes, Map<String, String> mapaPacientes) {
+    final grupos = <String, List<Agendamento>>{};
+    for (final s in sessoes) {
+      grupos.putIfAbsent(s.idPaciente, () => []).add(s);
+    }
+    final ids = grupos.keys.toList()
+      ..sort((a, b) => (mapaPacientes[a] ?? a).compareTo(mapaPacientes[b] ?? b));
 
-  const _GrupoPacienteFinanceiro({
-    required this.nome,
-    required this.sessoes,
-    required this.totalPaciente,
-    required this.itemBuilder,
-  });
+    return ids.map((id) {
+      final arr = grupos[id]!;
+      final nome = mapaPacientes[id] ?? 'Paciente';
+      final cor = fisioAvatarColor(nome);
+      final realizadas = arr.where((s) => s.foiRealizado).length;
+      final agendadas = arr.where((s) => s.estaAgendado).length;
+      final total = arr.fold(0.0, (s, a) => s + a.valorSessao);
+      final pct = arr.isEmpty ? 0 : ((realizadas / arr.length) * 100).round();
 
-  @override
-  Widget build(BuildContext context) {
-    final cor = fisioAvatarColor(nome);
-    final realizadas = sessoes.where((s) => s.foiRealizado).length;
-    final agendadas = sessoes.where((s) => s.estaAgendado).length;
-
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
-      child: Material(
-        color: FisioCores.card,
-        borderRadius: BorderRadius.circular(24),
-        elevation: 2,
-        shadowColor: Colors.black.withValues(alpha: 0.08),
-        child: Theme(
-          data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
-          child: ExpansionTile(
-            tilePadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-            childrenPadding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
-            leading: Container(
-              width: 48,
-              height: 48,
-              decoration: BoxDecoration(
-                color: cor.withValues(alpha: 0.14),
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: cor.withValues(alpha: 0.16)),
+      return Padding(
+        padding: const EdgeInsets.only(bottom: 10),
+        child: Container(
+          padding: const EdgeInsets.fromLTRB(16, 15, 16, 15),
+          decoration: BoxDecoration(
+            color: FisioCores.card,
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(color: const Color(0xFFEBF0F3)),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.04),
+                blurRadius: 16,
+                offset: const Offset(0, 8),
               ),
-              child: Center(
-                child: Text(
-                  fisioIniciais(nome),
-                  style: TextStyle(
-                    color: cor,
-                    fontWeight: FontWeight.w800,
-                    fontSize: 16,
+            ],
+          ),
+          child: Column(
+            children: [
+              Row(
+                children: [
+                  Container(
+                    width: 46,
+                    height: 46,
+                    decoration: BoxDecoration(
+                      color: cor.withValues(alpha: 0.13),
+                      borderRadius: BorderRadius.circular(15),
+                    ),
+                    alignment: Alignment.center,
+                    child: Text(fisioIniciais(nome),
+                        style: TextStyle(
+                            color: cor,
+                            fontWeight: FontWeight.w800,
+                            fontSize: 15)),
                   ),
-                ),
+                  const SizedBox(width: 13),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(nome,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
+                                fontSize: 14.5,
+                                fontWeight: FontWeight.w700,
+                                color: FisioCores.textPrimary)),
+                        const SizedBox(height: 2),
+                        Text('$realizadas realizadas · $agendadas agendadas',
+                            style: const TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w500,
+                                color: FisioCores.textMuted)),
+                      ],
+                    ),
+                  ),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      Text(
+                        _formatarValor(total),
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w800,
+                          color: FisioCores.primary,
+                          fontFeatures: [FontFeature.tabularFigures()],
+                        ),
+                      ),
+                      const Text('total',
+                          style: TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w600,
+                              color: FisioCores.textMuted)),
+                    ],
+                  ),
+                ],
               ),
-            ),
-            title: Text(
-              nome,
-              style: const TextStyle(
-                color: FisioCores.textPrimary,
-                fontWeight: FontWeight.w800,
+              const SizedBox(height: 13),
+              const Divider(height: 1, color: Color(0xFFEEF2F5)),
+              const SizedBox(height: 11),
+              Row(
+                children: [
+                  Expanded(
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(999),
+                      child: LinearProgressIndicator(
+                        value: pct / 100,
+                        minHeight: 7,
+                        backgroundColor: const Color(0xFFEEF2F5),
+                        valueColor: const AlwaysStoppedAnimation(
+                            FisioCores.success),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Text('$pct% concluído',
+                      style: const TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w700,
+                          color: FisioCores.textSecondary)),
+                ],
               ),
-            ),
-            subtitle: Text(
-              '$realizadas realizadas • $agendadas agendadas • R\$ ${totalPaciente.toStringAsFixed(2).replaceAll('.', ',')}',
-              style: const TextStyle(color: FisioCores.textSecondary, fontSize: 12),
-            ),
-            children: [for (final sessao in sessoes) itemBuilder(sessao)],
+            ],
           ),
         ),
-      ),
-    );
+      );
+    }).toList();
+  }
+
+  // --------- formatação ---------
+
+  String _formatarValor(double valor) =>
+      'R\$ ${valor.toStringAsFixed(2).replaceAll('.', ',')}';
+
+  String _formatarNumero(double valor) =>
+      valor.toStringAsFixed(2).replaceAll('.', ',');
+
+  String _formatarCurto(double valor) {
+    if (valor >= 1000) {
+      return '${(valor / 1000).toStringAsFixed(1).replaceAll('.', ',')}k';
+    }
+    return valor.toStringAsFixed(0);
   }
 }
 
@@ -511,27 +904,22 @@ class _EstadoVazio extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(32),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              Icons.account_balance_wallet_outlined,
-              size: 72,
-              color: Colors.grey.shade300,
-            ),
-            const SizedBox(height: 16),
-            Text(
-              'Nenhuma sessão neste mês.',
-              textAlign: TextAlign.center,
-              style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                color: FisioCores.textSecondary,
-              ),
-            ),
-          ],
-        ),
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 56),
+      child: Column(
+        children: [
+          Icon(Icons.account_balance_wallet_outlined,
+              size: 64, color: Colors.grey.shade300),
+          const SizedBox(height: 14),
+          const Text(
+            'Nenhuma sessão neste mês.',
+            textAlign: TextAlign.center,
+            style: TextStyle(
+                fontSize: 15,
+                fontWeight: FontWeight.w500,
+                color: FisioCores.textSecondary),
+          ),
+        ],
       ),
     );
   }

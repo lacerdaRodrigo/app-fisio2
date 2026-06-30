@@ -2,7 +2,6 @@ import 'package:fisio_home_care/modelos/agendamento.dart';
 import 'package:fisio_home_care/modelos/paciente.dart';
 import 'package:fisio_home_care/provedores/provedores_dados.dart';
 import 'package:fisio_home_care/telas/tela_financeiro.dart';
-import 'package:fisio_home_care/utilitarios/utilitarios_data.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -103,12 +102,12 @@ void main() {
         ],
       );
 
-      expect(find.text('Faturado'), findsOneWidget);
+      expect(find.text('Faturado no mês'), findsOneWidget);
       expect(find.text('Previsto'), findsOneWidget);
       expect(find.text('Realizadas'), findsOneWidget);
-      // Faturado = 350, aparece só no card de resumo (não na lista)
-      expect(find.text('R\$ 350,00'), findsOneWidget);
-      // Previsto = 100, aparece no card resumo + no card da sessão agendada
+      // Faturado = 350 — hero exibe número e "R$ " como widgets separados
+      expect(find.text('350,00'), findsOneWidget);
+      // Previsto = 100, aparece no tile + no card da sessão agendada
       expect(find.text('R\$ 100,00'), findsWidgets);
       expect(find.text('2'), findsOneWidget); // realizadas
     });
@@ -123,15 +122,14 @@ void main() {
         ],
       );
 
-      // Mês atual: faturado R$ 200 (no card resumo + no card da sessão)
+      // Mês atual: faturado R$ 200 aparece no card da sessão
       expect(find.text('R\$ 200,00'), findsWidgets);
 
-      // Trocar para chip do mês anterior
-      final mesAnteriorLabel = UtilitariosData.formatarMesAno(mesAnterior);
-      await tester.tap(find.text(mesAnteriorLabel));
+      // Trocar para o mês anterior via chevron esquerdo
+      await tester.tap(find.byIcon(Icons.chevron_left_rounded));
       await tester.pumpAndSettle();
 
-      // Agora R$ 300 aparece (mês anterior)
+      // Agora R$ 300 aparece no card da sessão (mês anterior)
       expect(find.text('R\$ 300,00'), findsWidgets);
     });
 
@@ -189,7 +187,7 @@ void main() {
       );
 
       expect(find.text('3'), findsOneWidget); // 3 realizadas
-      expect(find.text('R\$ 300,00'), findsOneWidget); // faturado
+      expect(find.text('300,00'), findsOneWidget); // faturado no hero (sem prefixo R$)
       expect(find.text('Realizadas'), findsOneWidget); // label do card
     });
 
