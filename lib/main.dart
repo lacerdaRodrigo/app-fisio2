@@ -158,7 +158,7 @@ class FisioHomeCareApp extends StatelessWidget {
             borderRadius: BorderRadius.circular(FisioRaios.base),
           ),
         ),
-        bottomSheetTheme: BottomSheetThemeData(
+        bottomSheetTheme: const BottomSheetThemeData(
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.vertical(top: Radius.circular(FisioRaios.lg)),
           ),

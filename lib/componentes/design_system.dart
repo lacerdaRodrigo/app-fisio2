@@ -147,7 +147,7 @@ class FisioPageHeader extends StatelessWidget {
       padding: const EdgeInsets.fromLTRB(20, 48, 20, 18),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.only(
+        borderRadius: const BorderRadius.only(
           bottomLeft: Radius.circular(FisioRaios.lg),
           bottomRight: Radius.circular(FisioRaios.lg),
         ),

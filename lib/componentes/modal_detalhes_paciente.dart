@@ -14,7 +14,7 @@ void mostrarModalDetalhesPaciente(BuildContext context, Paciente paciente) {
     context: context,
     isScrollControlled: true,
     showDragHandle: true,
-    shape: RoundedRectangleBorder(
+    shape: const RoundedRectangleBorder(
       borderRadius: BorderRadius.vertical(top: Radius.circular(FisioRaios.lg)),
     ),
     backgroundColor: Colors.transparent,
@@ -35,7 +35,7 @@ void mostrarModalDetalhesPaciente(BuildContext context, Paciente paciente) {
                       padding: const EdgeInsets.fromLTRB(18, 10, 18, 18),
                       decoration: BoxDecoration(
                         color: Colors.white,
-                        borderRadius: BorderRadius.vertical(
+                        borderRadius: const BorderRadius.vertical(
                           top: Radius.circular(FisioRaios.lg),
                         ),
                         border: Border.all(color: FisioCores.border),

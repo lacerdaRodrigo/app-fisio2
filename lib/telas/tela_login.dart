@@ -115,7 +115,7 @@ class TelaLogin extends ConsumerWidget {
                                   value: estadoAuth.termosAceitos,
                                   activeColor: FisioCores.primary,
                                   checkColor: Colors.white,
-                                  side: BorderSide(
+                                  side: const BorderSide(
                                     color: FisioCores.textMuted,
                                   ),
                                   onChanged: (value) {
