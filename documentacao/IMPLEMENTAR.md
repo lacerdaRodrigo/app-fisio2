@@ -1,6 +1,6 @@
 # Plano de Implementação — Fisio Home Care
 
-Status atual do projeto: **MVP funcional completo + Revisão de Qualidade Implementada** (commit 3ea292c, 2026-06-14)  
+Status atual do projeto: **MVP funcional completo + Edição de Paciente + 248 testes automatizados** (atualizado em 2026-06-29)  
 Base: Flutter + Riverpod + Google Sheets API + Google Sign-In
 
 ---
@@ -15,8 +15,8 @@ Base: Flutter + Riverpod + Google Sheets API + Google Sign-In
 | **Documentação** | 8/10 | ✅ `CLAUDE.md`, `CHANGELOG.md` unificado, `README.md` claro. Falta: LGPD/Privacidade formal, fluxos de erro |
 | **Funcionalidades** | 8/10 | ✅ Pacientes (CRUD completo com edição), agendamentos, evoluções, login. Falta: edição de sessão, relatórios, backup automático |
 | **Arquitetura** | 8/10 | ✅ Riverpod bem estruturado, schema versioning, separação clara. Falta: algumas duplicações residuais em seletores |
-| **Qualidade de Código** | 8.5/10 | ✅ Lint rigoroso, 0 erros, 165 testes, sem código morto. Falta: documentação de métodos complexos |
-| **Testes** | 8/10 | ✅ 248 testes (unitários + widgets, 10 telas cobertas). Falta: integração Sheets, performance/carga |
+| **Qualidade de Código** | 8.5/10 | ✅ Lint rigoroso, 0 erros, 248 testes, sem código morto. Falta: documentação de métodos complexos |
+| **Testes** | 8.5/10 | ✅ 248 testes (102 unitários + 143 widgets, 10 telas com 100% de cobertura). Falta: integração Sheets, performance/carga |
 | **DevOps/Deploy** | 8/10 | ✅ CI/CD GitHub Actions (deploy preview + prod), Makefile com targets. Falta: testes de integração no pipeline |
 
 ### O que foi corrigido nesta sessão (2026-06-14)
@@ -121,9 +121,9 @@ Base: Flutter + Riverpod + Google Sheets API + Google Sign-In
 - Exportar financeiro
 
 ### 9. Testes
-- Testes de widget para as telas principais
-- Testes de integração para o fluxo Sheets API
-- Testes para `servico_autenticacao_google.dart`
+- [x] Testes de widget para as telas principais — **248 testes, 10 telas com 100% de cobertura** (implementado em 2026-06-18)
+- [ ] Testes de integração para o fluxo Sheets API
+- [ ] Testes para `servico_autenticacao_google.dart`
 
 ### 10. Tratamento de erro e retry
 - Retry automático em falhas da API Google
