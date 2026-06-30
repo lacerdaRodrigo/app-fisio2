@@ -34,7 +34,7 @@ Base: Flutter + Riverpod + Google Sheets API + Google Sign-In
 - Duplicação de popup: centralizado em `lib/utilitarios/acoes_agendamento.dart`
 
 ### Para atingir 9/10
-- [ ] Documentação formal de LGPD/Privacidade
+- [x] Documentação formal de LGPD/Privacidade — implementado em 2026-06-20 (termos.html, privacidade.html, SEGURANCA_E_DADOS.md)
 - [x] CI/CD pipeline (GitHub Actions) — implementado em 2026-06-17
 - [ ] Validação end-to-end Sheets API com fallbacks
 - [ ] Backup automático para Google Drive
