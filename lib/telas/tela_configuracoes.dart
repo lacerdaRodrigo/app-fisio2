@@ -233,9 +233,10 @@ class _TelaConfiguracoesState extends ConsumerState<TelaConfiguracoes> {
                               hintText: '150,00',
                             ),
                             onSubmitted: (v) async {
+                              final messenger = ScaffoldMessenger.of(context);
                               await salvarValorSessaoPadraoReal(ref, v);
                               if (!mounted) return;
-                              ScaffoldMessenger.of(context).showSnackBar(
+                              messenger.showSnackBar(
                                 const SnackBar(
                                     content: Text('Valor padrão salvo!')),
                               );

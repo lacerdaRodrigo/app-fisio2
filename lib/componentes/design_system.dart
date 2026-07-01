@@ -229,7 +229,7 @@ class FisioGradientHeader extends StatelessWidget {
                   ],
                 ),
               ),
-              if (trailing != null) trailing!,
+              ?trailing,
             ],
           ),
           if (bottom != null) ...[const SizedBox(height: 16), bottom!],
@@ -548,7 +548,7 @@ class FisioFilterChips extends StatelessWidget {
       child: ListView.separated(
         scrollDirection: Axis.horizontal,
         itemCount: filtros.length,
-        separatorBuilder: (_, __) => const SizedBox(width: 8),
+        separatorBuilder: (_, _) => const SizedBox(width: 8),
         itemBuilder: (context, i) {
           final sel = i == selecionado;
           return GestureDetector(
@@ -997,7 +997,7 @@ class FisioPageHeader extends StatelessWidget {
               ],
             ),
           ),
-          if (trailing != null) trailing!,
+          ?trailing,
         ],
       ),
     );

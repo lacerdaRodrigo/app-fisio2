@@ -231,11 +231,11 @@ class _TelaLoginState extends ConsumerState<TelaLogin> {
                             color: const Color(0xFFF1F4F8),
                             borderRadius: BorderRadius.circular(12),
                           ),
-                          child: Row(
+                          child: const Row(
                             children: [
-                              const Icon(Icons.lock_outline_rounded,
+                              Icon(Icons.lock_outline_rounded,
                                   size: 15, color: FisioCores.textMuted),
-                              const SizedBox(width: 8),
+                              SizedBox(width: 8),
                               Expanded(
                                 child: Text(
                                     'Seus dados ficam na sua própria planilha Google. Nada é armazenado em nossos servidores.',

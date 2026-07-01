@@ -819,7 +819,7 @@ class _EstadoVazio extends StatelessWidget {
           Icon(Icons.account_balance_wallet_outlined,
               size: 64, color: Colors.grey.shade300),
           const SizedBox(height: 14),
-          Text('Nenhuma sessão neste mês.',
+          const Text('Nenhuma sessão neste mês.',
               textAlign: TextAlign.center,
               style: TextStyle(
                   fontSize: 15,
