@@ -76,8 +76,7 @@ ProviderContainer _criarContainer({
   );
 }
 
-/// Monta a tela numa superfície grande e em formato de 24h (evita scroll e
-/// AM/PM no seletor de horário). Restaura o tamanho ao final.
+/// Monta a tela numa superfície grande e em formato de 24h.
 Future<void> _montar(WidgetTester tester, ProviderContainer container) async {
   addTearDown(container.dispose);
   await tester.binding.setSurfaceSize(const Size(1000, 1800));
@@ -106,32 +105,27 @@ Future<void> _montar(WidgetTester tester, ProviderContainer container) async {
   await tester.pumpAndSettle();
 }
 
+/// Seleciona um paciente via bottom sheet.
 Future<void> _selecionarPaciente(WidgetTester tester, String nome) async {
-  await tester.tap(find.byType(DropdownButtonFormField<String>));
+  await tester.tap(find.text('Selecionar paciente'));
   await tester.pumpAndSettle();
   await tester.tap(find.text(nome).last);
   await tester.pumpAndSettle();
 }
 
-Future<void> _selecionarDataHoje(WidgetTester tester) async {
-  await tester.tap(find.text('Selecionar data'));
-  await tester.pumpAndSettle();
-  await tester.tap(find.text('OK'));
-  await tester.pumpAndSettle();
-}
-
+/// Abre o seletor de hora e confirma (mantém horário atual no picker).
 Future<void> _selecionarHorario(
   WidgetTester tester,
   String hora,
   String minuto,
 ) async {
-  await tester.tap(find.text('Selecionar horário'));
+  // Tap on the time field card (labeled 'Início')
+  await tester.tap(find.text('Início'));
   await tester.pumpAndSettle();
-  // Alterna para o modo de digitação do seletor de horário.
+  // Switch to keyboard input mode
   await tester.tap(find.byIcon(Icons.keyboard_outlined));
   await tester.pumpAndSettle();
-  // Campos de hora/minuto ficam dentro do diálogo — escopar para não pegar
-  // os campos Valor/Observações da tela por trás.
+  // Enter hour and minute inside the dialog
   final campos = find.descendant(
     of: find.byType(Dialog),
     matching: find.byType(TextField),
@@ -151,11 +145,12 @@ void main() {
     ) async {
       await _montar(tester, _criarContainer(pacientes: [_paciente()]));
 
-      expect(find.text('Nova Sessão'), findsOneWidget);
-      expect(find.text('Agende um atendimento domiciliar'), findsOneWidget);
-      expect(find.text('Selecionar data'), findsOneWidget);
-      expect(find.text('Selecionar horário'), findsOneWidget);
-      expect(find.text('Agendar Sessão'), findsOneWidget);
+      expect(find.text('Nova sessão'), findsOneWidget);
+      expect(find.text('Agendar atendimento'), findsOneWidget);
+      // Patient card
+      expect(find.text('Selecionar paciente'), findsOneWidget);
+      // Action button
+      expect(find.text('Agendar sessão'), findsOneWidget);
 
       // O valor é pré-preenchido com o padrão (150,00).
       final valor = tester.widget<TextField>(
@@ -164,7 +159,7 @@ void main() {
       expect(valor.controller?.text, '150,00');
     });
 
-    testWidgets('sem pacientes ativos exibe aviso', (tester) async {
+    testWidgets('sem pacientes ativos exibe aviso no bottom sheet', (tester) async {
       await _montar(
         tester,
         _criarContainer(
@@ -172,8 +167,12 @@ void main() {
         ),
       );
 
+      // Open patient selector bottom sheet
+      await tester.tap(find.text('Selecionar paciente'));
+      await tester.pumpAndSettle();
+
       expect(
-        find.text('Cadastre um paciente ativo antes de criar uma sessão.'),
+        find.text('Nenhum paciente ativo. Cadastre um paciente antes.'),
         findsOneWidget,
       );
     });
@@ -185,43 +184,42 @@ void main() {
     ) async {
       await _montar(tester, _criarContainer(pacientes: [_paciente()]));
 
-      await tester.tap(find.text('Agendar Sessão'));
+      await tester.tap(find.text('Agendar sessão'));
       await tester.pumpAndSettle();
 
       expect(find.text('Selecione um paciente.'), findsOneWidget);
     });
 
-    testWidgets('paciente selecionado sem data/hora não agenda', (
+    testWidgets('paciente selecionado com data futura padrão agenda sem erro', (
       tester,
     ) async {
-      await _montar(
-        tester,
-        _criarContainer(
-          pacientes: [_paciente()],
-          repositorio: FakeRepositorioDadosGoogle(),
-        ),
+      final container = _criarContainer(
+        pacientes: [_paciente()],
+        repositorio: FakeRepositorioDadosGoogle(),
       );
+      await _montar(tester, container);
 
       await _selecionarPaciente(tester, 'João Teste');
 
-      await tester.tap(find.text('Agendar Sessão'));
-      await tester.pumpAndSettle();
+      // Default _data is tomorrow at 09:00 — future, valid
+      await tester.tap(find.text('Agendar sessão'));
+      await tester.pump(); // capture state before pumpAndSettle clears snackbar
 
-      // Não avança: sem snackbar de sucesso, ainda na tela.
-      expect(find.text('Sessão agendada com sucesso!'), findsNothing);
-      expect(find.text('Agendar Sessão'), findsOneWidget);
+      // Agendamento salvo — snackbar de sucesso OR agendamentos atualizado
+      final agendamentos = container.read(provedorListaAgendamentos);
+      expect(agendamentos, hasLength(1));
+      expect(agendamentos.first.idPaciente, 'P001');
     });
   });
 
   group('TelaNovaSessao — seletores e agendamento', () {
-    testWidgets('selecionar data preenche o campo de data', (tester) async {
+    testWidgets('selecionar horário preenche o campo de hora', (tester) async {
       await _montar(tester, _criarContainer(pacientes: [_paciente()]));
 
-      expect(find.text('Selecionar data'), findsOneWidget);
-      await _selecionarDataHoje(tester);
+      expect(find.text('09:00'), findsOneWidget);
+      await _selecionarHorario(tester, '14', '30');
 
-      // O placeholder some quando uma data é escolhida.
-      expect(find.text('Selecionar data'), findsNothing);
+      expect(find.text('14:30'), findsOneWidget);
     });
 
     testWidgets('data/horário retroativo exibe mensagem de erro', (
@@ -236,10 +234,24 @@ void main() {
       );
 
       await _selecionarPaciente(tester, 'João Teste');
-      await _selecionarDataHoje(tester);
-      await _selecionarHorario(tester, '00', '00'); // meia-noite → passado
+      // Select midnight via time picker — combined with today's date, this is past
+      await _selecionarHorario(tester, '00', '00');
 
-      await tester.tap(find.text('Agendar Sessão'));
+      // Tap on date field to open date picker
+      final dataLabel = find.text('Data');
+      await tester.tap(dataLabel);
+      await tester.pumpAndSettle();
+      // Navigate to today in the date picker (it starts on tomorrow)
+      await tester.tap(find.byIcon(Icons.chevron_left));
+      await tester.pumpAndSettle();
+      // Tap today's day number
+      final hoje = DateTime.now().day.toString();
+      await tester.tap(find.text(hoje).last);
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('OK'));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Agendar sessão'));
       await tester.pumpAndSettle();
 
       expect(
@@ -260,7 +272,6 @@ void main() {
       );
       addTearDown(container.dispose);
 
-      // Hospeda a tela numa rota empilhada para o pop ter destino.
       await tester.pumpWidget(
         UncontrolledProviderScope(
           container: container,
@@ -293,21 +304,24 @@ void main() {
       await tester.tap(find.text('abrir'));
       await tester.pumpAndSettle();
 
-      await _selecionarPaciente(tester, 'João Teste');
-      await _selecionarDataHoje(tester);
-      await _selecionarHorario(tester, '23', '59'); // futuro no mesmo dia
+      // Select patient from bottom sheet
+      await tester.tap(find.text('Selecionar paciente'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('João Teste').last);
+      await tester.pumpAndSettle();
 
-      await tester.tap(find.text('Agendar Sessão'));
+      // Default date is tomorrow at 09:00 — valid future date/time
+      await tester.tap(find.text('Agendar sessão'));
       await tester.pumpAndSettle();
 
       // Voltou para a tela anterior e o agendamento foi salvo.
-      expect(find.text('Nova Sessão'), findsNothing);
+      expect(find.text('Nova sessão'), findsNothing);
       expect(find.text('abrir'), findsOneWidget);
 
       final agendamentos = container.read(provedorListaAgendamentos);
       expect(agendamentos, hasLength(1));
       expect(agendamentos.first.idPaciente, 'P001');
-      expect(agendamentos.first.horaInicio, '23:59');
+      expect(agendamentos.first.horaInicio, '09:00');
     });
 
     testWidgets('falha ao salvar exibe snackbar de erro', (tester) async {
@@ -320,10 +334,8 @@ void main() {
       );
 
       await _selecionarPaciente(tester, 'João Teste');
-      await _selecionarDataHoje(tester);
-      await _selecionarHorario(tester, '23', '59');
 
-      await tester.tap(find.text('Agendar Sessão'));
+      await tester.tap(find.text('Agendar sessão'));
       await tester.pumpAndSettle();
 
       expect(
@@ -369,13 +381,13 @@ void main() {
 
       await tester.tap(find.text('abrir'));
       await tester.pumpAndSettle();
-      expect(find.text('Nova Sessão'), findsOneWidget);
+      expect(find.text('Nova sessão'), findsOneWidget);
 
       await tester.tap(find.byKey(const Key('btn_fechar')));
       await tester.pumpAndSettle();
 
       // Voltou para a tela anterior.
-      expect(find.text('Nova Sessão'), findsNothing);
+      expect(find.text('Nova sessão'), findsNothing);
       expect(find.text('abrir'), findsOneWidget);
     });
   });

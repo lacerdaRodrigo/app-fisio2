@@ -120,10 +120,13 @@ class _TelaRegistroEvolucaoState extends ConsumerState<TelaRegistroEvolucao> {
     return Scaffold(
       body: Column(
         children: [
-          FisioPageHeader(
-            title: _editando ? 'Editar Evolução' : 'Registrar Evolução',
-            subtitle: widget.paciente.nome,
-            onBack: () => Navigator.pop(context),
+          FisioGradientHeader(
+            padding: const EdgeInsets.fromLTRB(18, 50, 18, 22),
+            titulo: _editando ? 'Editar Evolução' : 'Registrar Evolução',
+            subtitulo: widget.paciente.nome,
+            leading: FisioHeaderIconButton(Icons.chevron_left_rounded,
+                key: const Key('btn_fechar'),
+                onTap: () => Navigator.pop(context)),
           ),
           Expanded(
             child: Form(

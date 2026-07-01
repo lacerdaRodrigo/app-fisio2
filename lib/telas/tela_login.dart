@@ -1,380 +1,280 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:url_launcher/url_launcher.dart';
 import '../componentes/design_system.dart';
 import '../provedores/provedor_autenticacao.dart';
 import 'tela_dashboard.dart';
 
-final _urlTermos = Uri.parse('https://app-fisio-care-2.web.app/termos.html');
-final _urlPrivacidade = Uri.parse(
-  'https://app-fisio-care-2.web.app/privacidade.html',
-);
-
-class TelaLogin extends ConsumerWidget {
+class TelaLogin extends ConsumerStatefulWidget {
   const TelaLogin({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final estadoAuth = ref.watch(provedorAutenticacao);
-    final theme = Theme.of(context);
+  ConsumerState<TelaLogin> createState() => _TelaLoginState();
+}
 
-    ref.listen(provedorAutenticacao, (anterior, proximo) {
-      if ((anterior?.estaAutenticado ?? false) || !proximo.estaAutenticado) {
-        return;
-      }
+class _TelaLoginState extends ConsumerState<TelaLogin> {
+  bool _carregando = false;
 
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (!context.mounted) {
-          return;
-        }
-
-        if (proximo.sessao != null) {
-          Navigator.of(context).pushReplacement(
-            MaterialPageRoute(
-              builder: (_) => TelaDashboard(
-                nomeUsuario: proximo.sessao?.nomeUsuario ?? 'Profissional',
-              ),
-            ),
-          );
-        }
-      });
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _ouvirEstadoAutenticacao();
     });
+  }
+
+  void _ouvirEstadoAutenticacao() {
+    ref.listenManual(provedorAutenticacao, (anterior, proximo) {
+      if (proximo.estaAutenticado && mounted) {
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(
+            builder: (_) => TelaDashboard(
+              nomeUsuario: proximo.sessao?.nomeUsuario ?? 'Profissional',
+            ),
+          ),
+        );
+      }
+      if (proximo.mensagemErro != null && mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(proximo.mensagemErro!)),
+        );
+      }
+    });
+  }
+
+  Future<void> _entrar() async {
+    final auth = ref.read(provedorAutenticacao);
+    if (!auth.termosAceitos) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+            content: Text('Aceite os Termos de Uso e LGPD para continuar.')),
+      );
+      return;
+    }
+    setState(() => _carregando = true);
+    try {
+      await ref.read(provedorAutenticacao.notifier).entrarComGoogle();
+    } finally {
+      if (mounted) setState(() => _carregando = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final termosAceitos = ref.watch(provedorAutenticacao).termosAceitos;
 
     return Scaffold(
       body: Container(
-        color: FisioCores.primary,
-        child: SafeArea(
-          child: Center(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.all(FisioEspacamentos.xl),
-              child: FisioResponsiveCenter(
-                maxWidth: 420,
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    Center(
-                      child: Container(
-                        width: 100,
-                        height: 100,
-                        decoration: FisioDecoracoes.tinted(
-                          Colors.white,
-                          radius: FisioRaios.xl,
-                        ),
-                        child: const Icon(
-                          Icons.medical_services_rounded,
-                          size: 48,
+        decoration: const BoxDecoration(gradient: FisioGradients.header),
+        child: Stack(
+          children: [
+            Align(
+              alignment: const Alignment(0, -0.45),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    width: 74,
+                    height: 74,
+                    decoration: BoxDecoration(
+                      color: Colors.white.withValues(alpha: 0.18),
+                      borderRadius: BorderRadius.circular(24),
+                      border: Border.all(
+                          color: Colors.white.withValues(alpha: 0.3)),
+                    ),
+                    child: const Icon(Icons.favorite_rounded,
+                        color: Colors.white, size: 38),
+                  ),
+                  const SizedBox(height: 22),
+                  const Text('Fisio Home Care',
+                      style: TextStyle(
+                          fontSize: 28,
+                          fontWeight: FontWeight.w800,
                           color: Colors.white,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: FisioEspacamentos.xl),
-
-                    Text.rich(
-                      TextSpan(
-                        text: 'Fisio',
-                        style: theme.textTheme.headlineMedium?.copyWith(
-                          color: Colors.white,
-                          fontWeight: FontWeight.w700,
-                        ),
-                        children: [
-                          TextSpan(
-                            text: 'Care',
-                            style: theme.textTheme.headlineMedium?.copyWith(
-                              color: FisioCores.secondary,
-                              fontWeight: FontWeight.w700,
-                            ),
-                          ),
-                        ],
-                      ),
+                          letterSpacing: -0.6)),
+                  const SizedBox(height: 6),
+                  Text('Gestão de atendimentos\ndomiciliares de fisioterapia',
                       textAlign: TextAlign.center,
-                    ),
-                    const SizedBox(height: FisioEspacamentos.sm),
-                    Text(
-                      'Gestão inteligente para sua rotina domiciliar.',
-                      textAlign: TextAlign.center,
-                      style: theme.textTheme.bodyLarge?.copyWith(
-                        color: Colors.white.withValues(alpha: 0.8),
-                      ),
-                    ),
-                    const SizedBox(height: FisioEspacamentos.xxxl),
-
-                    FisioCard(
-                      radius: FisioRaios.lg,
-                      padding: const EdgeInsets.all(FisioEspacamentos.xl),
-                      child: Column(
-                        children: [
-                          Row(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              SizedBox(
-                                width: 24,
-                                height: 24,
-                                child: Checkbox(
-                                  value: estadoAuth.termosAceitos,
-                                  activeColor: FisioCores.primary,
-                                  checkColor: Colors.white,
-                                  side: const BorderSide(
-                                    color: FisioCores.textMuted,
-                                  ),
-                                  onChanged: (value) {
-                                    ref
-                                        .read(provedorAutenticacao.notifier)
-                                        .aceitarTermos(value ?? false);
-                                  },
-                                ),
-                              ),
-                              const SizedBox(width: FisioEspacamentos.md),
-                              Expanded(
-                                child: Wrap(
-                                  crossAxisAlignment:
-                                      WrapCrossAlignment.center,
-                                  children: [
-                                    Text(
-                                      'Declaro que li e estou de acordo com os ',
-                                      style: theme.textTheme.bodyMedium
-                                          ?.copyWith(
-                                            color: FisioCores.textPrimary,
-                                          ),
-                                    ),
-                                    _LinkLegal(
-                                      texto: 'Termos de Uso',
-                                      url: _urlTermos,
-                                    ),
-                                    Text(
-                                      ' e a ',
-                                      style: theme.textTheme.bodyMedium
-                                          ?.copyWith(
-                                            color: FisioCores.textPrimary,
-                                          ),
-                                    ),
-                                    _LinkLegal(
-                                      texto:
-                                          'Política de Privacidade (LGPD)',
-                                      url: _urlPrivacidade,
-                                    ),
-                                    Text(
-                                      '.',
-                                      style: theme.textTheme.bodyMedium
-                                          ?.copyWith(
-                                            color: FisioCores.textPrimary,
-                                          ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ],
-                          ),
-
-                          if (estadoAuth.mensagemErro != null) ...[
-                            const SizedBox(height: FisioEspacamentos.base),
-                            Container(
-                              padding: const EdgeInsets.all(FisioEspacamentos.md),
+                      style: TextStyle(
+                          fontSize: 14,
+                          height: 1.5,
+                          fontWeight: FontWeight.w500,
+                          color: Colors.white.withValues(alpha: 0.82))),
+                ],
+              ),
+            ),
+            Align(
+              alignment: Alignment.bottomCenter,
+              child: Container(
+                width: double.infinity,
+                decoration: const BoxDecoration(
+                  color: FisioCores.card,
+                  borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
+                ),
+                child: SafeArea(
+                  top: false,
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(22, 26, 22, 26),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        GestureDetector(
+                          key: const Key('btn_entrar_google'),
+                          onTap: _entrar,
+                          child: Opacity(
+                            opacity: termosAceitos ? 1 : 0.55,
+                            child: Container(
+                              width: double.infinity,
+                              padding:
+                                  const EdgeInsets.symmetric(vertical: 15),
                               decoration: BoxDecoration(
-                                color: Colors.red.shade50,
-                                borderRadius: BorderRadius.circular(FisioRaios.md),
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(15),
                                 border: Border.all(
-                                  color: Colors.red.shade200,
-                                ),
+                                    color: const Color(0xFFE2E8F0)),
+                                boxShadow: [
+                                  BoxShadow(
+                                      color: Colors.black
+                                          .withValues(alpha: 0.05),
+                                      blurRadius: 16,
+                                      offset: const Offset(0, 8)),
+                                ],
                               ),
                               child: Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
-                                  Icon(
-                                    Icons.error_outline,
-                                    color: Colors.red.shade700,
-                                    size: 20,
-                                  ),
-                                  const SizedBox(width: FisioEspacamentos.sm),
-                                  Expanded(
-                                    child: Text(
-                                      estadoAuth.mensagemErro!,
+                                  if (_carregando)
+                                    const SizedBox(
+                                        width: 20,
+                                        height: 20,
+                                        child: CircularProgressIndicator(
+                                            strokeWidth: 2.4,
+                                            color: FisioCores.primary))
+                                  else
+                                    const _GoogleG(),
+                                  const SizedBox(width: 11),
+                                  const Text('Continuar com Google',
                                       style: TextStyle(
-                                        color: Colors.red.shade700,
-                                        fontSize: 13,
-                                      ),
-                                    ),
-                                  ),
+                                          fontSize: 15,
+                                          fontWeight: FontWeight.w700,
+                                          color: FisioCores.textPrimary)),
                                 ],
                               ),
                             ),
-                          ],
-
-                          const SizedBox(height: FisioEspacamentos.xl),
-
-                          SizedBox(
-                            width: double.infinity,
-                            height: 56,
-                            child: kIsWeb
-                                ? _construirAcaoWeb(
-                                    context,
-                                    ref,
-                                    estadoAuth,
-                                  )
-                                : ElevatedButton(
-                                    onPressed: (estadoAuth.estaCarregando ||
-                                            !estadoAuth.termosAceitos)
-                                        ? null
-                                        : () => ref
-                                              .read(
-                                                provedorAutenticacao
-                                                    .notifier,
-                                              )
-                                              .entrarComGoogle(),
-                                    style: ElevatedButton.styleFrom(
-                                      backgroundColor: FisioCores.primary,
-                                      foregroundColor: Colors.white,
-                                      disabledBackgroundColor: FisioCores
-                                          .primary
-                                          .withValues(alpha: 0.5),
-                                      elevation: estadoAuth.estaCarregando
-                                          ? 0
-                                          : 1,
-                                      shadowColor: FisioCores.primary
-                                          .withValues(alpha: 0.18),
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(
-                                          FisioRaios.base,
-                                        ),
-                                      ),
-                                    ),
-                                    child: estadoAuth.estaCarregando
-                                        ? const SizedBox(
-                                            width: 24,
-                                            height: 24,
-                                            child: CircularProgressIndicator(
-                                              strokeWidth: 3,
-                                              valueColor:
-                                                  AlwaysStoppedAnimation<
-                                                    Color
-                                                  >(Colors.white),
-                                            ),
-                                          )
-                                        : const Row(
-                                            mainAxisAlignment:
-                                                MainAxisAlignment.center,
-                                            children: [
-                                              CircleAvatar(
-                                                radius: 12,
-                                                backgroundColor:
-                                                    Colors.white,
-                                                child: Text(
-                                                  'G',
-                                                  style: TextStyle(
-                                                    color: FisioCores.primary,
-                                                    fontWeight:
-                                                        FontWeight.w600,
-                                                  ),
-                                                ),
-                                              ),
-                                              SizedBox(width: 12),
-                                              Text(
-                                                'Entrar com Google',
-                                                style: TextStyle(
-                                                  fontSize: 16,
-                                                  fontWeight:
-                                                      FontWeight.w600,
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                  ),
                           ),
-                        ],
-                      ),
+                        ),
+                        const SizedBox(height: 18),
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            GestureDetector(
+                              key: const Key('checkbox_termos'),
+                              onTap: () => ref
+                                  .read(provedorAutenticacao.notifier)
+                                  .aceitarTermos(!termosAceitos),
+                              child: Container(
+                                width: 22,
+                                height: 22,
+                                margin: const EdgeInsets.only(top: 1),
+                                decoration: BoxDecoration(
+                                  color: termosAceitos
+                                      ? FisioCores.primary
+                                      : Colors.white,
+                                  borderRadius: BorderRadius.circular(7),
+                                  border: Border.all(
+                                      color: termosAceitos
+                                          ? FisioCores.primary
+                                          : const Color(0xFFCBD5E1),
+                                      width: 2),
+                                ),
+                                child: termosAceitos
+                                    ? const Icon(Icons.check_rounded,
+                                        size: 14, color: Colors.white)
+                                    : null,
+                              ),
+                            ),
+                            const SizedBox(width: 11),
+                            const Expanded(
+                              child: Text.rich(
+                                TextSpan(
+                                  style: TextStyle(
+                                      fontSize: 12,
+                                      height: 1.5,
+                                      fontWeight: FontWeight.w500,
+                                      color: FisioCores.textSecondary),
+                                  children: [
+                                    TextSpan(text: 'Li e concordo com a '),
+                                    TextSpan(
+                                        text: 'Política de Privacidade',
+                                        style: TextStyle(
+                                            color: FisioCores.primary,
+                                            fontWeight: FontWeight.w700)),
+                                    TextSpan(text: ' e os '),
+                                    TextSpan(
+                                        text: 'Termos de Uso',
+                                        style: TextStyle(
+                                            color: FisioCores.primary,
+                                            fontWeight: FontWeight.w700)),
+                                    TextSpan(
+                                        text:
+                                            ', e autorizo o tratamento dos meus dados conforme a LGPD.'),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 16),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 12, vertical: 10),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFF1F4F8),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Row(
+                            children: [
+                              const Icon(Icons.lock_outline_rounded,
+                                  size: 15, color: FisioCores.textMuted),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: Text(
+                                    'Seus dados ficam na sua própria planilha Google. Nada é armazenado em nossos servidores.',
+                                    style: TextStyle(
+                                        fontSize: 11,
+                                        height: 1.4,
+                                        fontWeight: FontWeight.w500,
+                                        color: FisioCores.textMuted)),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
                     ),
-                  ],
+                  ),
                 ),
               ),
             ),
-          ),
+          ],
         ),
-      ),
-    );
-  }
-
-  Widget _construirAcaoWeb(
-    BuildContext context,
-    WidgetRef ref,
-    EstadoAutenticacao estadoAuth,
-  ) {
-    if (estadoAuth.estaCarregando) {
-      return const Center(child: CircularProgressIndicator());
-    }
-
-    if (!estadoAuth.termosAceitos) {
-      return const ElevatedButton(
-        onPressed: null,
-        child: Text('Aceite os termos para entrar'),
-      );
-    }
-
-    return ElevatedButton(
-      onPressed: () =>
-          ref.read(provedorAutenticacao.notifier).entrarComGoogle(),
-      style: ElevatedButton.styleFrom(
-        backgroundColor: FisioCores.primary,
-        foregroundColor: Colors.white,
-        elevation: 1,
-        shadowColor: FisioCores.primary.withValues(alpha: 0.18),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(FisioRaios.base),
-        ),
-      ),
-      child: const Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          CircleAvatar(
-            radius: 12,
-            backgroundColor: Colors.white,
-            child: Text(
-              'G',
-              style: TextStyle(
-                color: FisioCores.primary,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ),
-          SizedBox(width: 12),
-          Text(
-            'Entrar com Google',
-            style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-          ),
-        ],
       ),
     );
   }
 }
 
-class _LinkLegal extends StatelessWidget {
-  final String texto;
-  final Uri url;
-
-  const _LinkLegal({required this.texto, required this.url});
-
+class _GoogleG extends StatelessWidget {
+  const _GoogleG();
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
-    return InkWell(
-      onTap: () => _abrirUrlLegal(context, url),
-      child: Text(
-        texto,
-        style: theme.textTheme.bodyMedium?.copyWith(
-          color: FisioCores.secondary,
-          fontWeight: FontWeight.w600,
-          decoration: TextDecoration.underline,
-        ),
-      ),
-    );
-  }
-
-  Future<void> _abrirUrlLegal(BuildContext context, Uri url) async {
-    final abriu = await launchUrl(url, mode: LaunchMode.externalApplication);
-    if (abriu || !context.mounted) return;
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Não foi possível abrir o documento.')),
+    return Container(
+      width: 20,
+      height: 20,
+      alignment: Alignment.center,
+      decoration: BoxDecoration(borderRadius: BorderRadius.circular(4)),
+      child: const Text('G',
+          style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w800,
+              color: Color(0xFF4285F4))),
     );
   }
 }

@@ -26,10 +26,12 @@ class TelaHistoricoEvolucoes extends ConsumerWidget {
     return Scaffold(
       body: Column(
         children: [
-          FisioPageHeader(
-            title: 'Histórico Clínico',
-            subtitle: paciente.nome,
-            onBack: () => Navigator.pop(context),
+          FisioGradientHeader(
+            padding: const EdgeInsets.fromLTRB(18, 50, 18, 22),
+            titulo: 'Histórico Clínico',
+            subtitulo: paciente.nome,
+            leading: FisioHeaderIconButton(Icons.chevron_left_rounded,
+                onTap: () => Navigator.pop(context)),
           ),
           Expanded(
             child: SafeArea(

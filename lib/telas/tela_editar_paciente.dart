@@ -88,11 +88,12 @@ class _TelaEditarPacienteState extends ConsumerState<TelaEditarPaciente> {
     return Scaffold(
       body: Column(
         children: [
-          FisioPageHeader(
-            title: 'Editar Paciente',
-            subtitle: p.nome,
-            onBack: () => Navigator.pop(context),
-            closeIcon: true,
+          FisioGradientHeader(
+            padding: const EdgeInsets.fromLTRB(18, 50, 18, 22),
+            titulo: 'Editar Paciente',
+            subtitulo: p.nome,
+            leading: FisioHeaderIconButton(Icons.chevron_left_rounded,
+                onTap: () => Navigator.pop(context)),
           ),
           Expanded(
             child: FisioResponsiveCenter(

@@ -1,13 +1,12 @@
-import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../modelos/agendamento.dart';
-import '../modelos/paciente.dart';
 import '../componentes/design_system.dart';
 import '../provedores/provedores_dados.dart';
 import '../utilitarios/utilitarios_data.dart';
 import '../utilitarios/acoes_agendamento.dart';
 import 'tela_cadastro_paciente.dart';
+import 'tela_nova_sessao.dart';
 import 'tela_historico_geral_evolucoes.dart';
 import 'tela_pacientes.dart';
 import 'tela_sessoes.dart';
@@ -24,754 +23,413 @@ class TelaDashboard extends ConsumerStatefulWidget {
 
 class _TelaDashboardState extends ConsumerState<TelaDashboard> {
   int _indiceSelecionado = 0;
-  FiltroPacientes _filtroPacientes = FiltroPacientes.ativos;
-  final ScrollController _dashboardScrollController = ScrollController();
 
   @override
   void initState() {
     super.initState();
     Future.microtask(() {
       if (!mounted) return;
-
       final carregamento = ref.read(provedorCarregamentoDados);
       if (carregamento.carregouComSucesso ||
           carregamento.status == StatusCarregamentoDados.carregando) {
         return;
       }
-
       carregarDadosReais(ref);
     });
   }
 
-  @override
-  void dispose() {
-    _dashboardScrollController.dispose();
-    super.dispose();
+  void _abrirNovaSessao() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => const TelaNovaSessao()),
+    );
+  }
+
+  void _abrirNovoPaciente() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => const TelaCadastroPaciente()),
+    );
+  }
+
+  void _fabAction() {
+    if (_indiceSelecionado == 2) {
+      _abrirNovoPaciente();
+    } else {
+      _abrirNovaSessao();
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    final pacientes = ref.watch(provedorListaPacientes);
     final carregamento = ref.watch(provedorCarregamentoDados);
 
-    final telas = [
-      if (carregamento.carregouComSucesso)
-        _construirConteudoDashboard(context)
-      else if (carregamento.possuiErro)
-        _construirDashboardErro(context, carregamento.mensagemErro)
-      else
-        _construirDashboardCarregando(context),
-      const TelaSessoes(),
-      TelaPacientes(
-        key: ValueKey(_filtroPacientes),
-        filtroInicial: _filtroPacientes,
-      ),
-      const TelaFinanceiro(),
-    ];
+    Widget corpo;
+    if (_indiceSelecionado == 0) {
+      if (carregamento.carregouComSucesso) {
+        corpo = _HomeTab(
+          nomeUsuario: widget.nomeUsuario,
+          onNavegar: (i) => setState(() => _indiceSelecionado = i),
+          onConfiguracoes: () => Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => const TelaConfiguracoes()),
+          ),
+        );
+      } else if (carregamento.possuiErro) {
+        corpo = _ErroTab(mensagem: carregamento.mensagemErro);
+      } else {
+        corpo = const _CarregandoTab();
+      }
+    } else if (_indiceSelecionado == 1) {
+      corpo = TelaSessoes(
+        onAbrir: (a) => _abrirAcoesAgendamento(context, a),
+      );
+    } else if (_indiceSelecionado == 2) {
+      corpo = const TelaPacientes();
+    } else {
+      corpo = const TelaFinanceiro();
+    }
 
     return Scaffold(
       body: Stack(
         children: [
-          telas[_indiceSelecionado.clamp(0, telas.length - 1)],
-          _construirNavFlutuante(context, pacientes, carregamento),
-          _construirFab(context, pacientes, carregamento),
+          corpo,
+          Positioned(
+            left: 0,
+            right: 0,
+            bottom: 0,
+            child: FisioBottomNav(
+              index: _indiceSelecionado,
+              onChanged: (i) => setState(() => _indiceSelecionado = i),
+              onFab: _fabAction,
+            ),
+          ),
         ],
       ),
     );
   }
 
-  Widget _construirNavFlutuante(
-    BuildContext context,
-    List<Paciente> pacientes,
-    EstadoCarregamentoDados carregamento,
-  ) {
-    return Positioned(
-      bottom: 24,
-      left: 16,
-      right: 16,
-      child: SizedBox(
-        height: 86,
-        child: Stack(
-          clipBehavior: Clip.none,
-          alignment: Alignment.topCenter,
-          children: [
-            Positioned(
-              top: 14,
-              left: 0,
-              right: 0,
-              bottom: 0,
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(32),
-                child: BackdropFilter(
-                  filter: ui.ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+  void _abrirAcoesAgendamento(BuildContext context, Agendamento a) {
+    final pacientes = ref.read(provedorListaPacientes);
+    final paciente = pacientes.cast<dynamic>().firstWhere(
+          (p) => p.idPaciente == a.idPaciente,
+          orElse: () => null,
+        );
+    executarAcaoAgendamento(
+        context, ref, AcaoAgendamento.registrarEvolucao, a, paciente);
+  }
+}
+
+// ─── Home tab ───────────────────────────────────────────────────────────────
+
+class _HomeTab extends ConsumerWidget {
+  final String nomeUsuario;
+  final ValueChanged<int>? onNavegar;
+  final VoidCallback? onConfiguracoes;
+
+  const _HomeTab({
+    required this.nomeUsuario,
+    this.onNavegar,
+    this.onConfiguracoes,
+  });
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final agendamentos = ref.watch(provedorListaAgendamentos);
+    final pacientes = ref.watch(provedorListaPacientes);
+    final hoje = DateTime.now();
+
+    final doDia = agendamentos
+        .where((a) => UtilitariosData.mesmoDia(a.data, hoje))
+        .toList()
+      ..sort((a, b) => a.horaInicio.compareTo(b.horaInicio));
+
+    final ativos = pacientes.where((p) => p.estaAtivo).length;
+    final pendencias = agendamentos
+        .where((a) => a.estaAgendado && a.data.isBefore(hoje))
+        .length;
+
+    final saudacao = _saudacao(hoje.hour);
+    final mapaPacientes = {for (final p in pacientes) p.idPaciente: p.nome};
+
+    return ColoredBox(
+      color: FisioCores.surface,
+      child: FisioResponsiveCenter(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.only(bottom: 110),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              FisioGradientHeader(
+                padding: const EdgeInsets.fromLTRB(20, 52, 20, 30),
+                eyebrow: saudacao,
+                titulo: nomeUsuario,
+                trailing: GestureDetector(
+                  onTap: onConfiguracoes,
                   child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 18,
-                      vertical: 10,
-                    ),
+                    width: 42,
+                    height: 42,
+                    alignment: Alignment.center,
                     decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: 0.9),
-                      borderRadius: BorderRadius.circular(32),
+                      color: Colors.white.withValues(alpha: 0.18),
+                      borderRadius: BorderRadius.circular(14),
                       border: Border.all(
-                        color: Colors.white.withValues(alpha: 0.65),
-                      ),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.08),
-                          blurRadius: 24,
-                          offset: const Offset(0, 8),
-                        ),
-                      ],
+                          color: Colors.white.withValues(alpha: 0.25)),
                     ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceAround,
+                    child: Text(fisioIniciais(nomeUsuario),
+                        style: const TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.w800,
+                            fontSize: 15)),
+                  ),
+                ),
+                bottom: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Você tem hoje, ${UtilitariosData.formatarDataExtensa(hoje)}',
+                      style: TextStyle(
+                          fontSize: 12.5,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.white.withValues(alpha: 0.78)),
+                    ),
+                    const SizedBox(height: 2),
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.baseline,
+                      textBaseline: TextBaseline.alphabetic,
                       children: [
-                        _NavItem(
-                          icon: Icons.home_rounded,
-                          label: 'Início',
-                          isActive: _indiceSelecionado == 0,
-                          onTap: () => setState(() => _indiceSelecionado = 0),
-                        ),
-                        _NavItem(
-                          icon: Icons.event_note_rounded,
-                          label: 'Sessões',
-                          isActive: _indiceSelecionado == 1,
-                          onTap: () => setState(() => _indiceSelecionado = 1),
-                        ),
-                        _NavItem(
-                          icon: Icons.people_alt_rounded,
-                          label: 'Pacientes',
-                          isActive: _indiceSelecionado == 2,
-                          onTap: () => setState(() => _indiceSelecionado = 2),
-                        ),
-                        _NavItem(
-                          icon: Icons.account_balance_wallet_rounded,
-                          label: 'Financeiro',
-                          isActive: _indiceSelecionado == 3,
-                          onTap: () => setState(() => _indiceSelecionado = 3),
-                        ),
+                        Text('${doDia.length}',
+                            style: const TextStyle(
+                                fontSize: 44,
+                                fontWeight: FontWeight.w800,
+                                color: Colors.white,
+                                height: 1,
+                                letterSpacing: -1)),
+                        const SizedBox(width: 9),
+                        Text(doDia.length == 1 ? 'sessão' : 'sessões',
+                            style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.w700,
+                                color: Colors.white.withValues(alpha: 0.9))),
                       ],
                     ),
+                  ],
+                ),
+              ),
+              Transform.translate(
+                offset: const Offset(0, -38),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Row(
+                        children: [
+                          Expanded(
+                            child: FisioStatTile(
+                              icone: Icons.people_alt_rounded,
+                              cor: FisioCores.primary,
+                              titulo: 'Pacientes ativos',
+                              valor: '$ativos',
+                            ),
+                          ),
+                          const SizedBox(width: 11),
+                          Expanded(
+                            child: FisioStatTile(
+                              icone: Icons.warning_amber_rounded,
+                              cor: FisioCores.warning,
+                              titulo: 'Pendências',
+                              valor: '$pendencias',
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 22),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          const Text('Agenda de hoje',
+                              style: TextStyle(
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.w800,
+                                  color: FisioCores.textPrimary)),
+                          GestureDetector(
+                            onTap: () => onNavegar?.call(1),
+                            child: const Text('Ver tudo',
+                                style: TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w700,
+                                    color: FisioCores.primary)),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 12),
+                      if (doDia.isEmpty)
+                        const FisioEmptyState(
+                          icone: Icons.event_available_rounded,
+                          titulo: 'Nenhuma sessão hoje',
+                          subtitulo: 'Aproveite para revisar evoluções.',
+                        )
+                      else
+                        ...doDia.map((s) => _linhaAgenda(
+                            s, mapaPacientes[s.idPaciente] ?? 'Paciente')),
+                      const SizedBox(height: 16),
+                      GestureDetector(
+                        onTap: () => Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (_) =>
+                                  const TelaHistoricoGeralEvolucoes()),
+                        ),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                              vertical: 13, horizontal: 18),
+                          decoration: BoxDecoration(
+                            color: FisioCores.card,
+                            borderRadius: BorderRadius.circular(16),
+                            border:
+                                Border.all(color: const Color(0xFFEEF2F5)),
+                          ),
+                          child: const Row(
+                            children: [
+                              Icon(Icons.history_rounded,
+                                  size: 18, color: FisioCores.primary),
+                              SizedBox(width: 10),
+                              Expanded(
+                                child: Text('Histórico de evoluções',
+                                    style: TextStyle(
+                                        fontSize: 13.5,
+                                        fontWeight: FontWeight.w700,
+                                        color: FisioCores.textPrimary)),
+                              ),
+                              Icon(Icons.chevron_right_rounded,
+                                  size: 18, color: Color(0xFFCBD5E1)),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _linhaAgenda(Agendamento s, String nome) {
+    final cor = s.foiRealizado ? FisioCores.success : FisioCores.info;
+    final status = s.foiRealizado ? 'Realizado' : 'Agendado';
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 10),
+      child: FisioCard(
+        padding: const EdgeInsets.fromLTRB(14, 13, 14, 13),
+        child: Row(
+          children: [
+            SizedBox(
+              width: 46,
+              child: Text(s.horaInicio,
+                  style: const TextStyle(
+                      fontSize: 14.5,
+                      fontWeight: FontWeight.w800,
+                      color: FisioCores.textPrimary)),
             ),
+            Container(
+              width: 3,
+              height: 34,
+              margin: const EdgeInsets.symmetric(horizontal: 12),
+              decoration: BoxDecoration(
+                  color: cor, borderRadius: BorderRadius.circular(99)),
+            ),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(nome,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w700,
+                          color: FisioCores.textPrimary)),
+                  const SizedBox(height: 1),
+                  const Text('Atendimento domiciliar',
+                      style: TextStyle(
+                          fontSize: 11.5,
+                          fontWeight: FontWeight.w500,
+                          color: FisioCores.textMuted)),
+                ],
+              ),
+            ),
+            const SizedBox(width: 8),
+            FisioStatusPill(label: status, cor: cor),
           ],
         ),
       ),
     );
   }
 
-  Widget _construirFab(
-    BuildContext context,
-    List<Paciente> pacientes,
-    EstadoCarregamentoDados carregamento,
-  ) {
-    if (_indiceSelecionado != 2) return const SizedBox.shrink();
-
-    if (!carregamento.carregouComSucesso) return const SizedBox.shrink();
-
-    return Positioned(
-      bottom: 120,
-      left: 0,
-      right: 0,
-      child: Center(
-        child: FloatingActionButton.extended(
-          heroTag: 'fab_principal',
-          onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const TelaCadastroPaciente())),
-          icon: const Icon(Icons.person_add_alt_1_rounded),
-          label: const Text('Novo Paciente'),
-          backgroundColor: FisioCores.primary,
-          foregroundColor: Colors.white,
-          elevation: 6,
-        ),
-      ),
-    );
+  String _saudacao(int hora) {
+    if (hora < 12) return 'Bom dia,';
+    if (hora < 18) return 'Boa tarde,';
+    return 'Boa noite,';
   }
+}
 
-  Widget _construirConteudoDashboard(BuildContext context) {
-    final saudacao = UtilitariosData.obterSaudacao();
-    final dataFormatada = UtilitariosData.formatarDataBr(DateTime.now());
-    final theme = Theme.of(context);
-    final pacientes = ref.watch(provedorListaPacientes);
-    final agendamentos = ref.watch(provedorListaAgendamentos);
-    final evolucoes = ref.watch(provedorListaEvolucoes);
-    final hoje = DateTime.now();
-    final agendamentosHoje =
-        agendamentos.where((agendamento) => agendamento.ehDeHoje(hoje)).toList()
-          ..sort((a, b) => a.horaInicio.compareTo(b.horaInicio));
-    final agendamentosHojePendentes = agendamentosHoje
-        .where((agendamento) => agendamento.estaAgendado)
-        .toList();
-    final pendenciasAnteriores =
-        agendamentos
-            .where((agendamento) => agendamento.pendenteDeDiaAnterior(hoje))
-            .toList()
-          ..sort((a, b) => b.data.compareTo(a.data));
+// ─── Loading / Error tabs ────────────────────────────────────────────────────
 
-    return CustomScrollView(
-      controller: _dashboardScrollController,
-      slivers: [
-        // Cabeçalho
-        SliverToBoxAdapter(
-          child: Container(
-            padding: const EdgeInsets.fromLTRB(24, 48, 24, 32),
-            decoration: BoxDecoration(
-              color: FisioCores.primary,
-              borderRadius: const BorderRadius.only(
-                bottomLeft: Radius.circular(40),
-                bottomRight: Radius.circular(40),
-              ),
-              boxShadow: [
-                BoxShadow(
-                  color: FisioCores.primary.withValues(alpha: 0.18),
-                  blurRadius: 26,
-                  offset: const Offset(0, 12),
-                ),
-              ],
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          '$saudacao,',
-                          style: theme.textTheme.titleMedium?.copyWith(
-                            color: Colors.white.withValues(alpha: 0.75),
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          widget.nomeUsuario,
-                          style: theme.textTheme.headlineSmall?.copyWith(
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ],
-                    ),
-                    GestureDetector(
-                      onTap: () => Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => const TelaConfiguracoes(),
-                        ),
-                      ),
-                      child: Container(
-                        width: 48,
-                        height: 48,
-                        decoration: BoxDecoration(
-                          color: Colors.white.withValues(alpha: 0.15),
-                          borderRadius: BorderRadius.circular(16),
-                          border: Border.all(
-                            color: Colors.white.withValues(alpha: 0.3),
-                          ),
-                        ),
-                        child: Center(
-                          child: Text(
-                            widget.nomeUsuario.isNotEmpty
-                                ? widget.nomeUsuario[0].toUpperCase()
-                                : '?',
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 20,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 12),
-                Row(
-                  children: [
-                    Icon(
-                      Icons.calendar_today_rounded,
-                      size: 14,
-                      color: Colors.white.withValues(alpha: 0.7),
-                    ),
-                    const SizedBox(width: 6),
-                    Text(
-                      dataFormatada,
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: Colors.white.withValues(alpha: 0.7),
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-        ),
+class _CarregandoTab extends StatelessWidget {
+  const _CarregandoTab();
 
-        // Cards de Resumo
-        SliverPadding(
-          padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
-          sliver: SliverLayoutBuilder(
-            builder: (context, constraints) {
-              final largura = constraints.crossAxisExtent;
-              return SliverGrid(
-                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: largura > 620 ? 4 : 2,
-                  mainAxisExtent: 156,
-                  crossAxisSpacing: 12,
-                  mainAxisSpacing: 12,
-                ),
-                delegate: SliverChildListDelegate([
-                  _construirCard(
-                    'Pacientes\nCadastrados',
-                    '${pacientes.length}',
-                    Icons.people_alt_rounded,
-                    FisioCores.primary,
-                    onTap: () => _abrirPacientes(FiltroPacientes.todos),
-                  ),
-                  _construirCard(
-                    'Pacientes\nAtivos',
-                    '${pacientes.where((p) => p.estaAtivo).length}',
-                    Icons.person_pin_circle_rounded,
-                    FisioCores.indigo,
-                    onTap: () => _abrirPacientes(FiltroPacientes.ativos),
-                  ),
-                  _construirCard(
-                    'Agenda\ndo Dia',
-                    '${agendamentosHojePendentes.length}',
-                    Icons.schedule_rounded,
-                    FisioCores.warning,
-                    onTap: _rolarParaAgenda,
-                  ),
-                  _construirCard(
-                    'Total de\nEvoluções',
-                    '${evolucoes.length}',
-                    Icons.trending_up_rounded,
-                    FisioCores.pink,
-                    onTap: () => Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => const TelaHistoricoGeralEvolucoes(),
-                      ),
-                    ),
-                  ),
-                ]),
-              );
-            },
-          ),
-        ),
-
-        if (pendenciasAnteriores.isNotEmpty) ...[
-          SliverPadding(
-            padding: const EdgeInsets.fromLTRB(24, 24, 24, 8),
-            sliver: SliverToBoxAdapter(
-              child: _construirTituloSecaoComBadge(
-                context,
-                titulo: 'Pendências',
-                badge: '${pendenciasAnteriores.length} sem desfecho',
-                cor: FisioCores.warning,
-              ),
-            ),
-          ),
-          SliverPadding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            sliver: SliverList.builder(
-              itemCount: pendenciasAnteriores.length,
-              itemBuilder: (context, index) => _construirCardAgenda(
-                context,
-                pendenciasAnteriores[index],
-                pendenteAnterior: true,
-              ),
-            ),
-          ),
-        ],
-
-        // Título da Seção Agenda
-        SliverPadding(
-          padding: const EdgeInsets.fromLTRB(24, 24, 24, 8),
-          sliver: SliverToBoxAdapter(
-            child: _construirTituloSecaoComBadge(
-              context,
-              titulo: 'Agenda de Hoje',
-              badge: dataFormatada,
-              cor: FisioCores.primary,
-            ),
-          ),
-        ),
-
-        SliverPadding(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
-          sliver: agendamentosHojePendentes.isEmpty
-              ? SliverToBoxAdapter(child: _construirAgendaVazia())
-              : SliverList.builder(
-                  itemCount: agendamentosHojePendentes.length,
-                  itemBuilder: (context, index) => _construirCardAgenda(
-                    context,
-                    agendamentosHojePendentes[index],
-                  ),
-                ),
-        ),
-        const SliverToBoxAdapter(child: SizedBox(height: 132)),
-      ],
-    );
-  }
-
-  void _abrirPacientes(FiltroPacientes filtro) {
-    setState(() {
-      _filtroPacientes = filtro;
-      _indiceSelecionado = 2;
-    });
-  }
-
-  void _rolarParaAgenda() {
-    if (!_dashboardScrollController.hasClients) return;
-
-    _dashboardScrollController.animateTo(
-      520,
-      duration: const Duration(milliseconds: 450),
-      curve: Curves.easeOutCubic,
-    );
-  }
-
-  Widget _construirCard(
-    String titulo,
-    String valor,
-    IconData icone,
-    Color cor, {
-    VoidCallback? onTap,
-  }) {
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        borderRadius: BorderRadius.circular(24),
-        onTap: onTap,
-        child: Ink(
-          padding: const EdgeInsets.all(20),
-          decoration: FisioDecoracoes.card(),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Container(
-                width: 48,
-                height: 48,
-                decoration: BoxDecoration(
-                  color: cor.withValues(alpha: 0.12),
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: cor.withValues(alpha: 0.14)),
-                ),
-                child: Icon(icone, color: cor, size: 22),
-              ),
-              const Spacer(),
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  Expanded(
-                    child: Text(
-                      valor,
-                      style: const TextStyle(
-                        fontSize: 26,
-                        fontWeight: FontWeight.bold,
-                        color: FisioCores.textPrimary,
-                      ),
-                    ),
-                  ),
-                  if (onTap != null)
-                    Icon(
-                      Icons.chevron_right_rounded,
-                      color: cor.withValues(alpha: 0.65),
-                      size: 20,
-                    ),
-                ],
-              ),
-              Text(
-                titulo,
-                style: const TextStyle(
-                  fontSize: 11,
-                  color: FisioCores.textSecondary,
-                  height: 1.3,
-                ),
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _construirAgendaVazia() {
-    return Container(
-      padding: const EdgeInsets.all(32),
-      decoration: FisioDecoracoes.card(),
-      child: Column(
-        children: [
-          Icon(
-            Icons.check_circle_outline_rounded,
-            size: 48,
-            color: Colors.grey.shade300,
-          ),
-          const SizedBox(height: 12),
-          const Text(
-            'Tudo limpo!',
-            style: TextStyle(
-              fontWeight: FontWeight.bold,
-              color: FisioCores.textPrimary,
-              fontSize: 16,
-            ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            'Nenhum atendimento agendado para hoje.',
-            textAlign: TextAlign.center,
-            style: TextStyle(color: Colors.grey.shade500, fontSize: 13),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _construirTituloSecaoComBadge(
-    BuildContext context, {
-    required String titulo,
-    required String badge,
-    required Color cor,
-  }) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Text(
-          titulo,
-          style: Theme.of(context).textTheme.titleMedium?.copyWith(
-            fontWeight: FontWeight.w800,
-            color: FisioCores.textPrimary,
-          ),
-        ),
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-          decoration: BoxDecoration(
-            color: cor.withValues(alpha: 0.1),
-            borderRadius: BorderRadius.circular(20),
-          ),
-          child: Text(
-            badge,
-            style: TextStyle(
-              fontSize: 11,
-              fontWeight: FontWeight.bold,
-              color: cor,
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _construirCardAgenda(
-    BuildContext context,
-    Agendamento agendamento, {
-    bool pendenteAnterior = false,
-  }) {
-    final pacientes = ref.watch(provedorListaPacientes);
-    final indicePaciente = pacientes.indexWhere(
-      (item) => item.idPaciente == agendamento.idPaciente,
-    );
-    final paciente = indicePaciente == -1 ? null : pacientes[indicePaciente];
-    final iniciais = paciente != null
-        ? paciente.nome
-              .split(' ')
-              .map((n) => n.isNotEmpty ? n[0] : '')
-              .take(2)
-              .join()
-              .toUpperCase()
-        : '??';
-    final cor = paciente != null
-        ? fisioAvatarColor(paciente.nome)
-        : FisioCores.primary;
-    final agora = DateTime.now();
-    final atrasado = agendamento.estaAtrasado(agora);
-    final statusCor = pendenteAnterior || atrasado
-        ? FisioCores.warning
-        : FisioCores.primary;
-    final statusTexto = pendenteAnterior
-        ? 'Pendente'
-        : atrasado
-        ? 'Atrasado'
-        : 'Agendado';
-
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(16),
-      decoration: FisioDecoracoes.card(),
-      child: Row(
-        children: [
-          Container(
-            width: 56,
-            height: 56,
-            decoration: BoxDecoration(
-              color: cor.withValues(alpha: 0.14),
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: cor.withValues(alpha: 0.16)),
-            ),
-            child: Center(
-              child: Text(
-                iniciais,
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 18,
-                  color: cor,
-                ),
-              ),
-            ),
-          ),
-          const SizedBox(width: 14),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  paciente?.nome ?? 'Paciente não encontrado',
-                  style: const TextStyle(
-                    fontWeight: FontWeight.w700,
-                    fontSize: 15,
-                    color: FisioCores.textPrimary,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Wrap(
-                  spacing: 8,
-                  runSpacing: 6,
-                  crossAxisAlignment: WrapCrossAlignment.center,
-                  children: [
-                    _MetaAgenda(
-                      icon: Icons.schedule_rounded,
-                      label:
-                          '${agendamento.horaInicio} - ${agendamento.horaFim}',
-                    ),
-                    if (pendenteAnterior)
-                      _MetaAgenda(
-                        icon: Icons.calendar_month_rounded,
-                        label: UtilitariosData.formatarDataBr(agendamento.data),
-                      ),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 8,
-                        vertical: 3,
-                      ),
-                      decoration: BoxDecoration(
-                        color: statusCor.withValues(alpha: 0.12),
-                        borderRadius: BorderRadius.circular(999),
-                      ),
-                      child: Text(
-                        statusTexto,
-                        style: TextStyle(
-                          color: statusCor,
-                          fontSize: 11,
-                          fontWeight: FontWeight.w800,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-          PopupMenuButton<AcaoAgendamento>(
-            tooltip: 'Ações da sessão',
-            icon: Icon(Icons.more_vert_rounded, color: Colors.grey.shade500),
-            onSelected: (acao) =>
-                executarAcaoAgendamento(context, ref, acao, agendamento, paciente),
-            itemBuilder: (context) => [
-              if (agendamento.estaAgendado)
-                const PopupMenuItem(
-                  value: AcaoAgendamento.editarSessao,
-                  child: Text('Editar sessão'),
-                ),
-              const PopupMenuItem(
-                value: AcaoAgendamento.registrarEvolucao,
-                child: Text('Registrar evolução'),
-              ),
-              const PopupMenuItem(
-                value: AcaoAgendamento.faltouComAviso,
-                child: Text('Faltou com aviso'),
-              ),
-              const PopupMenuItem(
-                value: AcaoAgendamento.faltouSemAviso,
-                child: Text('Faltou sem aviso'),
-              ),
-              const PopupMenuItem(
-                value: AcaoAgendamento.canceladoPaciente,
-                child: Text('Cancelar pelo paciente'),
-              ),
-              const PopupMenuItem(
-                value: AcaoAgendamento.canceladoProfissional,
-                child: Text('Cancelar pelo profissional'),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _construirDashboardCarregando(BuildContext context) {
-    final theme = Theme.of(context);
-
-    return SafeArea(
+  @override
+  Widget build(BuildContext context) {
+    return const SafeArea(
       child: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            CircularProgressIndicator(
-              valueColor: AlwaysStoppedAnimation<Color>(
-                theme.colorScheme.primary,
-              ),
-            ),
-            const SizedBox(height: 24),
-            Text(
-              'Carregando dados...',
-              style: theme.textTheme.titleMedium?.copyWith(
-                color: Colors.grey.shade600,
-              ),
-            ),
+            CircularProgressIndicator(strokeWidth: 2.5),
+            SizedBox(height: 24),
+            Text('Carregando dados…',
+                style: TextStyle(fontSize: 14, color: FisioCores.textMuted)),
           ],
         ),
       ),
     );
   }
+}
 
-  Widget _construirDashboardErro(BuildContext context, String? mensagemErro) {
-    final theme = Theme.of(context);
+class _ErroTab extends ConsumerWidget {
+  final String? mensagem;
+  const _ErroTab({this.mensagem});
 
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
     return SafeArea(
       child: Center(
         child: Padding(
-          padding: const EdgeInsets.all(24),
+          padding: const EdgeInsets.all(32),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(
-                Icons.cloud_off_rounded,
-                size: 56,
-                color: Colors.red.shade300,
-              ),
+              Icon(Icons.cloud_off_rounded,
+                  size: 56, color: Colors.red.shade300),
               const SizedBox(height: 16),
-              Text(
-                'Não foi possível carregar os dados.',
-                textAlign: TextAlign.center,
-                style: theme.textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
+              const Text('Não foi possível carregar os dados.',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w700,
+                      color: FisioCores.textPrimary)),
               const SizedBox(height: 8),
               Text(
-                mensagemErro ??
+                mensagem ??
                     'Verifique sua conexão e as permissões da planilha.',
                 textAlign: TextAlign.center,
-                style: theme.textTheme.bodyMedium?.copyWith(
-                  color: Colors.grey.shade600,
-                ),
+                style: const TextStyle(
+                    fontSize: 13, color: FisioCores.textSecondary),
               ),
               const SizedBox(height: 24),
               FilledButton.icon(
@@ -787,64 +445,3 @@ class _TelaDashboardState extends ConsumerState<TelaDashboard> {
   }
 }
 
-class _NavItem extends StatelessWidget {
-  final IconData icon;
-  final String label;
-  final bool isActive;
-  final VoidCallback onTap;
-
-  const _NavItem({
-    required this.icon,
-    required this.label,
-    required this.isActive,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final cor = isActive ? FisioCores.primary : FisioCores.textMuted;
-    return GestureDetector(
-      onTap: onTap,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(icon, color: cor, size: 22),
-            const SizedBox(height: 2),
-            Text(
-              label,
-              style: TextStyle(
-                fontSize: 10,
-                fontWeight: FontWeight.bold,
-                color: cor,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _MetaAgenda extends StatelessWidget {
-  final IconData icon;
-  final String label;
-
-  const _MetaAgenda({required this.icon, required this.label});
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Icon(icon, size: 14, color: FisioCores.textMuted),
-        const SizedBox(width: 4),
-        Text(
-          label,
-          style: const TextStyle(color: FisioCores.textSecondary, fontSize: 13),
-        ),
-      ],
-    );
-  }
-}

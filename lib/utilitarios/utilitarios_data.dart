@@ -56,4 +56,26 @@ class UtilitariosData {
   static bool mesmoDia(DateTime a, DateTime b) {
     return a.year == b.year && a.month == b.month && a.day == b.day;
   }
+
+  static const _mesesLongos = [
+    'janeiro', 'fevereiro', 'março', 'abril', 'maio', 'junho',
+    'julho', 'agosto', 'setembro', 'outubro', 'novembro', 'dezembro',
+  ];
+
+  /// "30 de junho"
+  static String formatarDataExtensa(DateTime d) =>
+      '${d.day} de ${_mesesLongos[d.month - 1]}';
+
+  /// "Hoje · 30 jun", "Amanhã · 1 jul", "Ontem · …" ou "30 jun"
+  static String rotuloDiaRelativo(DateTime d) {
+    final hoje = DateTime.now();
+    final dia = DateTime(d.year, d.month, d.day);
+    final base = DateTime(hoje.year, hoje.month, hoje.day);
+    final diff = dia.difference(base).inDays;
+    final curto = '${d.day} ${_nomesMes[d.month - 1].toLowerCase()}';
+    if (diff == 0) return 'Hoje · $curto';
+    if (diff == 1) return 'Amanhã · $curto';
+    if (diff == -1) return 'Ontem · $curto';
+    return curto;
+  }
 }

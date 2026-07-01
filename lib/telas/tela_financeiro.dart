@@ -32,8 +32,6 @@ class _TelaFinanceiroState extends ConsumerState<TelaFinanceiro> {
     });
   }
 
-  // --------- helpers de dados ---------
-
   double _faturadoDoMes(List<Agendamento> ags, DateTime mes) => ags
       .where((a) => a.foiRealizado && UtilitariosData.mesmoMesAno(a.data, mes))
       .fold(0.0, (s, a) => s + a.valorSessao);
@@ -56,13 +54,11 @@ class _TelaFinanceiroState extends ConsumerState<TelaFinanceiro> {
       ..sort((a, b) => b.data.compareTo(a.data));
 
     final faturado = _faturadoDoMes(agendamentos, _mesSelecionado);
-
     final previsto = agendamentos
         .where((a) =>
             a.estaAgendado &&
             UtilitariosData.mesmoMesAno(a.data, _mesSelecionado))
         .fold(0.0, (s, a) => s + a.valorSessao);
-
     final realizadasLista = agendamentos
         .where((a) =>
             a.foiRealizado &&
@@ -74,22 +70,19 @@ class _TelaFinanceiroState extends ConsumerState<TelaFinanceiro> {
             a.estaAgendado &&
             UtilitariosData.mesmoMesAno(a.data, _mesSelecionado))
         .length;
-    final ticketMedio =
-        realizadas > 0 ? faturado / realizadas : 0.0;
+    final ticketMedio = realizadas > 0 ? faturado / realizadas : 0.0;
 
     final mesesGrafico = _ultimosSeisMeses();
     final faturadoPorMes = {
-      for (final m in mesesGrafico)
-        m: _faturadoDoMes(agendamentos, m),
+      for (final m in mesesGrafico) m: _faturadoDoMes(agendamentos, m),
     };
 
     final mesAnterior =
         DateTime(_mesSelecionado.year, _mesSelecionado.month - 1);
     final faturadoAnterior = _faturadoDoMes(agendamentos, mesAnterior);
-
     final mapaPacientes = {for (final p in pacientes) p.idPaciente: p.nome};
 
-    return ColoredBox(
+    return Material(
       color: FisioCores.surface,
       child: FisioResponsiveCenter(
         maxWidth: 620,
@@ -115,10 +108,8 @@ class _TelaFinanceiroState extends ConsumerState<TelaFinanceiro> {
                       if (sessoesDoMes.isEmpty)
                         const _EstadoVazio()
                       else if (_visualizacao == VisualizacaoFinanceiro.lista)
-                        ...sessoesDoMes.map((s) => _cardSessao(
-                              s,
-                              mapaPacientes[s.idPaciente] ?? 'Paciente',
-                            ))
+                        ...sessoesDoMes.map((s) =>
+                            _cardSessao(s, mapaPacientes[s.idPaciente] ?? 'Paciente'))
                       else
                         ..._gruposPorPaciente(sessoesDoMes, mapaPacientes),
                     ],
@@ -132,18 +123,11 @@ class _TelaFinanceiroState extends ConsumerState<TelaFinanceiro> {
     );
   }
 
-  // --------- header ---------
-
   Widget _header(double faturado, double faturadoAnterior) {
     return Container(
       padding: const EdgeInsets.fromLTRB(22, 58, 22, 78),
       decoration: const BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [Color(0xFF5A7888), FisioCores.primary, Color(0xFF3E5663)],
-          stops: [0.0, 0.46, 1.0],
-        ),
+        gradient: FisioGradients.header,
         borderRadius: BorderRadius.only(
           bottomLeft: Radius.circular(34),
           bottomRight: Radius.circular(34),
@@ -160,8 +144,7 @@ class _TelaFinanceiroState extends ConsumerState<TelaFinanceiro> {
                 decoration: BoxDecoration(
                   color: Colors.white.withValues(alpha: 0.16),
                   borderRadius: BorderRadius.circular(14),
-                  border:
-                      Border.all(color: Colors.white.withValues(alpha: 0.22)),
+                  border: Border.all(color: Colors.white.withValues(alpha: 0.22)),
                 ),
                 child: const Icon(Icons.account_balance_wallet_rounded,
                     color: Color(0xFFEAF1F0), size: 22),
@@ -171,25 +154,18 @@ class _TelaFinanceiroState extends ConsumerState<TelaFinanceiro> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      'VISÃO GERAL',
-                      style: TextStyle(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w600,
-                        letterSpacing: 1.4,
-                        color: Colors.white.withValues(alpha: 0.66),
-                      ),
-                    ),
-                    const SizedBox(height: 1),
-                    const Text(
-                      'Financeiro',
-                      style: TextStyle(
-                        fontSize: 21,
-                        fontWeight: FontWeight.w800,
-                        color: Colors.white,
-                        letterSpacing: -0.4,
-                      ),
-                    ),
+                    Text('VISÃO GERAL',
+                        style: TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w600,
+                            letterSpacing: 1.4,
+                            color: Colors.white.withValues(alpha: 0.66))),
+                    const Text('Financeiro',
+                        style: TextStyle(
+                            fontSize: 21,
+                            fontWeight: FontWeight.w800,
+                            color: Colors.white,
+                            letterSpacing: -0.4)),
                   ],
                 ),
               ),
@@ -197,22 +173,17 @@ class _TelaFinanceiroState extends ConsumerState<TelaFinanceiro> {
               const SizedBox(width: 6),
               Container(
                 constraints: const BoxConstraints(minWidth: 86),
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
                 decoration: BoxDecoration(
                   color: Colors.white.withValues(alpha: 0.16),
                   borderRadius: BorderRadius.circular(11),
-                  border:
-                      Border.all(color: Colors.white.withValues(alpha: 0.22)),
+                  border: Border.all(color: Colors.white.withValues(alpha: 0.22)),
                 ),
                 child: Text(
                   UtilitariosData.formatarMesAno(_mesSelecionado),
                   textAlign: TextAlign.center,
                   style: const TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w700,
-                    color: Colors.white,
-                  ),
+                      fontSize: 13, fontWeight: FontWeight.w700, color: Colors.white),
                 ),
               ),
               const SizedBox(width: 6),
@@ -257,10 +228,9 @@ class _TelaFinanceiroState extends ConsumerState<TelaFinanceiro> {
         child: Text(
           '${up ? '↑' : '↓'} ${pct.abs().toStringAsFixed(0)}% vs mês anterior',
           style: TextStyle(
-            fontSize: 12,
-            fontWeight: FontWeight.w700,
-            color: up ? const Color(0xFFC8EBDD) : const Color(0xFFF4CDD0),
-          ),
+              fontSize: 12,
+              fontWeight: FontWeight.w700,
+              color: up ? const Color(0xFFC8EBDD) : const Color(0xFFF4CDD0)),
         ),
       );
     } else {
@@ -277,7 +247,6 @@ class _TelaFinanceiroState extends ConsumerState<TelaFinanceiro> {
                 color: Color(0xFFEAF1F0))),
       );
     }
-
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -305,13 +274,12 @@ class _TelaFinanceiroState extends ConsumerState<TelaFinanceiro> {
             Text(
               _formatarNumero(faturado),
               style: const TextStyle(
-                fontSize: 44,
-                fontWeight: FontWeight.w800,
-                color: Colors.white,
-                letterSpacing: -1.2,
-                height: 1,
-                fontFeatures: [FontFeature.tabularFigures()],
-              ),
+                  fontSize: 44,
+                  fontWeight: FontWeight.w800,
+                  color: Colors.white,
+                  letterSpacing: -1.2,
+                  height: 1,
+                  fontFeatures: [FontFeature.tabularFigures()]),
             ),
           ],
         ),
@@ -319,10 +287,7 @@ class _TelaFinanceiroState extends ConsumerState<TelaFinanceiro> {
     );
   }
 
-  // --------- tiles ---------
-
-  Widget _tiles(
-      double previsto, int agendadas, int realizadas, double ticket) {
+  Widget _tiles(double previsto, int agendadas, int realizadas, double ticket) {
     return Row(
       children: [
         Expanded(
@@ -363,10 +328,9 @@ class _TelaFinanceiroState extends ConsumerState<TelaFinanceiro> {
         border: Border.all(color: const Color(0xFFE8EEF2)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
-            blurRadius: 24,
-            offset: const Offset(0, 12),
-          ),
+              color: Colors.black.withValues(alpha: 0.05),
+              blurRadius: 24,
+              offset: const Offset(0, 12)),
         ],
       ),
       child: Column(
@@ -378,9 +342,8 @@ class _TelaFinanceiroState extends ConsumerState<TelaFinanceiro> {
                 width: 30,
                 height: 30,
                 decoration: BoxDecoration(
-                  color: cor.withValues(alpha: 0.13),
-                  borderRadius: BorderRadius.circular(9),
-                ),
+                    color: cor.withValues(alpha: 0.13),
+                    borderRadius: BorderRadius.circular(9)),
                 child: Icon(icone, color: cor, size: 17),
               ),
               const SizedBox(width: 8),
@@ -395,16 +358,13 @@ class _TelaFinanceiroState extends ConsumerState<TelaFinanceiro> {
           FittedBox(
             fit: BoxFit.scaleDown,
             alignment: Alignment.centerLeft,
-            child: Text(
-              valor,
-              style: const TextStyle(
-                fontSize: 23,
-                fontWeight: FontWeight.w800,
-                color: FisioCores.textPrimary,
-                letterSpacing: -0.5,
-                fontFeatures: [FontFeature.tabularFigures()],
-              ),
-            ),
+            child: Text(valor,
+                style: const TextStyle(
+                    fontSize: 23,
+                    fontWeight: FontWeight.w800,
+                    color: FisioCores.textPrimary,
+                    letterSpacing: -0.5,
+                    fontFeatures: [FontFeature.tabularFigures()])),
           ),
           const SizedBox(height: 2),
           Text(sub,
@@ -418,8 +378,6 @@ class _TelaFinanceiroState extends ConsumerState<TelaFinanceiro> {
       ),
     );
   }
-
-  // --------- gráfico ---------
 
   Widget _cardGrafico(
       List<DateTime> meses, Map<DateTime, double> faturadoPorMes) {
@@ -439,10 +397,9 @@ class _TelaFinanceiroState extends ConsumerState<TelaFinanceiro> {
         border: Border.all(color: const Color(0xFFE8EEF2)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
-            blurRadius: 28,
-            offset: const Offset(0, 14),
-          ),
+              color: Colors.black.withValues(alpha: 0.05),
+              blurRadius: 28,
+              offset: const Offset(0, 14)),
         ],
       ),
       child: Column(
@@ -468,8 +425,7 @@ class _TelaFinanceiroState extends ConsumerState<TelaFinanceiro> {
                 ],
               ),
               Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                 decoration: BoxDecoration(
                   color: FisioCores.secondary.withValues(alpha: 0.12),
                   borderRadius: BorderRadius.circular(999),
@@ -478,12 +434,10 @@ class _TelaFinanceiroState extends ConsumerState<TelaFinanceiro> {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Container(
-                      width: 7,
-                      height: 7,
-                      decoration: const BoxDecoration(
-                          color: FisioCores.secondary,
-                          shape: BoxShape.circle),
-                    ),
+                        width: 7,
+                        height: 7,
+                        decoration: const BoxDecoration(
+                            color: FisioCores.secondary, shape: BoxShape.circle)),
                     const SizedBox(width: 5),
                     Text('média ${_formatarValor(media)}',
                         style: const TextStyle(
@@ -511,8 +465,8 @@ class _TelaFinanceiroState extends ConsumerState<TelaFinanceiro> {
                                   alturaMaxBarra)
                               .clamp(8.0, alturaMaxBarra)
                           : 8.0,
-                      selecionado: UtilitariosData.mesmoMesAno(
-                          meses[i], _mesSelecionado),
+                      selecionado:
+                          UtilitariosData.mesmoMesAno(meses[i], _mesSelecionado),
                     ),
                   ),
               ],
@@ -530,8 +484,7 @@ class _TelaFinanceiroState extends ConsumerState<TelaFinanceiro> {
     required bool selecionado,
   }) {
     return GestureDetector(
-      onTap: () =>
-          setState(() => _mesSelecionado = DateTime(mes.year, mes.month)),
+      onTap: () => setState(() => _mesSelecionado = DateTime(mes.year, mes.month)),
       behavior: HitTestBehavior.opaque,
       child: Column(
         mainAxisAlignment: MainAxisAlignment.end,
@@ -539,12 +492,10 @@ class _TelaFinanceiroState extends ConsumerState<TelaFinanceiro> {
           Text(
             _formatarCurto(valor),
             style: TextStyle(
-              fontSize: 10.5,
-              fontWeight: FontWeight.w700,
-              color:
-                  selecionado ? FisioCores.primary : const Color(0xFFB6C2CC),
-              fontFeatures: const [FontFeature.tabularFigures()],
-            ),
+                fontSize: 10.5,
+                fontWeight: FontWeight.w700,
+                color: selecionado ? FisioCores.primary : const Color(0xFFB6C2CC),
+                fontFeatures: const [FontFeature.tabularFigures()]),
           ),
           const SizedBox(height: 8),
           AnimatedContainer(
@@ -561,17 +512,14 @@ class _TelaFinanceiroState extends ConsumerState<TelaFinanceiro> {
                     )
                   : null,
               color: selecionado ? null : const Color(0xFFDDE6EC),
-              borderRadius: const BorderRadius.vertical(
-                top: Radius.circular(9),
-                bottom: Radius.circular(5),
-              ),
+              borderRadius:
+                  const BorderRadius.vertical(top: Radius.circular(9), bottom: Radius.circular(5)),
               boxShadow: selecionado
                   ? [
                       BoxShadow(
-                        color: FisioCores.secondary.withValues(alpha: 0.5),
-                        blurRadius: 14,
-                        offset: const Offset(0, 8),
-                      ),
+                          color: FisioCores.secondary.withValues(alpha: 0.5),
+                          blurRadius: 14,
+                          offset: const Offset(0, 8))
                     ]
                   : null,
             ),
@@ -580,33 +528,25 @@ class _TelaFinanceiroState extends ConsumerState<TelaFinanceiro> {
           Text(
             UtilitariosData.formatarMesAno(mes).split(' ').first,
             style: TextStyle(
-              fontSize: 11,
-              fontWeight: FontWeight.w700,
-              color: selecionado
-                  ? FisioCores.primary
-                  : FisioCores.textSecondary,
-            ),
+                fontSize: 11,
+                fontWeight: FontWeight.w700,
+                color: selecionado ? FisioCores.primary : FisioCores.textSecondary),
           ),
         ],
       ),
     );
   }
 
-  // --------- seletor ---------
-
   Widget _seletorVisualizacao() {
     return Container(
       padding: const EdgeInsets.all(5),
       decoration: BoxDecoration(
-        color: const Color(0xFFE8EEF2),
-        borderRadius: BorderRadius.circular(16),
-      ),
+          color: const Color(0xFFE8EEF2), borderRadius: BorderRadius.circular(16)),
       child: Row(
         children: [
           Expanded(child: _botaoSeletor('Lista', VisualizacaoFinanceiro.lista)),
           Expanded(
-              child: _botaoSeletor(
-                  'Por paciente', VisualizacaoFinanceiro.porPaciente)),
+              child: _botaoSeletor('Por paciente', VisualizacaoFinanceiro.porPaciente)),
         ],
       ),
     );
@@ -625,27 +565,21 @@ class _TelaFinanceiroState extends ConsumerState<TelaFinanceiro> {
           boxShadow: sel
               ? [
                   BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.10),
-                    blurRadius: 10,
-                    offset: const Offset(0, 4),
-                  ),
+                      color: Colors.black.withValues(alpha: 0.10),
+                      blurRadius: 10,
+                      offset: const Offset(0, 4))
                 ]
               : null,
         ),
-        child: Text(
-          label,
-          textAlign: TextAlign.center,
-          style: TextStyle(
-            fontSize: 13,
-            fontWeight: FontWeight.w700,
-            color: sel ? FisioCores.primary : FisioCores.textSecondary,
-          ),
-        ),
+        child: Text(label,
+            textAlign: TextAlign.center,
+            style: TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w700,
+                color: sel ? FisioCores.primary : FisioCores.textSecondary)),
       ),
     );
   }
-
-  // --------- cards de sessão ---------
 
   Widget _cardSessao(Agendamento sessao, String nome) {
     final cor = sessao.foiRealizado ? FisioCores.success : FisioCores.info;
@@ -662,10 +596,9 @@ class _TelaFinanceiroState extends ConsumerState<TelaFinanceiro> {
           border: Border.all(color: const Color(0xFFEBF0F3)),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withValues(alpha: 0.04),
-              blurRadius: 16,
-              offset: const Offset(0, 8),
-            ),
+                color: Colors.black.withValues(alpha: 0.04),
+                blurRadius: 16,
+                offset: const Offset(0, 8))
           ],
         ),
         child: Row(
@@ -674,17 +607,12 @@ class _TelaFinanceiroState extends ConsumerState<TelaFinanceiro> {
               width: 44,
               height: 44,
               decoration: BoxDecoration(
-                color: corAvatar.withValues(alpha: 0.13),
-                borderRadius: BorderRadius.circular(14),
-              ),
+                  color: corAvatar.withValues(alpha: 0.13),
+                  borderRadius: BorderRadius.circular(14)),
               alignment: Alignment.center,
-              child: Text(
-                fisioIniciais(nome),
-                style: TextStyle(
-                    color: corAvatar,
-                    fontWeight: FontWeight.w800,
-                    fontSize: 14),
-              ),
+              child: Text(fisioIniciais(nome),
+                  style: TextStyle(
+                      color: corAvatar, fontWeight: FontWeight.w800, fontSize: 14)),
             ),
             const SizedBox(width: 13),
             Expanded(
@@ -712,38 +640,29 @@ class _TelaFinanceiroState extends ConsumerState<TelaFinanceiro> {
             Column(
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
-                Text(
-                  _formatarValor(sessao.valorSessao),
-                  style: const TextStyle(
-                    fontSize: 15,
-                    fontWeight: FontWeight.w800,
-                    color: FisioCores.textPrimary,
-                    fontFeatures: [FontFeature.tabularFigures()],
-                  ),
-                ),
+                Text(_formatarValor(sessao.valorSessao),
+                    style: const TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w800,
+                        color: FisioCores.textPrimary,
+                        fontFeatures: [FontFeature.tabularFigures()])),
                 const SizedBox(height: 5),
                 Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 9, vertical: 3),
+                  padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 3),
                   decoration: BoxDecoration(
-                    color: cor.withValues(alpha: 0.12),
-                    borderRadius: BorderRadius.circular(999),
-                  ),
+                      color: cor.withValues(alpha: 0.12),
+                      borderRadius: BorderRadius.circular(999)),
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Container(
-                        width: 6,
-                        height: 6,
-                        decoration:
-                            BoxDecoration(color: cor, shape: BoxShape.circle),
-                      ),
+                          width: 6,
+                          height: 6,
+                          decoration: BoxDecoration(color: cor, shape: BoxShape.circle)),
                       const SizedBox(width: 5),
                       Text(status,
                           style: TextStyle(
-                              fontSize: 11,
-                              fontWeight: FontWeight.w700,
-                              color: cor)),
+                              fontSize: 11, fontWeight: FontWeight.w700, color: cor)),
                     ],
                   ),
                 ),
@@ -754,8 +673,6 @@ class _TelaFinanceiroState extends ConsumerState<TelaFinanceiro> {
       ),
     );
   }
-
-  // --------- visão por paciente ---------
 
   List<Widget> _gruposPorPaciente(
       List<Agendamento> sessoes, Map<String, String> mapaPacientes) {
@@ -785,10 +702,9 @@ class _TelaFinanceiroState extends ConsumerState<TelaFinanceiro> {
             border: Border.all(color: const Color(0xFFEBF0F3)),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withValues(alpha: 0.04),
-                blurRadius: 16,
-                offset: const Offset(0, 8),
-              ),
+                  color: Colors.black.withValues(alpha: 0.04),
+                  blurRadius: 16,
+                  offset: const Offset(0, 8))
             ],
           ),
           child: Column(
@@ -799,15 +715,12 @@ class _TelaFinanceiroState extends ConsumerState<TelaFinanceiro> {
                     width: 46,
                     height: 46,
                     decoration: BoxDecoration(
-                      color: cor.withValues(alpha: 0.13),
-                      borderRadius: BorderRadius.circular(15),
-                    ),
+                        color: cor.withValues(alpha: 0.13),
+                        borderRadius: BorderRadius.circular(15)),
                     alignment: Alignment.center,
                     child: Text(fisioIniciais(nome),
                         style: TextStyle(
-                            color: cor,
-                            fontWeight: FontWeight.w800,
-                            fontSize: 15)),
+                            color: cor, fontWeight: FontWeight.w800, fontSize: 15)),
                   ),
                   const SizedBox(width: 13),
                   Expanded(
@@ -833,15 +746,12 @@ class _TelaFinanceiroState extends ConsumerState<TelaFinanceiro> {
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.end,
                     children: [
-                      Text(
-                        _formatarValor(total),
-                        style: const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w800,
-                          color: FisioCores.primary,
-                          fontFeatures: [FontFeature.tabularFigures()],
-                        ),
-                      ),
+                      Text(_formatarValor(total),
+                          style: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w800,
+                              color: FisioCores.primary,
+                              fontFeatures: [FontFeature.tabularFigures()])),
                       const Text('total',
                           style: TextStyle(
                               fontSize: 11,
@@ -863,8 +773,8 @@ class _TelaFinanceiroState extends ConsumerState<TelaFinanceiro> {
                         value: pct / 100,
                         minHeight: 7,
                         backgroundColor: const Color(0xFFEEF2F5),
-                        valueColor: const AlwaysStoppedAnimation(
-                            FisioCores.success),
+                        valueColor:
+                            const AlwaysStoppedAnimation(FisioCores.success),
                       ),
                     ),
                   ),
@@ -882,8 +792,6 @@ class _TelaFinanceiroState extends ConsumerState<TelaFinanceiro> {
       );
     }).toList();
   }
-
-  // --------- formatação ---------
 
   String _formatarValor(double valor) =>
       'R\$ ${valor.toStringAsFixed(2).replaceAll('.', ',')}';
@@ -911,14 +819,12 @@ class _EstadoVazio extends StatelessWidget {
           Icon(Icons.account_balance_wallet_outlined,
               size: 64, color: Colors.grey.shade300),
           const SizedBox(height: 14),
-          const Text(
-            'Nenhuma sessão neste mês.',
-            textAlign: TextAlign.center,
-            style: TextStyle(
-                fontSize: 15,
-                fontWeight: FontWeight.w500,
-                color: FisioCores.textSecondary),
-          ),
+          Text('Nenhuma sessão neste mês.',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w500,
+                  color: FisioCores.textSecondary)),
         ],
       ),
     );

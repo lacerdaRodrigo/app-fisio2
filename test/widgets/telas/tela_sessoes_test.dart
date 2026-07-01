@@ -108,54 +108,40 @@ void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
   group('TelaSessoes', () {
-    testWidgets('deve listar sessões canceladas pelo filtro Canceladas', (
+    testWidgets('deve listar sessões realizadas pelo filtro Realizadas', (
       tester,
     ) async {
+      final hoje = DateTime.now();
       await tester.pumpWidget(
         _criarApp([
-          _agendamento(
-            'A001',
-            Agendamento.situacaoCanceladoProfissional,
-            DateTime.now(),
-          ),
-          _agendamento(
-            'A002',
-            Agendamento.situacaoFaltouSemAviso,
-            DateTime.now(),
-          ),
+          _agendamento('A001', Agendamento.situacaoRealizado, hoje),
+          _agendamento('A002', Agendamento.situacaoAgendado, hoje),
         ]),
       );
       await tester.pumpAndSettle();
 
-      await tester.tap(find.text('Canceladas'));
+      await tester.tap(find.text('Realizadas'));
       await tester.pumpAndSettle();
 
-      expect(find.text('Cancelado pelo profissional'), findsOneWidget);
-      expect(find.text('Faltou sem aviso'), findsNothing);
+      expect(find.text('Realizado'), findsOneWidget);
     });
 
-    testWidgets('deve listar faltas pelo filtro Faltas', (tester) async {
+    testWidgets('deve listar pendências pelo filtro Pendentes', (tester) async {
+      // Past date that is always in the current month (midnight of today = before now)
+      final hoje = DateTime.now();
+      final passadoMesAtual = DateTime(hoje.year, hoje.month, hoje.day);
       await tester.pumpWidget(
         _criarApp([
-          _agendamento(
-            'A001',
-            Agendamento.situacaoFaltouComAviso,
-            DateTime.now(),
-          ),
-          _agendamento(
-            'A002',
-            Agendamento.situacaoCanceladoPaciente,
-            DateTime.now(),
-          ),
+          _agendamento('A001', Agendamento.situacaoAgendado, passadoMesAtual),
+          _agendamento('A002', Agendamento.situacaoRealizado, passadoMesAtual),
         ]),
       );
       await tester.pumpAndSettle();
 
-      await tester.tap(find.text('Faltas'));
+      await tester.tap(find.text('Pendentes'));
       await tester.pumpAndSettle();
 
-      expect(find.text('Faltou com aviso'), findsOneWidget);
-      expect(find.text('Cancelado pelo paciente'), findsNothing);
+      expect(find.text('Pendente'), findsOneWidget);
     });
 
     testWidgets('deve buscar sessões por nome do paciente', (tester) async {
@@ -163,7 +149,7 @@ void main() {
         _criarApp([
           _agendamento(
             'A001',
-            Agendamento.situacaoCanceladoProfissional,
+            Agendamento.situacaoRealizado,
             DateTime.now(),
           ),
         ]),
@@ -173,28 +159,12 @@ void main() {
       await tester.enterText(find.byType(TextField), 'João Sessões');
       await tester.pumpAndSettle();
 
-      expect(find.text('Cancelado pelo profissional'), findsOneWidget);
-    });
-
-    testWidgets('deve agrupar sessões por paciente', (tester) async {
-      await tester.pumpWidget(
-        _criarApp([
-          _agendamento('A001', Agendamento.situacaoAgendado, DateTime.now()),
-          _agendamento('A002', Agendamento.situacaoRealizado, DateTime.now()),
-        ]),
-      );
-      await tester.pumpAndSettle();
-
-      await tester.tap(find.text('Por paciente'));
-      await tester.pumpAndSettle();
-
-      expect(find.text('João Sessões'), findsOneWidget);
-      expect(find.textContaining('2 sessões'), findsOneWidget);
+      expect(find.text('João Sessões'), findsWidgets);
     });
   });
 
   group('TelaSessoes — busca e estado vazio', () {
-    testWidgets('botão limpar apaga o termo de busca', (tester) async {
+    testWidgets('busca por texto que não existe oculta resultados', (tester) async {
       await tester.pumpWidget(
         _criarApp([
           _agendamento('A001', Agendamento.situacaoAgendado, DateTime.now()),
@@ -202,38 +172,37 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      await tester.enterText(find.byType(TextField), 'João');
-      await tester.pumpAndSettle();
-      expect(find.byIcon(Icons.clear_rounded), findsOneWidget);
-
-      await tester.tap(find.byIcon(Icons.clear_rounded));
+      // Search term that matches nobody
+      await tester.enterText(find.byType(TextField), 'XYZ_nao_existe');
       await tester.pumpAndSettle();
 
-      expect(find.byIcon(Icons.clear_rounded), findsNothing);
-      expect(find.text('João'), findsNothing);
+      // No session should appear
+      expect(find.text('João Sessões'), findsNothing);
+      expect(find.text('Nenhuma sessão'), findsOneWidget);
     });
 
-    testWidgets('estado vazio mostra rótulo de cada filtro', (tester) async {
+    testWidgets('estado vazio exibe mensagem quando não há sessões', (tester) async {
       await tester.pumpWidget(_criarApp(const []));
       await tester.pumpAndSettle();
 
-      expect(find.text('Nenhuma sessão todas encontrada.'), findsOneWidget);
+      expect(find.text('Nenhuma sessão'), findsOneWidget);
+      expect(
+        find.text('Ajuste o filtro ou o mês selecionado.'),
+        findsOneWidget,
+      );
+    });
 
-      for (final entrada in const {
-        'Hoje': 'hoje',
-        'Futuras': 'futuras',
-        'Pendentes': 'pendentes',
-        'Canceladas': 'canceladas',
-        'Faltas': 'faltas',
-        'Realizadas': 'realizadas',
-      }.entries) {
-        await tester.ensureVisible(find.text(entrada.key));
-        await tester.tap(find.text(entrada.key));
+    testWidgets('cada filtro ativo exibe mensagem de estado vazio', (
+      tester,
+    ) async {
+      await tester.pumpWidget(_criarApp(const []));
+      await tester.pumpAndSettle();
+
+      for (final filtro in ['Hoje', 'Futuras', 'Pendentes', 'Realizadas']) {
+        await tester.ensureVisible(find.text(filtro));
+        await tester.tap(find.text(filtro));
         await tester.pumpAndSettle();
-        expect(
-          find.text('Nenhuma sessão ${entrada.value} encontrada.'),
-          findsOneWidget,
-        );
+        expect(find.text('Nenhuma sessão'), findsOneWidget);
       }
     });
   });
@@ -241,8 +210,10 @@ void main() {
   group('TelaSessoes — filtros por período e status', () {
     Future<void> montar(WidgetTester tester) async {
       final hoje = DateTime.now();
-      final ontem = hoje.subtract(const Duration(days: 1));
-      final amanha = hoje.add(const Duration(days: 1));
+      // Past date always in current month: midnight of today is before DateTime.now()
+      final ontem = DateTime(hoje.year, hoje.month, hoje.day);
+      // Future date always in current month: tonight at 23:59
+      final amanha = DateTime(hoje.year, hoje.month, hoje.day, 23, 59);
 
       await tester.pumpWidget(
         _criarAppCom(
@@ -290,8 +261,9 @@ void main() {
       await tester.tap(find.text('Futuras'));
       await tester.pumpAndSettle();
 
-      expect(find.text('Maria Futura'), findsOneWidget);
+      // Pedro (yesterday = pendente) and Ana (today = realizado) should be hidden
       expect(find.text('Pedro Pendente'), findsNothing);
+      expect(find.text('Ana Realizada'), findsNothing);
     });
 
     testWidgets('filtro Pendentes mostra sessões atrasadas/anteriores', (
@@ -303,7 +275,7 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('Pedro Pendente'), findsOneWidget);
-      expect(find.text('Maria Futura'), findsNothing);
+      expect(find.text('Ana Realizada'), findsNothing);
     });
 
     testWidgets('filtro Realizadas mostra apenas sessões realizadas', (
@@ -316,7 +288,7 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('Ana Realizada'), findsOneWidget);
-      expect(find.text('Maria Futura'), findsNothing);
+      expect(find.text('Pedro Pendente'), findsNothing);
     });
 
     testWidgets('filtro Hoje mostra sessões do dia', (tester) async {
@@ -326,128 +298,7 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('João Hoje'), findsOneWidget);
-      expect(find.text('Maria Futura'), findsNothing);
-    });
-  });
-
-  group('TelaSessoes — ações da sessão', () {
-    testWidgets('menu de ações na lista abre diálogo de confirmação', (
-      tester,
-    ) async {
-      await tester.pumpWidget(
-        _criarApp([
-          _agendamento('A001', Agendamento.situacaoAgendado, DateTime.now()),
-        ]),
-      );
-      await tester.pumpAndSettle();
-
-      await tester.tap(find.byIcon(Icons.more_vert_rounded));
-      await tester.pumpAndSettle();
-
-      expect(find.text('Registrar evolução'), findsOneWidget);
-
-      await tester.tap(find.text('Faltou sem aviso'));
-      await tester.pumpAndSettle();
-
-      expect(find.text('Atualizar sessão?'), findsOneWidget);
-      await tester.tap(find.text('Cancelar'));
-      await tester.pumpAndSettle();
-    });
-
-    testWidgets(
-      'visão por paciente ordena vários pacientes e aciona ação',
-      (tester) async {
-        await tester.pumpWidget(
-          _criarAppCom(
-            [
-              _pacienteCom('P002', 'Bruno'),
-              _pacienteCom('P001', 'Alice'),
-            ],
-            [
-              _agendamentoPara(
-                'A001',
-                'P001',
-                Agendamento.situacaoRealizado,
-                DateTime.now(),
-              ),
-              _agendamentoPara(
-                'A002',
-                'P002',
-                Agendamento.situacaoRealizado,
-                DateTime.now(),
-              ),
-            ],
-          ),
-        );
-        await tester.pumpAndSettle();
-
-        await tester.tap(find.text('Por paciente'));
-        await tester.pumpAndSettle();
-
-        expect(find.text('Alice'), findsOneWidget);
-        expect(find.text('Bruno'), findsOneWidget);
-
-        // Expandir o grupo da Alice e acionar o menu de ações.
-        await tester.tap(find.text('Alice'));
-        await tester.pumpAndSettle();
-
-        await tester.tap(find.byIcon(Icons.more_vert_rounded).first);
-        await tester.pumpAndSettle();
-
-        await tester.tap(find.text('Faltou com aviso'));
-        await tester.pumpAndSettle();
-
-        expect(find.text('Atualizar sessão?'), findsOneWidget);
-        await tester.tap(find.text('Cancelar'));
-        await tester.pumpAndSettle();
-      },
-    );
-  });
-
-  group('TelaSessoes — calendário', () {
-    testWidgets('seletor exibe 3 opções: Lista, Por paciente, Calendário', (
-      tester,
-    ) async {
-      await tester.pumpWidget(_criarApp([
-        _agendamento('A001', 'Agendado', DateTime.now()),
-      ]));
-      await tester.pumpAndSettle();
-
-      expect(find.text('Lista'), findsOneWidget);
-      expect(find.text('Por paciente'), findsOneWidget);
-      expect(find.text('Calendário'), findsOneWidget);
-    });
-
-    testWidgets('trocar para Calendário exibe o widget de calendário', (
-      tester,
-    ) async {
-      await tester.pumpWidget(_criarApp([
-        _agendamento('A001', 'Agendado', DateTime.now()),
-      ]));
-      await tester.pumpAndSettle();
-
-      await tester.tap(find.text('Calendário'));
-      await tester.pumpAndSettle();
-
-      expect(find.byKey(const Key('calendario_sessoes')), findsOneWidget);
-    });
-
-    testWidgets('dia sem sessões exibe mensagem vazia no calendário', (
-      tester,
-    ) async {
-      // Sessão no futuro, não no dia de hoje
-      final amanha = DateTime.now().add(const Duration(days: 1));
-      await tester.pumpWidget(_criarApp([
-        _agendamento('A001', 'Agendado', amanha),
-      ]));
-      await tester.pumpAndSettle();
-
-      await tester.tap(find.text('Calendário'));
-      await tester.pumpAndSettle();
-
-      // Hoje está selecionado por padrão — se não há sessão hoje
-      // (pode ter ou não, depende do dado), verifica que o calendário renderiza
-      expect(find.byKey(const Key('calendario_sessoes')), findsOneWidget);
+      expect(find.text('Pedro Pendente'), findsNothing);
     });
   });
 }

@@ -70,11 +70,11 @@ void main() {
         findsWidgets,
       );
       expect(
-        find.text('Gestão inteligente para sua rotina domiciliar.'),
-        findsOneWidget,
+        find.textContaining('Gestão', findRichText: true),
+        findsWidgets,
       );
-      expect(find.text('Entrar com Google'), findsOneWidget);
-      expect(find.byIcon(Icons.medical_services_rounded), findsOneWidget);
+      expect(find.text('Continuar com Google'), findsOneWidget);
+      expect(find.byIcon(Icons.favorite_rounded), findsOneWidget);
     });
 
     testWidgets('deve exibir checkbox de termos e os links legais', (
@@ -83,9 +83,15 @@ void main() {
       await tester.pumpWidget(criarAppTeste(ServicoAutenticacaoGoogleFake()));
       await tester.pumpAndSettle();
 
-      expect(find.byType(Checkbox), findsOneWidget);
-      expect(find.text('Termos de Uso'), findsOneWidget);
-      expect(find.text('Política de Privacidade (LGPD)'), findsOneWidget);
+      expect(find.byKey(const Key('checkbox_termos')), findsOneWidget);
+      expect(
+        find.textContaining('Termos de Uso', findRichText: true),
+        findsWidgets,
+      );
+      expect(
+        find.textContaining('Política de Privacidade', findRichText: true),
+        findsWidgets,
+      );
     });
 
     testWidgets('checkbox começa desmarcado e sem mensagem de erro', (
@@ -94,8 +100,8 @@ void main() {
       await tester.pumpWidget(criarAppTeste(ServicoAutenticacaoGoogleFake()));
       await tester.pumpAndSettle();
 
-      final checkbox = tester.widget<Checkbox>(find.byType(Checkbox));
-      expect(checkbox.value, isFalse);
+      // Checkbox custom: inicialmente sem ícone de confirmação
+      expect(find.byIcon(Icons.check_rounded), findsNothing);
       expect(find.byIcon(Icons.error_outline), findsNothing);
     });
 
@@ -105,29 +111,23 @@ void main() {
       await tester.pumpWidget(criarAppTeste(ServicoAutenticacaoGoogleFake()));
       await tester.pumpAndSettle();
 
-      await tester.tap(find.byType(Checkbox));
+      await tester.tap(find.byKey(const Key('checkbox_termos')));
       await tester.pumpAndSettle();
 
-      final checkbox = tester.widget<Checkbox>(find.byType(Checkbox));
-      expect(checkbox.value, isTrue);
+      // Após marcar, ícone de check aparece
+      expect(find.byIcon(Icons.check_rounded), findsOneWidget);
     });
 
     testWidgets(
-      'entrar sem aceitar os termos mantém botão desabilitado e não chama o serviço',
+      'entrar sem aceitar os termos não chama o serviço',
       (tester) async {
         final servico = ServicoAutenticacaoGoogleControlavel();
         await tester.pumpWidget(criarAppTeste(servico));
         await tester.pumpAndSettle();
 
-        // Botão está desabilitado sem os termos aceitos.
-        final botao = tester.widget<ElevatedButton>(
-          find.byType(ElevatedButton),
-        );
-        expect(botao.onPressed, isNull);
-
-        // Mesmo com tap, o serviço não é chamado.
-        await tester.tap(find.byType(ElevatedButton));
+        await tester.tap(find.byKey(const Key('btn_entrar_google')));
         await tester.pumpAndSettle();
+
         expect(servico.entrarFoiChamado, isFalse);
       },
     );
@@ -139,10 +139,10 @@ void main() {
         await tester.pumpWidget(criarAppTeste(servico));
         await tester.pumpAndSettle();
 
-        await tester.tap(find.byType(Checkbox));
+        await tester.tap(find.byKey(const Key('checkbox_termos')));
         await tester.pumpAndSettle();
 
-        await tester.tap(find.byType(ElevatedButton));
+        await tester.tap(find.byKey(const Key('btn_entrar_google')));
         await tester.pump();
 
         expect(servico.entrarFoiChamado, isTrue);

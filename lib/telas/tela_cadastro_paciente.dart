@@ -82,11 +82,13 @@ class _TelaCadastroPacienteState extends ConsumerState<TelaCadastroPaciente> {
     return Scaffold(
       body: Column(
         children: [
-          FisioPageHeader(
-            title: 'Novo Paciente',
-            subtitle: 'Dados pessoais e anamnese clínica',
-            onBack: () => Navigator.pop(context),
-            closeIcon: true,
+          FisioGradientHeader(
+            padding: const EdgeInsets.fromLTRB(18, 50, 18, 22),
+            titulo: 'Novo Paciente',
+            subtitulo: 'Dados pessoais e anamnese clínica',
+            leading: FisioHeaderIconButton(Icons.chevron_left_rounded,
+                key: const Key('btn_fechar'),
+                onTap: () => Navigator.pop(context)),
           ),
           Expanded(
             child: Form(

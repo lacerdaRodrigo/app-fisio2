@@ -74,6 +74,7 @@ class Paciente {
       UtilitariosData.calcularIdade(dataNascimento, dataReferencia: dataReferencia);
 
   bool get estaAtivo => situacao == 'Ativo';
+  bool get ativo => estaAtivo;
 
 /// Converte para mapa de valores para envio à planilha.
   Map<String, dynamic> paraMapaPlanilha() {

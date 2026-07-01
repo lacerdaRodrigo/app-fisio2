@@ -37,7 +37,7 @@ Paciente _pacienteArquivado(String id, String nome) => Paciente(
 
 Widget _criarApp(
   List<Paciente> pacientes, {
-  FiltroPacientes filtro = FiltroPacientes.ativos,
+  void Function(Paciente)? onAbrir,
 }) {
   return ProviderScope(
     overrides: [
@@ -50,7 +50,7 @@ Widget _criarApp(
         GlobalMaterialLocalizations.delegate,
         GlobalWidgetsLocalizations.delegate,
       ],
-      home: TelaPacientes(filtroInicial: filtro),
+      home: TelaPacientes(onAbrir: onAbrir),
       supportedLocales: const [Locale('en', 'US')],
     ),
   );
@@ -59,7 +59,7 @@ Widget _criarApp(
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
-  group('TelaPacientes - Filtro de Arquivados', () {
+  group('TelaPacientes - Filtro', () {
     testWidgets('deve exibir apenas pacientes ativos por padrão', (
       tester,
     ) async {
@@ -73,7 +73,9 @@ void main() {
       expect(find.text('Maria Arquivada'), findsNothing);
     });
 
-    testWidgets('deve exibir apenas arquivados ao ativar toggle', (tester) async {
+    testWidgets('deve exibir apenas arquivados ao selecionar o filtro', (
+      tester,
+    ) async {
       await tester.pumpWidget(_criarApp([
         _pacienteAtivo('P001', 'João Ativo'),
         _pacienteArquivado('P002', 'Maria Arquivada'),
@@ -87,7 +89,9 @@ void main() {
       expect(find.text('Maria Arquivada'), findsOneWidget);
     });
 
-    testWidgets('deve ocultar arquivados ao desativar toggle', (tester) async {
+    testWidgets('deve voltar a exibir apenas ativos ao reselecionar o filtro', (
+      tester,
+    ) async {
       await tester.pumpWidget(_criarApp([
         _pacienteAtivo('P001', 'João Ativo'),
         _pacienteArquivado('P002', 'Maria Arquivada'),
@@ -97,44 +101,14 @@ void main() {
       await tester.tap(find.text('Arquivados'));
       await tester.pumpAndSettle();
 
-      await tester.tap(find.text('Arquivados'));
+      await tester.tap(find.text('Ativos'));
       await tester.pumpAndSettle();
 
       expect(find.text('João Ativo'), findsOneWidget);
       expect(find.text('Maria Arquivada'), findsNothing);
     });
-  });
 
-  group('TelaPacientes - Badge e Contagem', () {
-    testWidgets('deve exibir badge "Arquivado" no card de paciente arquivado', (
-      tester,
-    ) async {
-      await tester.pumpWidget(_criarApp([
-        _pacienteAtivo('P001', 'João Ativo'),
-        _pacienteArquivado('P002', 'Maria Arquivada'),
-      ]));
-      await tester.pumpAndSettle();
-
-      await tester.tap(find.text('Arquivados'));
-      await tester.pumpAndSettle();
-
-      expect(find.text('Arquivado'), findsOneWidget);
-    });
-
-    testWidgets('deve exibir contagem correta de pacientes ativos', (
-      tester,
-    ) async {
-      await tester.pumpWidget(_criarApp([
-        _pacienteAtivo('P001', 'João Ativo'),
-        _pacienteAtivo('P002', 'Pedro Ativo'),
-        _pacienteArquivado('P003', 'Maria Arquivada'),
-      ]));
-      await tester.pumpAndSettle();
-
-      expect(find.text('2 ativos'), findsOneWidget);
-    });
-
-    testWidgets('filtro "Todos" exibe contagem total', (tester) async {
+    testWidgets('filtro "Todos" exibe ativos e arquivados', (tester) async {
       await tester.pumpWidget(
         _criarApp([
           _pacienteAtivo('P001', 'João Ativo'),
@@ -146,9 +120,36 @@ void main() {
       await tester.tap(find.text('Todos'));
       await tester.pumpAndSettle();
 
-      expect(find.text('2 total'), findsOneWidget);
       expect(find.text('João Ativo'), findsOneWidget);
       expect(find.text('Maria Arquivada'), findsOneWidget);
+    });
+  });
+
+  group('TelaPacientes - Cabeçalho', () {
+    testWidgets('exibe o total de pacientes cadastrados', (tester) async {
+      await tester.pumpWidget(_criarApp([
+        _pacienteAtivo('P001', 'João Ativo'),
+        _pacienteAtivo('P002', 'Pedro Ativo'),
+        _pacienteArquivado('P003', 'Maria Arquivada'),
+      ]));
+      await tester.pumpAndSettle();
+
+      expect(find.text('3'), findsOneWidget);
+      expect(find.text('no total'), findsOneWidget);
+    });
+
+    testWidgets('paciente arquivado exibe o rótulo "Arquivado"', (
+      tester,
+    ) async {
+      await tester.pumpWidget(_criarApp([
+        _pacienteArquivado('P001', 'Maria Arquivada'),
+      ]));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Arquivados'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Arquivado'), findsOneWidget);
     });
   });
 
@@ -191,81 +192,42 @@ void main() {
       expect(find.text('Pedro Ativo'), findsNothing);
     });
 
-    testWidgets('botão limpar restaura a lista completa', (tester) async {
-      await tester.pumpWidget(
-        _criarApp([
-          _pacienteAtivo('P001', 'João Ativo'),
-          _pacienteAtivo('P002', 'Pedro Ativo'),
-        ]),
-      );
-      await tester.pumpAndSettle();
-
-      await tester.enterText(find.byType(TextField), 'João');
-      await tester.pumpAndSettle();
-      expect(find.byIcon(Icons.clear), findsOneWidget);
-
-      await tester.tap(find.byIcon(Icons.clear));
-      await tester.pumpAndSettle();
-
-      expect(find.byIcon(Icons.clear), findsNothing);
-      expect(find.text('João Ativo'), findsOneWidget);
-      expect(find.text('Pedro Ativo'), findsOneWidget);
-    });
-
     testWidgets('lista vazia exibe estado vazio', (tester) async {
       await tester.pumpWidget(_criarApp(const []));
       await tester.pumpAndSettle();
 
-      expect(find.text('Nenhum paciente encontrado.'), findsOneWidget);
+      expect(find.text('Nenhum paciente encontrado'), findsOneWidget);
       expect(find.byIcon(Icons.person_search_rounded), findsOneWidget);
+    });
+
+    testWidgets('busca sem resultado exibe estado vazio', (tester) async {
+      await tester.pumpWidget(
+        _criarApp([_pacienteAtivo('P001', 'João Ativo')]),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.enterText(find.byType(TextField), 'inexistente');
+      await tester.pumpAndSettle();
+
+      expect(find.text('Nenhum paciente encontrado'), findsOneWidget);
     });
   });
 
   group('TelaPacientes - Interação', () {
-    testWidgets('tocar no card abre o modal de detalhes', (tester) async {
+    testWidgets('tocar no card aciona onAbrir com o paciente selecionado', (
+      tester,
+    ) async {
+      Paciente? aberto;
+      final joao = _pacienteAtivo('P001', 'João Ativo');
       await tester.pumpWidget(
-        _criarApp([_pacienteAtivo('P001', 'João Ativo')]),
+        _criarApp([joao], onAbrir: (p) => aberto = p),
       );
       await tester.pumpAndSettle();
 
       await tester.tap(find.text('João Ativo'));
       await tester.pumpAndSettle();
 
-      // Seções exclusivas do modal de detalhes.
-      expect(find.text('Telefone'), findsOneWidget);
-      expect(find.text('Endereço'), findsOneWidget);
-    });
-
-    testWidgets('mudar filtroInicial atualiza o filtro (didUpdateWidget)', (
-      tester,
-    ) async {
-      await tester.pumpWidget(
-        _criarApp(
-          [
-            _pacienteAtivo('P001', 'João Ativo'),
-            _pacienteArquivado('P002', 'Maria Arquivada'),
-          ],
-          filtro: FiltroPacientes.ativos,
-        ),
-      );
-      await tester.pumpAndSettle();
-      expect(find.text('João Ativo'), findsOneWidget);
-      expect(find.text('Maria Arquivada'), findsNothing);
-
-      // Reconstrói a mesma TelaPacientes com outro filtroInicial.
-      await tester.pumpWidget(
-        _criarApp(
-          [
-            _pacienteAtivo('P001', 'João Ativo'),
-            _pacienteArquivado('P002', 'Maria Arquivada'),
-          ],
-          filtro: FiltroPacientes.arquivados,
-        ),
-      );
-      await tester.pumpAndSettle();
-
-      expect(find.text('Maria Arquivada'), findsOneWidget);
-      expect(find.text('João Ativo'), findsNothing);
+      expect(aberto, joao);
     });
   });
 }

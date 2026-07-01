@@ -65,11 +65,13 @@ class _TelaEditarSessaoState extends ConsumerState<TelaEditarSessao> {
     return Scaffold(
       body: Column(
         children: [
-          FisioPageHeader(
-            title: 'Editar Sessão',
-            subtitle: widget.nomePaciente,
-            onBack: () => Navigator.pop(context),
-            closeIcon: true,
+          FisioGradientHeader(
+            padding: const EdgeInsets.fromLTRB(18, 50, 18, 22),
+            titulo: 'Editar Sessão',
+            subtitulo: widget.nomePaciente,
+            leading: FisioHeaderIconButton(Icons.chevron_left_rounded,
+                key: const Key('btn_fechar'),
+                onTap: () => Navigator.pop(context)),
           ),
           Expanded(
             child: FisioResponsiveCenter(
