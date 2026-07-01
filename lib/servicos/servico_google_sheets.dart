@@ -75,6 +75,7 @@ class ServicoGoogleSheets {
         sheets: [
           for (final aba in cabecalhos.keys)
             sheets.Sheet(properties: sheets.SheetProperties(title: aba)),
+          sheets.Sheet(properties: sheets.SheetProperties(title: 'Versao')),
         ],
       ),
       $fields: 'spreadsheetId',

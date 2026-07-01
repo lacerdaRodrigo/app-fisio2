@@ -102,7 +102,7 @@ fisio-home-care/
 │   │       ├── utilitarios_data_test.dart   (23 testes)
 │   │       └── gerador_id_test.dart         (8 testes — 100% cobertura)
 │   │
-│   └── widgets/                     # 164 testes — UI + componentes
+│   └── widgets/                     # 158 testes — UI + componentes
 │       ├── componentes/
 │       │   ├── modal_detalhes_paciente_test.dart   (12 testes)
 │       │   └── rodape_versao_test.dart             (3 testes)
@@ -110,17 +110,17 @@ fisio-home-care/
 │       │   └── acoes_agendamento_test.dart         (6 testes)
 │       └── telas/
 │           ├── tela_login_test.dart                  (6 testes)
-│           ├── tela_dashboard_test.dart              (16 testes — 100% cobertura)
-│           ├── tela_cadastro_paciente_test.dart      (23 testes — 100% cobertura)
+│           ├── tela_dashboard_test.dart              (13 testes)
+│           ├── tela_cadastro_paciente_test.dart      (23 testes)
 │           ├── tela_editar_paciente_test.dart        (6 testes — campos travados + atualização)
 │           ├── tela_editar_sessao_test.dart          (7 testes — editar/reagendar sessão)
 │           ├── tela_financeiro_test.dart             (8 testes — resumo financeiro mensal)
-│           ├── tela_pacientes_test.dart              (12 testes — 100% cobertura)
-│           ├── tela_registro_evolucao_test.dart      (23 testes — 100% cobertura; inclui timeline)
-│           ├── tela_sessoes_test.dart                (15 testes — 100% cobertura)
-│           ├── tela_nova_sessao_test.dart             (9 testes — 100% cobertura)
-│           ├── tela_configuracoes_test.dart          (11 testes — 100% cobertura)
-│           └── tela_historico_geral_evolucoes_test.dart (7 testes — 100% cobertura)
+│           ├── tela_pacientes_test.dart              (11 testes)
+│           ├── tela_registro_evolucao_test.dart      (23 testes — inclui timeline e ditado por voz)
+│           ├── tela_sessoes_test.dart                (10 testes)
+│           ├── tela_nova_sessao_test.dart             (9 testes)
+│           ├── tela_configuracoes_test.dart          (14 testes)
+│           └── tela_historico_geral_evolucoes_test.dart (7 testes)
 │
 ├── documentacao/
 │   ├── MODELO_DADOS.md              # Estrutura das 5 abas da planilha
@@ -134,9 +134,9 @@ fisio-home-care/
 │   ├── chaves.md                    # (no .gitignore) — credenciais
 │   └── testes/
 │       ├── README.md                # Índice de testes
-│       ├── VISAO_GERAL.md           # Overview 207 testes
-│       ├── UNITARIOS.md             # Detalhe dos 89 unitários
-│       └── WIDGETS.md               # Detalhe dos 143 widgets
+│       ├── VISAO_GERAL.md           # Overview 274 testes
+│       ├── UNITARIOS.md             # Detalhe dos 116 unitários
+│       └── WIDGETS.md               # Detalhe dos 158 widgets
 │
 ├── QA/
 │   └── qa.md                        # Script QA manual (NOT E2E automatizado)
@@ -259,7 +259,7 @@ Paciente.calcularIdade()   // ✓ delega para UtilitariosData
 
 ---
 
-## Testes (280 testes automatizados)
+## Testes (274 testes automatizados)
 
 ### Estrutura
 
@@ -267,11 +267,11 @@ Paciente.calcularIdade()   // ✓ delega para UtilitariosData
 test/
 ├── unitarios/  (116 testes)
 │   ├── auxiliares/     — fakes.dart (mocks reutilizados)
-│   ├── modelos/        — 22 testes (serialização, transformação)
+│   ├── modelos/        — 25 testes (serialização, transformação)
 │   ├── servicos/       — 5 testes (preferencias)
-│   └── utilitarios/    — 75 testes (validadores, data, CPF, gerador_id)
+│   └── utilitarios/    — 86 testes (validadores, data, CPF, gerador_id)
 │
-└── widgets/    (164 testes)
+└── widgets/    (158 testes)
     ├── telas/        — 12 telas principais (UI, interação)
     ├── componentes/  — modal de detalhes do paciente + rodapé versão
     └── utilitarios/  — ações de agendamento
@@ -301,10 +301,10 @@ flutter test --coverage
 
 ### Cobertura
 
-✅ **Validação de entrada** — 46 testes (CPF, telefone, nome, data)  
-✅ **Modelos** — 22 testes (serialização, cópia, status)  
-✅ **Utilitários** — 21 testes (idade, formatação)  
-✅ **UI + Interação** — 164 testes (12 telas principais com 100% de cobertura + componentes/utilitários)  
+✅ **Validação de entrada** — 55 testes (CPF, telefone, nome, data)  
+✅ **Modelos** — 25 testes (serialização, cópia, status)  
+✅ **Utilitários** — 31 testes (idade, formatação, geração de ID)  
+✅ **UI + Interação** — 158 testes (12 telas principais + componentes/utilitários)  
 
 ❌ **Não coberto:**
 - Google Sheets API real (usaria quota, seria lento)
@@ -430,7 +430,7 @@ make release-prod  # mescla develop → master → dispara deploy de produção 
 | `documentacao/ESPECIFICACOES_TELAS.md` | Requisitos funcionais das telas | ✅ |
 | `documentacao/SEGURANCA_E_DADOS.md` | LGPD, OAuth, modelo BYODB | ✅ |
 | `documentacao/IMPLEMENTAR.md` | Roadmap priorizado | ✅ |
-| `documentacao/testes/` | 280 testes automatizados | ✅ |
+| `documentacao/testes/` | 274 testes automatizados | ✅ |
 | `documentacao/CI_CD.md` | Pipeline GitHub Actions: fluxo, secrets, uso e troubleshooting | ✅ |
 | `QA/qa.md` | Script QA manual (não é E2E) | ✅ |
 
@@ -475,6 +475,6 @@ Para questões sobre estrutura, padrões ou decisões técnicas, **SEMPRE consul
 
 ---
 
-**Última atualização:** 2026-06-20  
-**Versão:** 1.0.10  
+**Última atualização:** 2026-07-01  
+**Versão:** 1.0.16  
 **Branches:** master, develop

@@ -103,8 +103,10 @@ class RepositorioDadosGoogle {
 
     // Criar nova planilha
     _planilhaId = await _sheets.criarPlanilhaBanco();
-    await _sheets.salvarVersaoEsquema(_planilhaId!);
+    // Persiste o ID antes de gravar a versão: se a gravação falhar, uma
+    // próxima tentativa reaproveita esta planilha em vez de criar outra.
     await Preferencias.salvarPlanilhaId(_planilhaId!);
+    await _sheets.salvarVersaoEsquema(_planilhaId!);
     developer.log(
       'Nova planilha criada com versão ${VersaoEsquema.versaoAtual}',
       name: 'RepositorioDadosGoogle',

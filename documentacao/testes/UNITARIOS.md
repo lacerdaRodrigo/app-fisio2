@@ -1,10 +1,10 @@
-# 📁 Testes Unitários (104 testes)
+# 📁 Testes Unitários (116 testes)
 
 Lógica pura: validação de entrada, transformação de dados, cálculos.
 
 ---
 
-## test/unitarios/utilitarios/ (75 testes)
+## test/unitarios/utilitarios/ (86 testes)
 
 ### validadores_test.dart (46 testes)
 
@@ -76,21 +76,45 @@ Testes isolados da classe ValidadorCpf com casos extremos.
 ✓ Dígitos verificadores aplicados corretamente
 ```
 
-### utilitarios_data_test.dart (12 testes)
+### utilitarios_data_test.dart (23 testes)
 
-Manipulação de datas e horários.
+Manipulação de datas e horários: idade, saudação, formatação, e os
+comparadores usados pelos filtros de Sessões/Financeiro
+(`mesmoDia`, `mesmoMesAno`, retroatividade).
 
 ```dart
-✓ Calcula idade corretamente (nascimento → idade)
-✓ Calcula idade com data de referência
-✓ Retorna idade correta no aniversário
-✓ Retorna idade - 1 antes do aniversário
-✓ Formata DateTime em DD/MM/YYYY
-✓ Converte string DD/MM/YYYY → DateTime
-✓ Calcula próximos 7 dias
-✓ Identifica mesma semana
-✓ Identifica mesmo mês
-✓ Trata datas inválidas
+// Idade
+✓ Idade correta quando o aniversário já passou no ano
+✓ Idade reduzida se o aniversário ainda não chegou no ano
+✓ Idade correta no dia do aniversário
+✓ Idade 0 para um bebê nascido no mesmo ano
+
+// Data/hora retroativa
+✓ Verdadeiro para data no passado
+✓ Falso para data no futuro
+✓ Mesmo dia mas 30 min no passado
+✓ Mesmo dia, 1 minuto no passado é retroativo
+✓ Mesmo dia, 1 minuto no futuro NÃO é retroativo
+✓ Mesmo exato instante NÃO é retroativo
+✓ Ontem qualquer hora é retroativo
+✓ Amanhã 00:00 NÃO é retroativo
+
+// Saudação por horário
+✓ "Bom dia" entre 05h e 11h59
+✓ "Boa tarde" entre 12h e 17h59
+✓ "Boa noite" entre 18h e 04h59
+
+// Formatação
+✓ Formata data no padrão DD/MM/AAAA
+✓ Preenche com zeros à esquerda (dia/mês de um dígito)
+✓ Retorna mês abreviado e ano
+
+// mesmoMesAno / mesmoDia
+✓ Mesmo mês e ano retorna true
+✓ Meses ou anos diferentes retorna false
+✓ Mesmo dia meia-noite é retroativo se hora atual é posterior
+✓ Mesmo dia com horários diferentes retorna true
+✓ Dias diferentes retorna false
 ```
 
 ### gerador_id_test.dart (8 testes — 100% de cobertura)
@@ -127,7 +151,7 @@ Persistência local via SharedPreferences (ID da planilha).
 
 ---
 
-## test/unitarios/modelos/ (24 testes)
+## test/unitarios/modelos/ (25 testes)
 
 Serialização, transformação e comportamento dos modelos de dados.
 
@@ -147,20 +171,21 @@ Modelo Paciente: dados cadastrais, anamnese, status.
 ✓ Preserva anamnese na cópia
 ```
 
-### agendamento_test.dart (9 testes)
+### agendamento_test.dart (10 testes)
 
 Modelo Agendamento: sessões, desfechos, horários.
 
 ```dart
-✓ Gera ID automaticamente
-✓ Valida data/hora não retroativa
-✓ Desfechos válidos: Realizado, Cancelado, Faltou
-✓ paraMapaPlanilha() serializa com 9 colunas
-✓ deLinhaPlanilha() desserializa linha
-✓ Calcula duração corretamente
-✓ Status em aberto vs finalizado
+✓ estaAgendado retorna verdadeiro para situação Agendado
+✓ copiarCom para Realizado atualiza a situação mantendo dados
+✓ paraMapaPlanilha() contém todas as chaves da aba Agenda
+✓ ehDeHoje considera apenas dia, mês e ano
+✓ estaAtrasado considera horário previsto sem desfecho
+✓ pendenteDeDiaAnterior ativa quando vira o dia
 ✓ copiarCom altera campos editáveis e preserva identidade
 ✓ copiarCom sem parâmetros mantém todos os campos iguais
+✓ pendenteDeDiaAnterior não ativa no mesmo dia
+✓ cancelamentos e faltas devem ser desfechos
 ```
 
 ### evolucao_test.dart (6 testes)

@@ -40,7 +40,7 @@ Esta tela permite a gestão, busca, cadastro e visualização detalhada dos paci
 ## 2. Implementação Técnica
 * **Gerenciamento de Estado (Riverpod):**
     * `provedorListaPacientes`: Para carregar os dados do Google Sheets.
-    * `provedorBusca`: Armazena o termo de busca e filtra a lista em tempo real junto com o filtro visual selecionado.
+    * Termo de busca e filtro visual (`Ativos`/`Todos`/`Arquivados`) são estado local de `TelaPacientes`, filtrando a lista em tempo real a cada rebuild.
 * **Validação de Dados:**
     * Atualização do `MODELO_DADOS.md`: Adicionar coluna `CPF` e coluna `Situacao` (Ativo/Arquivado) na aba `Pacientes`.
 * **Cálculo de Idade:** O app deve converter `Data_Nascimento` para a idade atual baseada em `DateTime.now()`.

@@ -1,47 +1,42 @@
-# 🎨 Testes de Widget (143 testes)
+# 🎨 Testes de Widget (158 testes)
 
 Testes de componentes visuais: telas, componentes reutilizáveis e utilitários
 de UI, interação do usuário e estados visuais.
 
 ---
 
-## test/widgets/telas/ (125 testes | 10 arquivos)
+## test/widgets/telas/ (137 testes | 12 arquivos)
 
 Cada arquivo de teste representa uma tela da aplicação.
 
 ---
 
-### tela_dashboard_test.dart (16 testes — 100% de cobertura)
+### tela_dashboard_test.dart (13 testes)
 
-**Tela:** Início (home após login) — cabeçalho, cards de resumo, agenda do dia,
-pendências, navegação inferior e FABs.
+**Tela:** Início (home após login) — cabeçalho, stat tiles, agenda do dia,
+pendências, navegação inferior e FAB.
 
 ```dart
 // Estados de carregamento
 ✓ Estado carregando exibe indicador de progresso
-✓ Estado erro exibe mensagem e botão "Tentar novamente" (reexecuta carga)
+✓ Estado erro exibe mensagem e botão tentar novamente
 
 // Cabeçalho e cards
-✓ Cabeçalho mostra nome e inicial do usuário
+✓ Cabeçalho mostra nome e iniciais do usuário
 ✓ Tocar no avatar abre as Configurações
-✓ Cards de resumo exibem títulos e contagens (cadastrados, ativos)
-✓ Agenda vazia exibe estado "Tudo limpo!"
-
-// Interação com cards
-✓ Card "Pacientes Cadastrados" abre a aba Pacientes
-✓ Card "Pacientes Ativos" abre a aba Pacientes
-✓ Card "Total de Evoluções" navega para o histórico
-✓ Card "Agenda do Dia" rola a lista sem erros
+✓ Stat tiles exibem pacientes ativos e pendências
+✓ Agenda vazia exibe estado vazio com mensagem
+✓ Link "Ver tudo" navega para aba Sessões
+✓ Link Histórico de evoluções navega para a tela
 
 // Navegação inferior e FAB
-✓ Barra inferior alterna abas (Início/Sessões/Pacientes) e mostra os FABs corretos
-✓ FAB "Novo Paciente" abre o cadastro de paciente
-✓ FAB "Nova Sessão" abre a tela de nova sessão
+✓ Barra inferior alterna abas
+✓ FAB na aba Pacientes abre cadastro
 
 // Agenda e pendências
-✓ Lista sessões de hoje com status Agendado e Atrasado
-✓ Pendências de dias anteriores aparecem (com paciente ausente → "Paciente não encontrado")
-✓ Menu de ações da sessão abre opções e diálogo de confirmação
+✓ Lista sessões de hoje na agenda
+✓ Contador de sessões do dia exibido no header
+✓ Pendências são contabilizadas no stat tile
 ```
 
 > Usa notifiers de teste (`CarregamentoComEstado`, `PacientesComDados`,
@@ -50,7 +45,7 @@ pendências, navegação inferior e FABs.
 
 ---
 
-### tela_nova_sessao_test.dart (9 testes — 100% de cobertura)
+### tela_nova_sessao_test.dart (9 testes)
 
 **Tela:** Agendamento de nova sessão — seleção de paciente, data, horário,
 valor e observações.
@@ -99,7 +94,7 @@ valor e observações.
 
 ---
 
-### tela_cadastro_paciente_test.dart (23 testes — 100% de cobertura)
+### tela_cadastro_paciente_test.dart (23 testes)
 
 **Tela:** Cadastro de novo paciente — formulário com validação de campos obrigatórios.
 
@@ -195,39 +190,41 @@ valor e observações.
 
 ---
 
-### tela_pacientes_test.dart (12 testes — 100% de cobertura)
+### tela_pacientes_test.dart (11 testes)
 
-**Tela:** Lista de pacientes com filtros (Todos/Ativos/Arquivados), busca e
-modal de detalhes.
+**Tela:** Lista de pacientes agrupada por letra, com filtro por chips
+(Ativos/Todos/Arquivados) e busca. `TelaPacientes` não abre mais um modal
+diretamente — ela recebe um callback `onAbrir(Paciente)` e delega a navegação
+para quem a hospeda.
 
 ```dart
-// Filtro de arquivados (originais)
+// Filtro
 ✓ Exibir apenas pacientes ativos por padrão
-✓ Toggle "Arquivados" exibe inativos
-✓ Desativar o toggle volta a ocultar arquivados
+✓ Exibir apenas arquivados ao selecionar o filtro
+✓ Voltar a exibir apenas ativos ao reselecionar o filtro
+✓ Filtro "Todos" exibe ativos e arquivados
 
-// Badge e contagem
-✓ Badge "Arquivado" exibido no card
-✓ Contagem correta de pacientes ativos ("2 ativos")
-✓ Filtro "Todos" exibe contagem total ("2 total")
+// Cabeçalho
+✓ Exibe o total de pacientes cadastrados
+✓ Paciente arquivado exibe o rótulo "Arquivado"
 
 // Busca
 ✓ Busca filtra por nome
-✓ Busca filtra por CPF
-✓ Botão limpar restaura a lista completa
-✓ Lista vazia exibe estado vazio ("Nenhum paciente encontrado.")
+✓ Busca por CPF filtra a lista
+✓ Lista vazia exibe estado vazio
+✓ Busca sem resultado exibe estado vazio
 
 // Interação
-✓ Tocar no card abre o modal de detalhes (seções Telefone/Endereço)
-✓ Mudar filtroInicial atualiza o filtro (didUpdateWidget)
+✓ Tocar no card aciona onAbrir com o paciente selecionado
 ```
 
-> Usa `PacientesNotifierComDados` para injetar a lista. A busca por CPF usa um
-> paciente com CPF numérico (o filtro de CPF é case-sensitive).
+> Usa `PacientesNotifierComDados` para injetar a lista. O filtro (`FiltroPacientes`)
+> é estado interno do widget, trocado via `FisioFilterChips` — não existe mais
+> `filtroInicial`/`didUpdateWidget`.
 
 ---
 
-### tela_registro_evolucao_test.dart (23 testes — 100% de cobertura)
+### tela_registro_evolucao_test.dart (23 testes)
 
 **Tela:** Registro de evolução clínica — criar novo, editar existente, transcrição
 por voz. *(O arquivo também cobre a timeline `TelaHistoricoEvolucoes`.)*
@@ -270,63 +267,76 @@ por voz. *(O arquivo também cobre a timeline `TelaHistoricoEvolucoes`.)*
 
 ---
 
-### tela_sessoes_test.dart (12 testes — 100% de cobertura)
+### tela_sessoes_test.dart (10 testes)
 
-**Tela:** Histórico de sessões com filtros por período/status, busca e duas
-visualizações (lista e por paciente).
+**Tela:** Lista de sessões do mês agrupada por dia, com filtros por chip
+(Todas/Hoje/Futuras/Pendentes/Realizadas) e busca por nome do paciente.
 
 ```dart
-// Filtros e busca (originais)
-✓ Filtro "Canceladas" exibe apenas sessões canceladas
-✓ Filtro "Faltas" exibe apenas faltas (com/sem aviso)
-✓ Busca por nome do paciente filtra a lista
-✓ Agrupamento por paciente (visualização "Por paciente")
-✓ Visualização de histórico (lista com status, data, hora, paciente)
+✓ Listar sessões realizadas pelo filtro Realizadas
+✓ Listar pendências pelo filtro Pendentes
+✓ Buscar sessões por nome do paciente
 
 // Busca e estado vazio
-✓ Botão limpar apaga o termo de busca
-✓ Estado vazio mostra o rótulo de cada filtro (todas, hoje, futuras,
-  pendentes, canceladas, faltas, realizadas)
+✓ Busca por texto que não existe oculta resultados
+✓ Estado vazio exibe mensagem quando não há sessões
+✓ Cada filtro ativo exibe mensagem de estado vazio
 
 // Filtros por período e status
 ✓ Filtro "Futuras" mostra apenas sessões futuras
-✓ Filtro "Pendentes" mostra sessões atrasadas/de dias anteriores
+✓ Filtro "Pendentes" mostra sessões atrasadas/anteriores
 ✓ Filtro "Realizadas" mostra apenas sessões realizadas
-✓ Filtro "Hoje" mostra sessões do dia
-
-// Ações da sessão
-✓ Menu de ações na lista abre o diálogo de confirmação
-✓ Visão por paciente ordena vários pacientes e aciona o menu de ações
+✓ Filtro "Hoje" mostra sessões do dia (exclui as já pendentes no mesmo dia)
 ```
 
 > Usa notifiers de teste (`PacientesNotifierComDados`,
 > `AgendamentosNotifierComDados`) para injetar pacientes e agendamentos.
-> Chips fora da tela são revelados com `tester.ensureVisible` antes do toque.
+> O filtro "Hoje" compara `inicioPrevisto` (data+hora) com `DateTime.now()`,
+> não só a data, para não sobrepor com "Pendentes". Chips fora da tela são
+> revelados com `tester.ensureVisible` antes do toque.
 
 ---
 
-### tela_configuracoes_test.dart (11 testes — 100% de cobertura)
+### tela_financeiro_test.dart (8 testes)
 
-**Tela:** Configurações — valor padrão da sessão, dados/privacidade
-(planilha e termos), conta (logout) e logs de auditoria.
+**Tela:** Resumo financeiro mensal — cards de faturado/previsto/sessões
+realizadas, filtro por mês e lista de sessões com visão por paciente.
 
 ```dart
-// Conta e logout (originais)
-✓ Exibe o cartão "Conta" com o botão "Sair da conta" e descrição
-✓ Botão "Sair da conta" abre diálogo de confirmação ("Tem certeza?")
-✓ Cancelar o diálogo mantém na TelaConfiguracoes
+✓ Exibe cards com totais corretos
+✓ Filtra por mês ao trocar chip
+✓ Estado vazio quando não há sessões no mês
+✓ Lista sessões com nome do paciente e badge
+✓ Ignora cancelamentos e faltas nos totais
+✓ Exibe contagem de sessões realizadas
+✓ Visualização por paciente agrupa sessões
+✓ Seletor de visualização alterna entre lista e por paciente
+```
+
+---
+
+### tela_configuracoes_test.dart (14 testes)
+
+**Tela:** Configurações — base de dados (planilha), valor padrão da sessão,
+preferências, conta (logout) e logs de auditoria.
+
+```dart
 ✓ Exibe o título "Configurações"
-✓ Confirmar logout navega para a TelaLogin
+✓ Exibe seção "Base de dados"
+✓ Exibe botões "Sincronizar" e "Abrir no Drive"
+✓ Exibe seção "Valor padrão da sessão"
+✓ Exibe seção "Preferências" com switches
+✓ Exibe link "Sair da conta"
+✓ Exibe link "Exportar logs de auditoria"
+✓ Planilha conectada exibe status Ativa quando ID presente
+✓ Planilha sem ID exibe status Inativa
+✓ Toggle "Notificações" responde ao toque
+✓ Exibe nome de usuário no cabeçalho
 
-// Valor padrão da sessão
-✓ Salvar valor vazio mostra aviso ("Informe um valor padrão.")
-✓ Salvar valor com sucesso mostra confirmação ("Valor padrão salvo.")
-✓ Falha ao salvar exibe snackbar de erro
-
-// Dados e privacidade
-✓ Logs de auditoria são exibidos quando existem
-✓ Visualizar termos abre e fecha o diálogo (LGPD)
-✓ Abrir planilha com falha exibe snackbar de erro
+// Cobertura adicional
+✓ Confirmar logout navega para o login
+✓ Logs de auditoria são copiados ao tocar exportar
+✓ Abrir planilha com falha exibe snackbar
 ```
 
 > Usa `FakeRepoConfig` / `RepoConfigQueFalha` para os caminhos de sucesso e
@@ -337,7 +347,7 @@ visualizações (lista e por paciente).
 
 ---
 
-### tela_historico_geral_evolucoes_test.dart (7 testes — 100% de cobertura)
+### tela_historico_geral_evolucoes_test.dart (7 testes)
 
 **Tela:** Histórico geral de todas as evoluções clínicas, com busca e duas
 visualizações (lista e por paciente).
@@ -453,19 +463,21 @@ flutter test test/widgets/telas/tela_pacientes_test.dart
 
 ## Cobertura de UI
 
-| Tela | Status | Testes | Cobertura |
+| Tela | Status | Testes | Observação |
 |---|---|---|---|
 | Login | ✅ | 6 | Termos LGPD, login Google |
-| Dashboard | ✅ | 16 | 100% |
-| Cadastro Paciente | ✅ | 23 | 100% |
-| Lista Pacientes | ✅ | 12 | 100% |
-| Nova Sessão | ✅ | 9 | 100% |
-| Registro Evolução | ✅ | 23 | 100% |
-| Sessões/Agenda | ✅ | 12 | 100% |
-| Configurações | ✅ | 11 | 100% |
-| Histórico Evoluções | ✅ | 7 | 100% |
+| Dashboard | ✅ | 13 | — |
+| Cadastro Paciente | ✅ | 23 | — |
 | Editar Paciente | ✅ | 6 | Campos travados + atualização |
-| Modal Detalhes Paciente | ✅ | 12 | 93,9% |
+| Editar Sessão | ✅ | 7 | Campos travados + atualização |
+| Lista Pacientes | ✅ | 11 | — |
+| Nova Sessão | ✅ | 9 | — |
+| Registro Evolução | ✅ | 23 | inclui timeline e ditado por voz |
+| Sessões/Agenda | ✅ | 10 | — |
+| Financeiro | ✅ | 8 | — |
+| Configurações | ✅ | 14 | — |
+| Histórico Evoluções | ✅ | 7 | — |
+| Modal Detalhes Paciente | ✅ | 12 | — |
 | Rodapé Versão | ✅ | 3 | Overlay de versão |
-| Ações de Agendamento | ✅ | 6 | 96,2% |
-| **Total** | **✅** | **146** | Telas principais + componentes/utilitários |
+| Ações de Agendamento | ✅ | 6 | — |
+| **Total** | **✅** | **158** | Telas principais + componentes/utilitários |

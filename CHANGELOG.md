@@ -1,5 +1,19 @@
 # Changelog — Fisio Home Care
 
+## [Não lançado] — 2026-07-01
+
+### Design
+- **Redesign visual completo:** nova paleta violeta `#6C4CE0` (primary) + verde-sálvia `#7CB9A8` (secondary), fonte `PlusJakartaSans`. Aplicado a todas as telas principais (`lib/telas/*.dart`) e ao design system compartilhado (`lib/componentes/design_system.dart`). Telas passam a ser componentes "somente corpo" (sem `Scaffold`/bottom-nav próprios, exceto Login), hospedadas por um shell de navegação com `FisioBottomNav`.
+  - `TelaPacientes` deixou de receber `filtroInicial`; o filtro (`Ativos`/`Todos`/`Arquivados`) agora é estado interno trocado via chips, e a abertura de um paciente passa a ser feita por callback (`onAbrir`) em vez de abrir um modal diretamente.
+
+### Correções
+- **Criação de planilha nova sempre falhava (login):** `criarPlanilhaBanco()` criava a planilha só com as abas Pacientes/Agenda/Evolucoes/Configuracoes/Auditoria, sem a aba `Versao`. Logo em seguida, `salvarVersaoEsquema()` tentava escrever em `Versao!A1:B1` — um intervalo numa aba inexistente —, o Google Sheets API rejeitava a chamada e a exceção subia sem tratamento, abortando o login **antes** do ID da planilha ser salvo em `Preferencias`. Resultado: todo primeiro login (sem planilha prévia) falhava silenciosamente, sem criar nem persistir nada. Corrigido criando a aba `Versao` já na criação da planilha, e reordenado para persistir o ID antes de gravar a versão (uma eventual falha nesse passo não perde mais a referência à planilha já criada).
+- **Busca de pacientes ignorava o termo:** em `TelaPacientes`, buscar por nome (sem dígitos) retornava a lista inteira, porque a branch de comparação por CPF comparava com uma string vazia (`cpf.contains('')`), que é sempre verdadeira. Corrigido para só aplicar o filtro de CPF quando a busca contém dígitos.
+- **Filtro "Hoje" de Sessões sobrepunha "Pendentes":** o filtro comparava apenas a data (sem hora) de `Agendamento.data`, então uma sessão atrasada do próprio dia aparecia tanto em "Hoje" quanto em "Pendentes". Corrigido para usar `inicioPrevisto` (data + hora real) e excluir de "Hoje" as sessões já vencidas.
+- **`tela_registro_evolucao.dart`:** botão de voltar sem `Key('btn_fechar')`, inconsistente com as demais telas redesenhadas — adicionada.
+- **CI quebrando por lint:** `flutter analyze` retorna código de saída ≠ 0 mesmo para issues em nível `info`, e o workflow de deploy tratava isso como falha. Corrigidos os 10 lints restantes (const constructors, `BuildContext` após gap assíncrono).
+- Novos/atualizados testes de widget para acompanhar a nova API de `TelaPacientes` e o comportamento do filtro "Hoje" — total **274 testes**.
+
 ## [Não lançado] — 2026-06-20
 
 ### Funcionalidades
